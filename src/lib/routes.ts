@@ -10,10 +10,58 @@ export type SiteRoute = {
   priority: number;
   /** Listed in llms.txt under "Key pages". */
   llms?: boolean;
+  /** Registered (so the page is known) but kept out of the sitemap and marked noindex. */
+  noindex?: boolean;
 };
 
-/** No pages exist yet. */
-export const routes: readonly SiteRoute[] = [];
+export const routes: readonly SiteRoute[] = [
+  {
+    path: "/register",
+    title: "Create your account",
+    description:
+      "Register for Car's Secrets to search auction lots from Copart, IAA and Manheim and see resale value, total cost, profit and a suggested max bid.",
+    changeFrequency: "yearly",
+    priority: 0.5,
+  },
+  {
+    path: "/login",
+    title: "Sign in",
+    description: "Sign in to Car's Secrets with your email and password, or continue with Google or Apple.",
+    changeFrequency: "yearly",
+    priority: 0.5,
+  },
+  {
+    path: "/forgot-password",
+    title: "Forgot your password",
+    description: "Request a password reset link by email for your Car's Secrets account.",
+    changeFrequency: "yearly",
+    priority: 0.2,
+  },
+  {
+    path: "/reset-password",
+    title: "Choose a new password",
+    description: "Set a new password for your Car's Secrets account from the link we emailed you.",
+    changeFrequency: "yearly",
+    priority: 0.1,
+    noindex: true,
+  },
+  {
+    path: "/verify-email",
+    title: "Confirm your email",
+    description: "Confirm the email address of your Car's Secrets account, or request a new confirmation email.",
+    changeFrequency: "yearly",
+    priority: 0.1,
+    noindex: true,
+  },
+  {
+    path: "/account",
+    title: "Your account",
+    description: "Your Car's Secrets account: who you are signed in as, and where to sign out.",
+    changeFrequency: "yearly",
+    priority: 0.1,
+    noindex: true,
+  },
+];
 
 export function getRoute(path: string, registry: readonly SiteRoute[] = routes): SiteRoute {
   const route = registry.find((candidate) => candidate.path === path);

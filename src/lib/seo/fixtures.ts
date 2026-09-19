@@ -12,4 +12,5 @@ export const fixtureRoutes: readonly SiteRoute[] = [
     llms: true,
   },
   { path: "/terms", title: "Terms", description: "Terms description.", changeFrequency: "yearly", priority: 0.2 },
+  { path: "/reset", title: "Reset", description: "Reset page description.", changeFrequency: "yearly", priority: 0.1, noindex: true },
 ];

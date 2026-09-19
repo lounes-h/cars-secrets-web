@@ -52,4 +52,8 @@ describe("metadataForRoute", () => {
   it("fails loudly for a page missing from the registry", () => {
     expect(() => metadataForRoute("/not-registered", {}, fixtureRoutes)).toThrow(/No route registered/);
   });
+
+  it("marks noindex routes noindex", () => {
+    expect(metadataForRoute("/reset", {}, fixtureRoutes).robots).toEqual({ index: false, follow: true });
+  });
 });

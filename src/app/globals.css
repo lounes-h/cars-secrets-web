@@ -39,6 +39,154 @@ body {
   line-height: 1.6;
 }
 
+/* Basic form and button styling until a design system exists. */
+@layer base {
+  h1 {
+    font-size: 1.875rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  label,
+  legend {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    margin-bottom: 0.25rem;
+  }
+
+  input:is([type="text"], [type="email"], [type="tel"], [type="password"]),
+  input:not([type]),
+  select {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  input[aria-invalid="true"] {
+    border-color: var(--brand-red);
+  }
+
+  input[type="checkbox"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    accent-color: var(--brand-red);
+  }
+
+  a {
+    color: var(--brand-red);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  [role="alert"] {
+    color: var(--brand-red);
+    font-size: 0.9375rem;
+  }
+}
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.125rem;
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .btn-primary {
+    background: var(--brand-red);
+    color: #fff;
+  }
+  .btn-primary:hover {
+    filter: brightness(0.92);
+  }
+  .btn-outline {
+    border-color: var(--line);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .btn-outline:hover {
+    border-color: var(--muted);
+  }
+  .btn-ghost {
+    color: var(--ink);
+  }
+  .btn-ghost:hover {
+    background: var(--paper);
+  }
+  .btn-link {
+    padding: 0.25rem 0.5rem;
+    min-height: 0;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  /* An auth page: the heading, lede and form in one readable column. */
+  .auth-panel {
+    width: 100%;
+    max-width: 28rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .auth-panel > p:first-of-type {
+    color: var(--muted);
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+  }
+  .form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+  .divider::before,
+  .divider::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid var(--line);
+  }
+  .hint {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+  .notice {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--brand-red);
+    border-radius: 0.5rem;
+    padding: 1rem;
+  }
+}
+
 :focus-visible {
   outline: 3px solid var(--brand-red);
   outline-offset: 2px;
