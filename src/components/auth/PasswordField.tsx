@@ -18,7 +18,8 @@ export function PasswordField({ name = "password", label = "Password", autoCompl
   return (
     <div>
       <label htmlFor={id}>{label}</label>
-      <input
+      <div className="relative">
+        <input
         id={id}
         name={name}
         type={visible ? "text" : "password"}
@@ -28,10 +29,19 @@ export function PasswordField({ name = "password", label = "Password", autoCompl
         maxLength={128}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
+        className="pr-20"
       />
-      <button type="button" aria-pressed={visible} aria-controls={id} onClick={() => setVisible((v) => !v)}>
-        {visible ? "Hide password" : "Show password"}
-      </button>
+        <button
+          type="button"
+          aria-pressed={visible}
+          aria-controls={id}
+          aria-label={visible ? "Hide password" : "Show password"}
+          onClick={() => setVisible((v) => !v)}
+          className="btn btn-link absolute top-1/2 right-1 -translate-y-1/2"
+        >
+          {visible ? "Hide" : "Show"}
+        </button>
+      </div>
       <FieldError id={`${id}-error`} message={error} />
     </div>
   );

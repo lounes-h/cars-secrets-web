@@ -16,9 +16,15 @@ type Props = {
 /** One email field + captcha: used by "forgot password" and "resend confirmation". */
 export function EmailRequestForm({ action: serverAction, captchaAction, submitLabel, successMessage }: Props) {
   const [state, action, pending] = useActionState(serverAction, undefined);
-  if (state?.ok) return <p role="status">{successMessage}</p>;
+  if (state?.ok) {
+    return (
+      <p role="status" className="notice">
+        {successMessage}
+      </p>
+    );
+  }
   return (
-    <form action={action}>
+    <form action={action} className="form-stack">
       {state?.message && <p role="alert">{state.message}</p>}
       <div>
         <label htmlFor="email">Email</label>
@@ -26,7 +32,7 @@ export function EmailRequestForm({ action: serverAction, captchaAction, submitLa
         <FieldError id="email-error" message={state?.errors?.email} />
       </div>
       <Turnstile action={captchaAction} />
-      <button type="submit" disabled={pending}>
+      <button type="submit" disabled={pending} className="btn btn-primary w-full">
         {submitLabel}
       </button>
     </form>

@@ -42,7 +42,9 @@ directly.
 
 The site is full width. There is no centered page container: sections span
 the viewport with side padding, and only running text is capped at a readable
-line length. The top banner shows the brand logo. A `<picture>` element serves
+line length. Auth pages center their form in one 28rem column (`.auth-panel`).
+The top banner shows the brand logo on the left and the account navigation
+("Sign in", "Register") on the right. A `<picture>` element serves
 `logo-dark.png` (with a white "Secrets") under `prefers-color-scheme: dark`, so
 each visitor downloads one logo.
 

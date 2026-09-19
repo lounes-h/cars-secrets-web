@@ -9,20 +9,20 @@ export function VerifyEmailForm({ token }: { token: string }) {
   const [state, action, pending] = useActionState(verifyEmailAction, undefined);
   if (state?.ok) {
     return (
-      <p role="status">
+      <p role="status" className="notice">
         Your email address is confirmed. <Link href="/login">Sign in</Link>
       </p>
     );
   }
   return (
-    <form action={action}>
+    <form action={action} className="form-stack">
       {state?.message && (
         <p role="alert">
           {state.message} <Link href="/verify-email">Request a new link</Link>
         </p>
       )}
       <input type="hidden" name="token" value={token} />
-      <button type="submit" disabled={pending}>
+      <button type="submit" disabled={pending} className="btn btn-primary w-full">
         Confirm my email
       </button>
     </form>

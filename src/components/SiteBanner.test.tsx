@@ -30,6 +30,14 @@ describe("SiteBanner", () => {
     expect(source?.getAttribute("srcset")).toBe("/brand/logo-dark.png");
   });
 
+  it("links to sign in and register from the account navigation", () => {
+    render(<SiteBanner />);
+    const nav = screen.getByRole("navigation", { name: "Account" });
+    expect(screen.getByRole("banner").contains(nav)).toBe(true);
+    expect(screen.getByRole("link", { name: "Sign in" }).getAttribute("href")).toBe("/login");
+    expect(screen.getByRole("link", { name: "Register" }).getAttribute("href")).toBe("/register");
+  });
+
   it("spans the full width with no max-width container", () => {
     render(<SiteBanner />);
     const banner = screen.getByRole("banner");

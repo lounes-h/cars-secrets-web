@@ -9,14 +9,14 @@ export function ResetPasswordForm({ token }: { token: string }) {
   const [state, action, pending] = useActionState(resetPasswordAction, undefined);
   if (state?.ok) {
     return (
-      <p role="status">
+      <p role="status" className="notice">
         Your password has changed and every other session was signed out. <Link href="/login">Sign in</Link> with
         your new password.
       </p>
     );
   }
   return (
-    <form action={action}>
+    <form action={action} className="form-stack">
       {state?.message && <p role="alert">{state.message}</p>}
       {state?.code === "invalid_token" && (
         <p>
@@ -32,7 +32,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         minLength={10}
         error={state?.errors?.password_confirm}
       />
-      <button type="submit" disabled={pending}>
+      <button type="submit" disabled={pending} className="btn btn-primary w-full">
         Change password
       </button>
     </form>
