@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { composePhone, countries, flagEmoji } from "@/lib/countries";
+import { composePhone, countries, countryFromLanguages, flagEmoji } from "@/lib/countries";
 
 describe("countries", () => {
   it("lists every region with a flag, a name and its calling code, sorted by name", () => {
@@ -26,5 +26,19 @@ describe("composePhone", () => {
   it("is null for an empty number or an unknown country", () => {
     expect(composePhone("US", "  ")).toBeNull();
     expect(composePhone("ZZ", "123")).toBeNull();
+  });
+});
+
+describe("countryFromLanguages", () => {
+  it("takes the first language with a known region", () => {
+    expect(countryFromLanguages("fr-FR,fr;q=0.9,en-US;q=0.8")).toBe("FR");
+    expect(countryFromLanguages("en,de-CH;q=0.8")).toBe("CH");
+    expect(countryFromLanguages("zh-Hant-TW")).toBe("TW");
+  });
+
+  it("falls back when no region is given or known", () => {
+    expect(countryFromLanguages("en")).toBe("US");
+    expect(countryFromLanguages(null, "GB")).toBe("GB");
+    expect(countryFromLanguages("xx-ZZ")).toBe("US");
   });
 });

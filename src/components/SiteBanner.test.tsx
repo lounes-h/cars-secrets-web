@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
-import { LOGO_SIZE, SiteBanner } from "@/components/SiteBanner";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("@/app/(auth)/actions", () => ({ logoutAction: vi.fn() }));
+vi.stubGlobal("fetch", vi.fn(async () => Response.json({ user: null })));
+
+const { LOGO_SIZE, SiteBanner } = await import("@/components/SiteBanner");
 
 afterEach(cleanup);
 
@@ -30,11 +35,11 @@ describe("SiteBanner", () => {
     expect(source?.getAttribute("srcset")).toBe("/brand/logo-dark.png");
   });
 
-  it("links to sign in and register from the account navigation", () => {
+  it("holds the account navigation", async () => {
     render(<SiteBanner />);
     const nav = screen.getByRole("navigation", { name: "Account" });
     expect(screen.getByRole("banner").contains(nav)).toBe(true);
-    expect(screen.getByRole("link", { name: "Sign in" }).getAttribute("href")).toBe("/login");
+    expect((await screen.findByRole("link", { name: "Sign in" })).getAttribute("href")).toBe("/login");
     expect(screen.getByRole("link", { name: "Register" }).getAttribute("href")).toBe("/register");
   });
 

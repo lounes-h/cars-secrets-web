@@ -2,7 +2,16 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import type { z } from "zod";
 import { api, ApiError, type FieldErrors } from "@/lib/api";
+import {
+  emailSchema,
+  fieldErrors,
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema,
+  tokenSchema,
+} from "@/lib/auth-schemas";
 import { composePhone } from "@/lib/countries";
 import {
   clearSession,
@@ -14,64 +23,71 @@ import {
   visitorIp,
 } from "@/lib/session";
 
-export type FormState =
-  | { ok?: boolean; message?: string; code?: string; errors?: FieldErrors; captchaRequired?: boolean }
-  | undefined;
+/** What an action tells its form. Only messages, never tokens or user records. */
+export type FormState = {
+  ok?: boolean;
+  message?: string;
+  code?: string;
+  errors?: FieldErrors;
+  captchaRequired?: boolean;
+};
 
-const text = (formData: FormData, name: string) => String(formData.get(name) ?? "").trim();
-const checked = (formData: FormData, name: string) => formData.get(name) === "on";
-const captcha = (formData: FormData) => text(formData, "cf-turnstile-response") || null;
+/** API field names that differ from the form's. */
+const FORM_FIELD: Record<string, string> = { phone: "phone_number" };
 
 function failure(error: unknown): FormState {
-  if (error instanceof ApiError) {
-    return {
-      message: error.message,
-      code: error.code,
-      errors: error.fields,
-      captchaRequired: error.code === "captcha_required",
-    };
-  }
-  throw error;
+  if (!(error instanceof ApiError)) throw error;
+  const errors: FieldErrors = {};
+  for (const [field, message] of Object.entries(error.fields)) errors[FORM_FIELD[field] ?? field] = message;
+  return { message: error.message, code: error.code, errors, captchaRequired: error.code === "captcha_required" };
 }
 
-export async function registerAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const national = text(formData, "phone_number");
-  const phone = composePhone(text(formData, "phone_country"), national);
-  if (national && !phone) return { errors: { phone: "Choose the country of your phone number." } };
-  const body = {
-    first_name: text(formData, "first_name"),
-    last_name: text(formData, "last_name"),
-    email: text(formData, "email"),
-    phone,
-    password: String(formData.get("password") ?? ""),
-    accept_terms: checked(formData, "accept_terms"),
-    captcha_token: captcha(formData),
-  };
+/** Actions are public endpoints: re-validate whatever the browser sent. */
+function parse<S extends z.ZodType>(schema: S, input: unknown): { data: z.output<S> } | { state: FormState } {
+  const result = schema.safeParse(input);
+  if (result.success) return { data: result.data };
+  return { state: { code: "validation", message: "Please correct the highlighted fields.", errors: fieldErrors(result.error) } };
+}
+
+export async function registerAction(input: unknown): Promise<FormState> {
+  const parsed = parse(registerSchema, input);
+  if ("state" in parsed) return parsed.state;
+  const { data } = parsed;
+  const phone = composePhone(data.phone_country, data.phone_number);
+  if (data.phone_number && !phone) return { errors: { phone_number: "Choose the country of your phone number." } };
   try {
-    await api("/api/auth/register", { body, clientIp: await visitorIp() });
+    await api("/api/auth/register", {
+      body: {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        phone,
+        password: data.password,
+        accept_terms: data.accept_terms,
+        captcha_token: data.captcha_token || null,
+      },
+      clientIp: await visitorIp(),
+    });
   } catch (error) {
     return failure(error);
   }
   return { ok: true };
 }
 
-export async function loginAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const remember = checked(formData, "remember");
+export async function loginAction(input: unknown): Promise<FormState> {
+  const parsed = parse(loginSchema, input);
+  if ("state" in parsed) return parsed.state;
+  const { data } = parsed;
   let token: string;
   try {
     ({ token } = await api<{ token: string }>("/api/auth/login", {
-      body: {
-        email: text(formData, "email"),
-        password: String(formData.get("password") ?? ""),
-        remember,
-        captcha_token: captcha(formData),
-      },
+      body: { email: data.email, password: data.password, remember: data.remember, captcha_token: data.captcha_token || null },
       clientIp: await visitorIp(),
     }));
   } catch (error) {
     return failure(error);
   }
-  await setSession(token, remember);
+  await setSession(token, data.remember);
   redirect("/account");
 }
 
@@ -88,10 +104,12 @@ export async function logoutAction(): Promise<void> {
   redirect("/login");
 }
 
-export async function forgotPasswordAction(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function forgotPasswordAction(input: unknown): Promise<FormState> {
+  const parsed = parse(emailSchema, input);
+  if ("state" in parsed) return parsed.state;
   try {
     await api("/api/auth/forgot-password", {
-      body: { email: text(formData, "email"), captcha_token: captcha(formData) },
+      body: { email: parsed.data.email, captcha_token: parsed.data.captcha_token || null },
       clientIp: await visitorIp(),
     });
   } catch (error) {
@@ -100,37 +118,39 @@ export async function forgotPasswordAction(_prev: FormState, formData: FormData)
   return { ok: true };
 }
 
-export async function resetPasswordAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const password = String(formData.get("password") ?? "");
-  if (password !== String(formData.get("password_confirm") ?? "")) {
-    return { errors: { password_confirm: "The two passwords differ." } };
-  }
-  try {
-    await api("/api/auth/reset-password", {
-      body: { token: text(formData, "token"), password },
-      clientIp: await visitorIp(),
-    });
-  } catch (error) {
-    return failure(error);
-  }
-  return { ok: true };
-}
-
-export async function verifyEmailAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  try {
-    await api("/api/auth/verify-email", { body: { token: text(formData, "token") } });
-  } catch (error) {
-    return failure(error);
-  }
-  return { ok: true };
-}
-
-export async function resendVerificationAction(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function resendVerificationAction(input: unknown): Promise<FormState> {
+  const parsed = parse(emailSchema, input);
+  if ("state" in parsed) return parsed.state;
   try {
     await api("/api/auth/resend-verification", {
-      body: { email: text(formData, "email"), captcha_token: captcha(formData) },
+      body: { email: parsed.data.email, captcha_token: parsed.data.captcha_token || null },
       clientIp: await visitorIp(),
     });
+  } catch (error) {
+    return failure(error);
+  }
+  return { ok: true };
+}
+
+export async function resetPasswordAction(input: unknown): Promise<FormState> {
+  const parsed = parse(resetPasswordSchema, input);
+  if ("state" in parsed) return parsed.state;
+  try {
+    await api("/api/auth/reset-password", {
+      body: { token: parsed.data.token, password: parsed.data.password },
+      clientIp: await visitorIp(),
+    });
+  } catch (error) {
+    return failure(error);
+  }
+  return { ok: true };
+}
+
+export async function verifyEmailAction(input: unknown): Promise<FormState> {
+  const parsed = parse(tokenSchema, input);
+  if ("state" in parsed) return parsed.state;
+  try {
+    await api("/api/auth/verify-email", { body: { token: parsed.data.token } });
   } catch (error) {
     return failure(error);
   }
@@ -139,7 +159,7 @@ export async function resendVerificationAction(_prev: FormState, formData: FormD
 
 /** "Continue with Google / Apple": asks the API for the provider's URL and goes there. */
 export async function socialLoginAction(formData: FormData): Promise<void> {
-  const provider = text(formData, "provider");
+  const provider = String(formData.get("provider") ?? "");
   if (provider !== "google" && provider !== "apple") redirect("/login?error=invalid_state");
   let start: { authorize_url: string; state: string };
   try {

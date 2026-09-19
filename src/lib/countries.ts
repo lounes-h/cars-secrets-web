@@ -32,3 +32,17 @@ export function composePhone(countryCode: string, national: string): string | nu
   const entry = DIAL_CODES.find(([code]) => code === countryCode.toUpperCase());
   return entry ? `+${entry[1]}${digits}` : null;
 }
+
+/**
+ * The visitor's likely country from Accept-Language ("fr-FR,fr;q=0.9,en-US;q=0.8" → "FR"): the
+ * first language tag with a region that has a calling code. Falls back to `fallback`.
+ */
+export function countryFromLanguages(header: string | null | undefined, fallback = "US"): string {
+  const known = new Set(DIAL_CODES.map(([code]) => code));
+  for (const part of (header ?? "").split(",")) {
+    const tag = part.split(";")[0].trim();
+    const region = tag.split("-").slice(1).find((sub) => /^[A-Za-z]{2}$/.test(sub))?.toUpperCase();
+    if (region && known.has(region)) return region;
+  }
+  return fallback;
+}

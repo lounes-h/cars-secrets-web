@@ -63,16 +63,24 @@ See `docs/architecture.md` for details.
   layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
   and `logo-dark.png`, 879×120 16-colour palette PNGs of about 7 KB each. They
   are served as-is because the Next image optimizer makes them larger. Its
-  account navigation always shows "Sign in" and "Register": reading the session
-  there would make every page dynamic, and a signed-in visitor who follows
-  either link is redirected to `/account`.
+  account navigation (`src/components/AccountNav.tsx`) is a client component
+  that asks `/auth/session` after each navigation: "Sign in" and "Register"
+  for visitors, the dealer's name and "Sign out" once signed in. Never read the
+  session in the root layout: it would make every page dynamic.
 - Pages are Server Components and stay static. Add `"use client"` only where
   interaction needs it. Pages that read the session (`/register`, `/login`,
   `/account`) or a token from the URL are dynamic by necessity.
 - Auth lives in the `src/app/(auth)` route group: `actions.ts` holds every auth
   server action, the pages sit next to it, and `/account` sits outside it.
-  Forms are client components in `src/components/auth/` (they need
-  `useActionState`); `PhoneField` and `SocialButtons` stay Server Components.
+  Forms use React Hook Form with Zod (`src/lib/auth-schemas.ts`): the same
+  schema validates in the browser and again in the server action, and the form
+  keeps its values when the server answers with errors
+  (`showServerErrors` in `src/components/auth/form-helpers.ts`). Actions take
+  the form's values as an object, not `FormData`. Only the social buttons post
+  a plain form (`socialLoginAction`).
+- The email typed in any auth form is remembered for the tab
+  (`src/lib/remembered-email.ts`, sessionStorage) and prefilled in the others
+  through `useRememberedEmail`. Never put it in a URL.
 - The session is the API's token in the httpOnly `cs_session` cookie, set and
   cleared only through `src/lib/session.ts`. Read the signed-in user with
   `currentUser()`; never decode or trust the cookie in the browser.

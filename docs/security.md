@@ -24,8 +24,13 @@ hashing, throttling, captcha and token rules.
 
 - Server actions are POST endpoints anyone can call. Next.js rejects requests
   whose `Origin` differs from the host (CSRF), and the session cookie is
-  `SameSite=Lax`. Actions pass input to the API, which validates it; they return
-  only messages and field errors, never tokens or user records.
+  `SameSite=Lax`. Actions parse their input with the same Zod schemas as the
+  forms before calling the API, which validates again; they return only messages
+  and field errors, never tokens or user records.
+- `/auth/session` returns only the signed-in user's first name and email, with
+  `Cache-Control: private, no-store`, for the banner.
+- The email typed in an auth form is kept in sessionStorage for the tab, never
+  in a URL, so it does not reach server logs or referrers.
 - Token links (`/verify-email`, `/reset-password`) need a click to use the token,
   so link scanners cannot consume it. Those pages are `noindex`.
 - Register, forgot-password and resend-confirmation show the same message

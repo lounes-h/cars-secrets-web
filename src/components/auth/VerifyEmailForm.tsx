@@ -1,29 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { verifyEmailAction } from "@/app/(auth)/actions";
+import { FormError } from "@/components/auth/FieldError";
+import { showServerErrors } from "@/components/auth/form-helpers";
+import type { TokenInput } from "@/lib/auth-schemas";
 
 /** A button rather than confirming on page load, so mail scanners that open links cannot use the token. */
 export function VerifyEmailForm({ token }: { token: string }) {
-  const [state, action, pending] = useActionState(verifyEmailAction, undefined);
-  if (state?.ok) {
+  const [done, setDone] = useState(false);
+  const form = useForm<TokenInput>({ defaultValues: { token } });
+  const { handleSubmit, formState } = form;
+
+  const onSubmit = handleSubmit(async (values) => {
+    const state = await verifyEmailAction(values);
+    if (state?.ok) setDone(true);
+    else showServerErrors(form, state);
+  });
+
+  if (done) {
     return (
-      <p role="status" className="notice">
-        Your email address is confirmed. <Link href="/login">Sign in</Link>
-      </p>
+      <div role="status" className="form-stack">
+        <p className="notice">Your email address is confirmed.</p>
+        <Link href="/login" className="btn btn-primary w-full">
+          Sign in
+        </Link>
+      </div>
     );
   }
   return (
-    <form action={action} className="form-stack">
-      {state?.message && (
-        <p role="alert">
-          {state.message} <Link href="/verify-email">Request a new link</Link>
-        </p>
-      )}
-      <input type="hidden" name="token" value={token} />
-      <button type="submit" disabled={pending} className="btn btn-primary w-full">
-        Confirm my email
+    <form onSubmit={onSubmit} className="form-stack">
+      <FormError message={formState.errors.root?.server?.message}>
+        {" "}
+        <Link href="/verify-email">Request a new link</Link>
+      </FormError>
+      <button type="submit" disabled={formState.isSubmitting} className="btn btn-primary w-full">
+        {formState.isSubmitting ? "Confirming…" : "Confirm my email"}
       </button>
     </form>
   );

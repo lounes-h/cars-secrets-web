@@ -16,7 +16,9 @@ src/
     opengraph-image.tsx  Share image: logo, tagline, brand red (fonts from assets/fonts)
     icon.png, apple-icon.png, manifest.ts
   components/          Presentational Server Components (JsonLd, SiteBanner)
-    auth/              Auth forms (client), PasswordField, PhoneField, Turnstile, SocialButtons
+    AccountNav.tsx     Banner's account links: asks /auth/session, shows sign in / register or the user
+    auth/              Auth forms (React Hook Form), PasswordField, PhoneField, Turnstile, SocialButtons,
+                       form-helpers (server errors on fields, remembered email)
   lib/
     site.ts            Site identity (name "Car's Secrets", brand colours) and URL resolution
     og.ts              Fonts and logo loader for generated images
@@ -24,6 +26,8 @@ src/
     deal.ts            Deal arithmetic: acquisition cost, profit, margin, max bid
     api.ts             Server-only client for the API; errors become ApiError
     session.ts         Session and OAuth-state cookies, currentUser(), visitor IP, safePath
+    auth-schemas.ts    Zod schemas shared by the auth forms and server actions
+    remembered-email.ts  The email last typed in an auth form, per tab (sessionStorage)
     countries.ts       Countries with flag, name and calling code; phone composition
     dial-codes.ts      Generated: region code and calling code for 245 regions
     seo/               Metadata, JSON-LD, robots, sitemap and llms.txt builders
@@ -43,8 +47,11 @@ directly.
 The site is full width. There is no centered page container: sections span
 the viewport with side padding, and only running text is capped at a readable
 line length. Auth pages center their form in one 28rem column (`.auth-panel`).
-The top banner shows the brand logo on the left and the account navigation
-("Sign in", "Register") on the right. A `<picture>` element serves
+The top banner shows the brand logo on the left and the account navigation on the
+right: "Sign in" and "Register", or the signed-in dealer's initial, name and "Sign out".
+The navigation is a client component that asks `/auth/session` (a route handler returning
+only the first name and email) after every navigation, so the pages themselves stay
+static and signing in or out, which both redirect, updates it. A `<picture>` element serves
 `logo-dark.png` (with a white "Secrets") under `prefers-color-scheme: dark`, so
 each visitor downloads one logo.
 
@@ -104,15 +111,25 @@ site never stores credentials or talks to a database: server actions in
 visitor's address with the shared `API_INTERNAL_KEY` so the API rate-limits visitors and
 not this server.
 
+Forms use React Hook Form and the Zod schemas in `src/lib/auth-schemas.ts`. Errors show
+when a field loses focus and on submit, before any request. The server action parses
+the same schema again, calls the API and returns field errors, which `showServerErrors`
+puts on the matching inputs without clearing the form. The email typed in one auth form
+is remembered for the tab and prefilled in the others; sign in then focuses the password.
+
 - **Register**: the form posts names, email, the phone (country select + number, joined
   into `+<calling code><digits>`; the API normalizes to E.164), password, the terms
-  checkbox and the Turnstile token. The page then asks the visitor to check their email.
+  checkbox and the Turnstile token. The country defaults to the region of the browser's
+  first language (`countryFromLanguages`). The password field shows the length rule live
+  and warns about Caps Lock. On success the form shows where the email went and a "Go to
+  sign in" button.
 - **Confirm**: the email links to `/verify-email?token=…`. The page shows a button;
   confirming on page load would let mail scanners that open links use the token.
 - **Sign in**: on success the API returns a token, which becomes the `cs_session`
   cookie (30 days with "remember me", browser session otherwise), and the visitor lands
   on `/account`. When the API answers `captcha_required`, the form shows the Turnstile
-  widget.
+  widget. A wrong password clears the password (not the email) and offers a reset link;
+  an unconfirmed email offers a new confirmation link.
 - **Forgot / reset**: `/forgot-password` asks for the email; the emailed link opens
   `/reset-password?token=…`, which sets the new password. The API then signs out every
   session of that user.
@@ -122,8 +139,9 @@ not this server.
   compares the state with the cookie, asks the API to finish the handshake and sets the
   session cookie.
 
-`PhoneField` builds its options on the server from `dial-codes.ts` (generated from the
-phonenumbers metadata the API uses), names from `Intl.DisplayNames` and flags from the
-regional indicator symbols, so no country list or flag images ship to the browser.
+The register page builds the country list on the server from `dial-codes.ts` (generated
+from the phonenumbers metadata the API uses), names from `Intl.DisplayNames` and flags
+from the regional indicator symbols, and passes it to the form, so no flag images ship
+and server and browser agree on the names.
 To regenerate `dial-codes.ts`, run the snippet in its header against the API's
 environment.

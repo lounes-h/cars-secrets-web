@@ -1,36 +1,51 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type KeyboardEvent } from "react";
+import type { UseFormRegisterReturn } from "react-hook-form";
 import { FieldError } from "@/components/auth/FieldError";
+import { PASSWORD_MIN } from "@/lib/auth-schemas";
 
 type Props = {
-  name?: string;
+  registration: UseFormRegisterReturn;
   label?: string;
   autoComplete: "new-password" | "current-password";
   error?: string;
-  minLength?: number;
+  /** The value typed so far, to show the length requirement live (new passwords only). */
+  requirementFor?: string;
 };
 
-/** Password input with a show/hide toggle; the toggle never submits the form. */
-export function PasswordField({ name = "password", label = "Password", autoComplete, error, minLength }: Props) {
+/** Password input with a show/hide toggle, a Caps Lock warning and, for new passwords, the requirement. */
+export function PasswordField({ registration, label = "Password", autoComplete, error, requirementFor }: Props) {
   const id = useId();
   const [visible, setVisible] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
+  const checkCaps = (event: KeyboardEvent<HTMLInputElement>) => setCapsLock(event.getModifierState("CapsLock"));
+  const describedBy =
+    [error && `${id}-error`, capsLock && `${id}-caps`, requirementFor !== undefined && `${id}-rule`]
+      .filter(Boolean)
+      .join(" ") || undefined;
+  const met = (requirementFor ?? "").length >= PASSWORD_MIN;
+
   return (
     <div>
       <label htmlFor={id}>{label}</label>
       <div className="relative">
         <input
-        id={id}
-        name={name}
-        type={visible ? "text" : "password"}
-        autoComplete={autoComplete}
-        required
-        minLength={minLength}
-        maxLength={128}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        className="pr-20"
-      />
+          id={id}
+          type={visible ? "text" : "password"}
+          autoComplete={autoComplete}
+          maxLength={128}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          className="pr-20"
+          {...registration}
+          onKeyDown={checkCaps}
+          onKeyUp={checkCaps}
+          onBlur={(event) => {
+            setCapsLock(false);
+            return registration.onBlur(event);
+          }}
+        />
         <button
           type="button"
           aria-pressed={visible}
@@ -42,6 +57,17 @@ export function PasswordField({ name = "password", label = "Password", autoCompl
           {visible ? "Hide" : "Show"}
         </button>
       </div>
+      {capsLock && (
+        <p id={`${id}-caps`} className="hint mt-1">
+          Caps Lock is on.
+        </p>
+      )}
+      {requirementFor !== undefined && (
+        <p id={`${id}-rule`} className={`hint mt-1 ${met ? "text-green-700 dark:text-green-400" : ""}`}>
+          {met ? "✓" : "•"} At least {PASSWORD_MIN} characters ({requirementFor.length}/{PASSWORD_MIN}). Passwords
+          found in known data breaches are refused.
+        </p>
+      )}
       <FieldError id={`${id}-error`} message={error} />
     </div>
   );

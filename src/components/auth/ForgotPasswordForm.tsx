@@ -9,7 +9,13 @@ export function ForgotPasswordForm() {
       action={forgotPasswordAction}
       captchaAction="forgot_password"
       submitLabel="Send reset link"
-      successMessage="If an account uses this address, we sent it a link to choose a new password. The link is valid for 1 hour."
+      pendingLabel="Sending…"
+      success={(email) => (
+        <>
+          If an account uses <strong>{email}</strong>, we sent it a link to choose a new password. The link works
+          once and expires in 1 hour.
+        </>
+      )}
     />
   );
 }

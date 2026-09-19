@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountNav } from "@/components/AccountNav";
 import { site } from "@/lib/site";
 
 /** Intrinsic size of the files in public/brand/ (trimmed, transparent, 3× the 36px display height). */
@@ -30,16 +31,7 @@ export function SiteBanner() {
             />
           </picture>
         </Link>
-        {/* Static on purpose: reading the session here would make every page dynamic. A
-            signed-in visitor who follows either link is sent on to /account. */}
-        <nav aria-label="Account" className="ml-auto flex items-center gap-2 sm:gap-3">
-          <Link href="/login" className="btn btn-ghost">
-            Sign in
-          </Link>
-          <Link href="/register" className="btn btn-primary">
-            Register
-          </Link>
-        </nav>
+        <AccountNav />
       </div>
     </header>
   );
