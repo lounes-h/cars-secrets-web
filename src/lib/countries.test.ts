@@ -1,0 +1,30 @@
+import { describe, expect, it } from "vitest";
+import { composePhone, countries, flagEmoji } from "@/lib/countries";
+
+describe("countries", () => {
+  it("lists every region with a flag, a name and its calling code, sorted by name", () => {
+    const list = countries();
+    expect(list.length).toBeGreaterThan(240);
+    expect(list.find((c) => c.code === "FR")).toEqual({ code: "FR", name: "France", flag: "🇫🇷", dialCode: 33 });
+    expect(list.find((c) => c.code === "US")?.dialCode).toBe(1);
+    const names = list.map((c) => c.name);
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, "en")));
+    expect(new Set(list.map((c) => c.code)).size).toBe(list.length);
+  });
+
+  it("builds flags from the regional indicators", () => {
+    expect(flagEmoji("gb")).toBe("🇬🇧");
+  });
+});
+
+describe("composePhone", () => {
+  it("joins the calling code and the digits", () => {
+    expect(composePhone("US", "(415) 555-2671")).toBe("+14155552671");
+    expect(composePhone("fr", "06 12 34 56 78")).toBe("+330612345678"); // the API drops the trunk 0
+  });
+
+  it("is null for an empty number or an unknown country", () => {
+    expect(composePhone("US", "  ")).toBeNull();
+    expect(composePhone("ZZ", "123")).toBeNull();
+  });
+});

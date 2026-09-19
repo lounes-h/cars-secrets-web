@@ -84,6 +84,7 @@ export function metadataForRoute(
     title: route.title,
     description: route.description,
     path: route.path,
+    noindex: route.noindex,
     ...overrides,
   });
 }

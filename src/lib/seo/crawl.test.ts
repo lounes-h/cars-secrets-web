@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { routes } from "@/lib/routes";
 import { fixtureRoutes } from "@/lib/seo/fixtures";
 import { buildLlmsTxt } from "@/lib/seo/llms";
 import { buildRobots } from "@/lib/seo/robots";
@@ -16,9 +15,11 @@ describe("sitemap", () => {
     expect(entries[1]).toMatchObject({ changeFrequency: "monthly", priority: 0.8 });
   });
 
-  it("is empty while no pages are registered", () => {
-    expect(routes).toHaveLength(0);
-    expect(buildSitemap()).toEqual([]);
+  it("leaves noindex pages out", () => {
+    const urls = buildSitemap().map((entry) => entry.url);
+    expect(urls).toContain("https://cars-secrets.test/login");
+    expect(urls).not.toContain("https://cars-secrets.test/account");
+    expect(buildSitemap(fixtureRoutes).map((entry) => entry.url)).not.toContain("https://cars-secrets.test/reset");
   });
 });
 
@@ -44,7 +45,7 @@ describe("llms.txt", () => {
     expect(text).not.toContain("/terms");
   });
 
-  it("omits the key pages section while no pages exist", () => {
+  it("omits the key pages section while no page is flagged for it", () => {
     expect(buildLlmsTxt()).not.toContain("## Key pages");
   });
 });

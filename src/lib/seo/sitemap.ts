@@ -3,7 +3,7 @@ import { routes as registry, type SiteRoute } from "@/lib/routes";
 import { absoluteUrl } from "@/lib/site";
 
 export function buildSitemap(routes: readonly SiteRoute[] = registry): MetadataRoute.Sitemap {
-  return routes.map((route) => ({
+  return routes.filter((route) => !route.noindex).map((route) => ({
     url: absoluteUrl(route.path),
     changeFrequency: route.changeFrequency,
     priority: route.priority,
