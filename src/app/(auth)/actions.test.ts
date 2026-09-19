@@ -1,0 +1,123 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/lib/api";
+
+const apiMock = vi.fn();
+const setSession = vi.fn();
+const cookieSet = vi.fn();
+const redirect = vi.fn((url: string) => {
+  throw new Error(`REDIRECT ${url}`);
+});
+
+vi.mock("@/lib/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api")>()),
+  api: (...args: unknown[]) => apiMock(...args),
+}));
+vi.mock("@/lib/session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/session")>()),
+  setSession: (...args: unknown[]) => setSession(...args),
+  clearSession: vi.fn(),
+  sessionToken: vi.fn(async () => "sess"),
+  visitorIp: vi.fn(async () => "9.9.9.9"),
+}));
+vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url) }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ set: cookieSet, get: vi.fn(), delete: vi.fn() }),
+  headers: async () => new Headers(),
+}));
+
+const { loginAction, registerAction, resetPasswordAction, socialLoginAction } = await import("./actions");
+
+function form(fields: Record<string, string>): FormData {
+  const data = new FormData();
+  for (const [key, value] of Object.entries(fields)) data.set(key, value);
+  return data;
+}
+
+beforeEach(() => {
+  apiMock.mockReset();
+  setSession.mockReset();
+  redirect.mockClear();
+});
+
+describe("registerAction", () => {
+  it("composes the phone number and posts the form", async () => {
+    apiMock.mockResolvedValue({ ok: true });
+    const state = await registerAction(
+      undefined,
+      form({
+        first_name: " Dana ",
+        last_name: "Lee",
+        email: "d@example.com",
+        phone_country: "US",
+        phone_number: "(415) 555-2671",
+        password: "long-enough-pw",
+        accept_terms: "on",
+        "cf-turnstile-response": "cap",
+      }),
+    );
+    expect(state).toEqual({ ok: true });
+    expect(apiMock).toHaveBeenCalledWith("/api/auth/register", {
+      body: {
+        first_name: "Dana",
+        last_name: "Lee",
+        email: "d@example.com",
+        phone: "+14155552671",
+        password: "long-enough-pw",
+        accept_terms: true,
+        captcha_token: "cap",
+      },
+      clientIp: "9.9.9.9",
+    });
+  });
+
+  it("returns the API's field errors", async () => {
+    apiMock.mockRejectedValue(new ApiError(422, "validation", "Fix fields.", { password: "Too short." }));
+    const state = await registerAction(undefined, form({ password: "x" }));
+    expect(state).toMatchObject({ code: "validation", errors: { password: "Too short." } });
+  });
+});
+
+describe("loginAction", () => {
+  it("stores the session and redirects to the account page", async () => {
+    apiMock.mockResolvedValue({ token: "tok" });
+    await expect(
+      loginAction(undefined, form({ email: "d@example.com", password: "pw", remember: "on" })),
+    ).rejects.toThrow("REDIRECT /account");
+    expect(setSession).toHaveBeenCalledWith("tok", true);
+  });
+
+  it("asks for a captcha when the API requires one", async () => {
+    apiMock.mockRejectedValue(new ApiError(429, "captcha_required", "Too many attempts."));
+    const state = await loginAction(undefined, form({ email: "d@example.com", password: "pw" }));
+    expect(state).toMatchObject({ captchaRequired: true, message: "Too many attempts." });
+    expect(setSession).not.toHaveBeenCalled();
+  });
+});
+
+describe("resetPasswordAction", () => {
+  it("rejects a mismatched confirmation before calling the API", async () => {
+    const state = await resetPasswordAction(
+      undefined,
+      form({ token: "t", password: "abcdefghij", password_confirm: "other" }),
+    );
+    expect(state).toMatchObject({ errors: { password_confirm: expect.any(String) } });
+    expect(apiMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("socialLoginAction", () => {
+  it("stores the state cookie and redirects to the provider", async () => {
+    apiMock.mockResolvedValue({ authorize_url: "https://accounts.google.com/o/oauth2/v2/auth?x=1", state: "st" });
+    await expect(socialLoginAction(form({ provider: "google" }))).rejects.toThrow(
+      "REDIRECT https://accounts.google.com/o/oauth2/v2/auth?x=1",
+    );
+    expect(cookieSet).toHaveBeenCalledWith("cs_oauth_state", "st", expect.objectContaining({ httpOnly: true }));
+  });
+
+  it("sends unconfigured providers back to the login page with a code", async () => {
+    apiMock.mockRejectedValue(new ApiError(501, "provider_not_configured", "Not yet."));
+    await expect(socialLoginAction(form({ provider: "apple" }))).rejects.toThrow(
+      "REDIRECT /login?error=provider_not_configured",
+    );
+  });
+});
