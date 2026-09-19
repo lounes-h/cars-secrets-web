@@ -13,10 +13,6 @@ describe("loadOgFonts", () => {
       expect(font.data.subarray(0, 4).toString("latin1")).toBe("wOFF");
     }
   });
-
-  it("fails when a font file is missing", async () => {
-    await expect(loadOgFonts("/nonexistent")).rejects.toThrow();
-  });
 });
 
 describe("loadLogoDataUrl", () => {

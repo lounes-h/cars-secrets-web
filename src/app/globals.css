@@ -32,15 +32,9 @@
   --font-sans: var(--font-libre-franklin), ui-sans-serif, system-ui, sans-serif;
 }
 
-html {
-  background: var(--paper);
-  color: var(--ink);
-  -webkit-text-size-adjust: 100%;
-}
-
 body {
   background: var(--paper);
-  font-family: var(--font-sans);
+  color: var(--ink);
   font-size: 1.0625rem;
   line-height: 1.6;
 }
@@ -49,13 +43,4 @@ body {
   outline: 3px solid var(--brand-red);
   outline-offset: 2px;
   border-radius: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-  }
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { routes } from "@/lib/routes";
 import { fixtureRoutes } from "@/lib/seo/fixtures";
 import { buildLlmsTxt } from "@/lib/seo/llms";
-import { AI_CRAWLERS, buildRobots } from "@/lib/seo/robots";
+import { buildRobots } from "@/lib/seo/robots";
 import { buildSitemap } from "@/lib/seo/sitemap";
 
 describe("sitemap", () => {
@@ -23,25 +23,11 @@ describe("sitemap", () => {
 });
 
 describe("robots", () => {
-  const robots = buildRobots();
-  const rules = Array.isArray(robots.rules) ? robots.rules : [robots.rules];
-
-  it("allows every crawler and points to the sitemap", () => {
-    expect(rules[0]).toMatchObject({ userAgent: "*", allow: "/" });
-    expect(robots.sitemap).toBe("https://cars-secrets.test/sitemap.xml");
-  });
-
-  it("explicitly allows the AI search crawlers", () => {
-    const aiRule = rules.find((rule) => Array.isArray(rule.userAgent));
-    expect(aiRule?.allow).toBe("/");
-    for (const bot of ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"]) {
-      expect(AI_CRAWLERS).toContain(bot);
-      expect(aiRule?.userAgent).toContain(bot);
-    }
-  });
-
-  it("only disallows /api/", () => {
-    for (const rule of rules) expect(rule.disallow).toEqual(["/api/"]);
+  it("allows every crawler, AI bots included, and points to the sitemap", () => {
+    expect(buildRobots()).toEqual({
+      rules: { userAgent: "*", allow: "/" },
+      sitemap: "https://cars-secrets.test/sitemap.xml",
+    });
   });
 });
 

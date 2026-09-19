@@ -12,13 +12,7 @@ const LOCAL_URL = "http://localhost:3000";
  * browser always agree on the value.
  */
 export function resolveSiteUrl(value: string | undefined): string {
-  const trimmed = value?.trim();
-  if (!trimmed) return LOCAL_URL;
-  try {
-    return new URL(trimmed).origin;
-  } catch {
-    throw new Error(`Invalid NEXT_PUBLIC_SITE_URL: "${trimmed}". Use an absolute URL such as https://example.com`);
-  }
+  return value?.trim() ? new URL(value.trim()).origin : LOCAL_URL;
 }
 
 export const site = {
@@ -37,6 +31,5 @@ export const site = {
 
 /** Joins a site-relative path onto the site origin. */
 export function absoluteUrl(path: string, base: string = site.url): string {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  return normalized === "/" ? `${base}/` : `${base}${normalized}`;
+  return new URL(path, base).href;
 }

@@ -14,11 +14,11 @@ const FONT_FILES = [
   { weight: 800, file: "assets/fonts/libre-franklin-latin-800-normal.woff" },
 ] as const;
 
-export async function loadOgFonts(root: string = process.cwd()) {
+export async function loadOgFonts() {
   return Promise.all(
     FONT_FILES.map(async ({ weight, file }) => ({
       name: OG_FONT_FAMILY,
-      data: await readFile(join(root, file)),
+      data: await readFile(join(process.cwd(), file)),
       weight,
       style: "normal" as const,
     })),
@@ -26,7 +26,7 @@ export async function loadOgFonts(root: string = process.cwd()) {
 }
 
 /** The light (black "Secrets") logo as a data URL, for use in an <img> inside ImageResponse. */
-export async function loadLogoDataUrl(root: string = process.cwd()): Promise<string> {
-  const png = await readFile(join(root, "public/brand/logo-light.png"));
+export async function loadLogoDataUrl(): Promise<string> {
+  const png = await readFile(join(process.cwd(), "public/brand/logo-light.png"));
   return `data:image/png;base64,${png.toString("base64")}`;
 }

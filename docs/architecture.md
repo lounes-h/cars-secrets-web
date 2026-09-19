@@ -78,8 +78,9 @@ route list, and tests pass them `src/lib/seo/fixtures.ts`.
 - **Structured data.** The root layout emits Organization and WebSite data on
   every page, with `alternateName` listing the other spellings of the brand. Builders for WebApplication, FAQPage, BreadcrumbList and Article
   are ready for pages to use. `serializeJsonLd` escapes `<`.
-- **AI crawlers.** `robots.txt` names GPTBot, ClaudeBot, PerplexityBot,
-  Google-Extended and the other AI crawlers and allows them. `/llms.txt`
-  summarizes the site and links its key pages.
+- **AI crawlers.** `robots.txt` is a single `User-Agent: *` / `Allow: /` rule,
+  which admits every crawler, AI search and assistant bots (GPTBot, ClaudeBot,
+  PerplexityBot, Google-Extended and others) included. `/llms.txt` summarizes
+  the site and links its key pages.
 - **Rendering.** Pages should be prerendered to static HTML, so crawlers that
   don't run JavaScript still see the full content.

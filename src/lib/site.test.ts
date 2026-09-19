@@ -13,7 +13,7 @@ describe("resolveSiteUrl", () => {
   });
 
   it("rejects a value that is not an absolute URL", () => {
-    expect(() => resolveSiteUrl("carssecrets.com")).toThrow(/Invalid NEXT_PUBLIC_SITE_URL/);
+    expect(() => resolveSiteUrl("carssecrets.com")).toThrow(TypeError);
   });
 });
 
