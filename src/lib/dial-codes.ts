@@ -2,6 +2,10 @@
  * Every region with a phone numbering plan (ISO 3166-1 alpha-2 code, calling code), generated
  * from the phonenumbers metadata. Names come from Intl.DisplayNames and flags from the
  * regional indicator symbols, so this file holds only the data that cannot be derived.
+ *
+ * Regenerate from ../cars-secrets-api with:
+ *   uv run python -c "from phonenumbers import COUNTRY_CODE_TO_REGION_CODE as C, SUPPORTED_REGIONS as S;
+ *   print(sorted((r, c) for c, rs in C.items() for r in rs if r in S))"
  */
 export const DIAL_CODES: readonly (readonly [string, number])[] = [
   ["AC", 247],

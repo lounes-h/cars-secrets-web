@@ -10,6 +10,9 @@ A dealer-focused vehicle auction intelligence platform that aggregates active li
 - Yarn 4 through Corepack (`packageManager` in `package.json`), with the
   `node-modules` linker.
 - Vitest with Testing Library for unit tests.
+- Accounts and data come from the Python API (`../cars-secrets-api`). Server
+  actions and route handlers call it from the server through `src/lib/api.ts`;
+  the browser never talks to the API.
 - Hosting is not chosen yet.
 
 Next 16 differs from older versions. Before using an API, read the bundled docs
@@ -20,7 +23,7 @@ in `node_modules/next/dist/docs/`.
 ```bash
 corepack enable      # once per machine
 yarn install
-yarn dev             # http://localhost:3000
+yarn dev             # http://localhost:3000 (auth pages need the API: API_URL in .env.local)
 yarn lint
 yarn typecheck       # next typegen && tsc --noEmit
 yarn test            # vitest run
@@ -53,20 +56,36 @@ See `docs/architecture.md` for details.
   and `logo-dark.png`, 879×120 16-colour palette PNGs of about 7 KB each. They
   are served as-is because the Next image optimizer makes them larger.
 - Pages are Server Components and stay static. Add `"use client"` only where
-  interaction needs it.
+  interaction needs it. Pages that read the session (`/register`, `/login`,
+  `/account`) or a token from the URL are dynamic by necessity.
+- Auth lives in the `src/app/(auth)` route group: `actions.ts` holds every auth
+  server action, the pages sit next to it, and `/account` sits outside it.
+  Forms are client components in `src/components/auth/` (they need
+  `useActionState`); `PhoneField` and `SocialButtons` stay Server Components.
+- The session is the API's token in the httpOnly `cs_session` cookie, set and
+  cleared only through `src/lib/session.ts`. Read the signed-in user with
+  `currentUser()`; never decode or trust the cookie in the browser.
+- Social sign-in returns to `src/app/auth/callback/[provider]/route.ts`
+  (GET for Google, POST for Apple), which checks the `cs_oauth_state` cookie.
+- Pages that must not be indexed (token links, the account page) are still
+  registered, with `noindex: true`: they are left out of the sitemap and
+  marked noindex.
 - Deal arithmetic (cost, profit, margin, max bid) lives only in
   `src/lib/deal.ts`.
 - Never publish invented statistics, testimonials, reviews or prices.
 
 ## Security rules
 
-See `docs/security.md`. Security headers are set in `next.config.ts`. The only
-public environment variable is `NEXT_PUBLIC_SITE_URL`, and secrets never use the
-`NEXT_PUBLIC_` prefix.
+See `docs/security.md`. Security headers are set in `next.config.ts`. Public
+environment variables are `NEXT_PUBLIC_SITE_URL` and
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY`; `API_URL` and `API_INTERNAL_KEY` are
+server-only, and secrets never use the `NEXT_PUBLIC_` prefix. Every server
+action is an untrusted entry point: validate its input and let the API decide.
+Only redirect to site-relative paths (`safePath`).
 
 ## Migrations
 
-There is no database yet.
+This repository has no database. Accounts are stored and migrated by the API.
 
 ## Tests
 
@@ -131,8 +150,10 @@ A code change is not considered complete until the relevant unit tests have been
 
 ## Current state
 
-This is the foundation only. **No pages have been built yet**, and none should be
-added until the user asks. The route registry is empty and `/` returns 404.
+The only pages are the unstyled auth pages: `/register`, `/login`,
+`/forgot-password`, `/reset-password`, `/verify-email` and `/account`. They use
+semantic HTML only, because there is no design system yet. `/` still returns
+404. Add no other pages until the user asks.
 
 The brand name is **Car's Secrets** (`site.name` in `src/lib/site.ts`). "Cars
 Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.
@@ -146,8 +167,15 @@ branded Open Graph image; the favicon, Apple touch icon and manifest icons (the
 red "C" from the logo); security headers; and the deal calculation in
 `src/lib/deal.ts`.
 
-There is no auth, database, auction data feed, search, saved vehicles or alerts
-yet.
+In place for accounts: registration (names, email, optional phone with every
+country's flag and calling code, password with show/hide, terms checkbox,
+Turnstile captcha), email confirmation, sign-in with remember me (captcha after
+repeated failures), sign-out, forgot and reset password, and Google and Apple
+buttons. The API answers "not configured" for Google and Apple until their
+credentials are set. The Terms of Use and Privacy Policy do not exist yet; only
+the checkbox does.
+
+There is no auction data feed, search, saved lots or alerts yet.
 
 ## Branching
 
@@ -435,3 +463,13 @@ Git:
 Unless explicitly instructed otherwise, always update the affected
 documentation, commit, push and open a pull request for completed coding
 changes.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
