@@ -3,15 +3,75 @@ A dealer-focused vehicle auction intelligence platform that aggregates active li
 
 ## Tech stack
 
+- Next.js 16 (App Router) with React 19 and TypeScript, server-rendered and
+  statically prerendered.
+- Tailwind CSS 4. Design tokens are CSS variables in `src/app/globals.css`.
+- Font: Libre Franklin via `next/font/google`.
+- Yarn 4 through Corepack (`packageManager` in `package.json`), with the
+  `node-modules` linker.
+- Vitest with Testing Library for unit tests.
+- Hosting is not chosen yet.
+
+Next 16 differs from older versions. Before using an API, read the bundled docs
+in `node_modules/next/dist/docs/`.
+
 ## Commands
+
+```bash
+corepack enable      # once per machine
+yarn install
+yarn dev             # http://localhost:3000
+yarn lint
+yarn typecheck       # next typegen && tsc --noEmit
+yarn test            # vitest run
+yarn build && yarn start
+```
+
+Run `yarn lint && yarn typecheck && yarn test && yarn build` before committing.
 
 ## Architecture rules (important)
 
+See `docs/architecture.md` for details.
+
+- Register every public page in `src/lib/routes.ts`. The sitemap and llms.txt
+  are generated from that registry, and a test fails when a `page.tsx` under
+  `src/app` is missing from it.
+- Build page metadata with `metadataForRoute()` or `buildMetadata()` from
+  `src/lib/seo/metadata.ts`. Never hand-write `title`, canonical or Open Graph
+  metadata.
+- Structured data comes from the builders in `src/lib/seo/jsonld.ts`,
+  rendered with `<JsonLd>`.
+- Each page has one `h1`. Its lede answers the page's question directly, so
+  search engines and AI assistants can quote it.
+- The layout is full width: no centered `max-w-*` page container. Sections
+  span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
+  running text is capped at a readable measure (`max-w-[65ch]`).
+- The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
+  layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
+  and `logo-dark.png`, 879×120 16-colour palette PNGs of about 7 KB each. They
+  are served as-is because the Next image optimizer makes them larger.
+- Pages are Server Components and stay static. Add `"use client"` only where
+  interaction needs it.
+- Deal arithmetic (cost, profit, margin, max bid) lives only in
+  `src/lib/deal.ts`.
+- Never publish invented statistics, testimonials, reviews or prices.
+
 ## Security rules
+
+See `docs/security.md`. Security headers are set in `next.config.ts`. The only
+public environment variable is `NEXT_PUBLIC_SITE_URL`, and secrets never use the
+`NEXT_PUBLIC_` prefix.
 
 ## Migrations
 
+There is no database yet.
+
 ## Tests
+
+Tests sit next to the code as `*.test.ts(x)` under `src/`. They run in the node
+environment by default. Component tests opt into jsdom with
+`// @vitest-environment jsdom`. `vitest.config.mts` sets
+`NEXT_PUBLIC_SITE_URL=https://cars-secrets.test` so that URLs are deterministic.
 
 ## Unit Test Requirements
 
@@ -69,13 +129,30 @@ A code change is not considered complete until the relevant unit tests have been
 
 ## Current state
 
+This is the foundation only. **No pages have been built yet**, and none should be
+added until the user asks. The route registry is empty and `/` returns 404.
+
+The brand name is **Car's Secrets** (`site.name` in `src/lib/site.ts`). "Cars
+Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.
+The repository keeps its `cars-secrets-web` name.
+
+In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
+(Libre Franklin, brand design tokens, Organization and WebSite JSON-LD, and the
+full-width top banner with the brand logo); the SEO builders (metadata,
+JSON-LD, sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; the
+branded Open Graph image; the favicon, Apple touch icon and manifest icons (the
+red "C" from the logo); security headers; and the deal calculation in
+`src/lib/deal.ts`.
+
+There is no auth, database, auction data feed, search, saved vehicles or alerts
+yet.
+
 ## Branching
 
 Create a branch before starting work. The first Git action of a task is creating its branch, not committing.
 
 `main` is the production branch — what ships. That is the whole reason task
 work never lands on it directly: a commit there is a release, not a save.
-Render deploys `main`, so a push to it goes live.
 
 Check where the working tree is first:
 

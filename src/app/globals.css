@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+/* Brand palette: the red of the logo's "Car's" on white, with slate neutrals. */
+:root {
+  --paper: #f4f6f7;
+  --surface: #ffffff;
+  --ink: #17222b;
+  --muted: #53616c;
+  --line: #d5dbe0;
+  /* Sampled from the logo. */
+  --brand-red: #d7282b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #11181d;
+    --surface: #18222a;
+    --ink: #e6ecef;
+    --muted: #9aa7b1;
+    --line: #2c3a44;
+    --brand-red: #e8484a;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand-red: var(--brand-red);
+  --font-sans: var(--font-libre-franklin), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+:focus-visible {
+  outline: 3px solid var(--brand-red);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
