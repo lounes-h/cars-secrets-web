@@ -51,12 +51,22 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
       body: body === undefined ? undefined : JSON.stringify(body),
       cache: "no-store",
     });
-  } catch {
-    throw new ApiError(0, "unavailable", "The service is temporarily unavailable. Please try again in a moment.");
+  } catch (cause) {
+    console.error(`[api] ${method} ${apiUrl()}${path} unreachable:`, cause);
+    throw unavailable();
   }
   const data: unknown = await response.json().catch(() => null);
   if (response.ok) return data as T;
-  throw toApiError(response.status, data);
+  const error = toApiError(response.status, data);
+  if (error.code === "unavailable") {
+    // Not an answer the Car's Secrets API gives: usually API_URL points at another service.
+    console.error(`[api] ${method} ${apiUrl()}${path} returned HTTP ${response.status}, unexpected body:`, data);
+  }
+  throw error;
+}
+
+function unavailable(): ApiError {
+  return new ApiError(0, "unavailable", "The service is temporarily unavailable. Please try again in a moment.");
 }
 
 /** Maps the API's error bodies: a list of field errors (422) or `{code, message}`. */
@@ -70,9 +80,12 @@ export function toApiError(status: number, data: unknown): ApiError {
     }
     return new ApiError(status, "validation", "Please correct the highlighted fields.", fields);
   }
-  if (detail && typeof detail === "object") {
-    const { code, message } = detail as { code?: string; message?: string };
-    return new ApiError(status, code ?? "error", message ?? "Something went wrong.");
+  if (detail && typeof detail === "object" && typeof (detail as { code?: unknown }).code === "string") {
+    const { code, message } = detail as { code: string; message?: string };
+    return new ApiError(status, code, message ?? "Something went wrong. Please try again.");
   }
-  return new ApiError(status, "error", "Something went wrong. Please try again.");
+  // Anything else (a 404 page, a proxy error, another service's error format) did not come
+  // from a working Car's Secrets API.
+  const error = unavailable();
+  return new ApiError(status, error.code, error.message);
 }

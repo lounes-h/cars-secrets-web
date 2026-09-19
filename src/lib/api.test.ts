@@ -51,9 +51,26 @@ describe("api", () => {
     });
   });
 
-  it("reports an unreachable API as unavailable", async () => {
+  it("reports an unreachable API as unavailable and logs why", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
     fetchMock.mockRejectedValue(new TypeError("fetch failed"));
     await expect(api("/api/health")).rejects.toMatchObject({ code: "unavailable", status: 0 });
+    expect(log.mock.calls[0][0]).toContain("http://api.test/api/health unreachable");
+    log.mockRestore();
+  });
+
+  it("treats another service's error body as unavailable and logs it", async () => {
+    // Regression: API_URL pointed at a different app on :8000, whose 404 has a string
+    // `detail`; the form showed a generic error and nothing was logged.
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    fetchMock.mockResolvedValue(json(404, { title: "http_error", status: 404, detail: "Not Found" }));
+    await expect(api("/api/auth/register", { body: {} })).rejects.toMatchObject({
+      status: 404,
+      code: "unavailable",
+      message: expect.stringMatching(/temporarily unavailable/),
+    });
+    expect(log.mock.calls[0][0]).toContain("POST http://api.test/api/auth/register returned HTTP 404");
+    log.mockRestore();
   });
 });
 
@@ -70,7 +87,9 @@ describe("toApiError", () => {
     expect(error.fields).toEqual({ password: "Use 10 to 128 characters.", email: "bad" });
   });
 
-  it("falls back to a generic message", () => {
-    expect(toApiError(500, null).message).toMatch(/try again/i);
+  it("treats unknown bodies as an unavailable API", () => {
+    expect(toApiError(500, null)).toMatchObject({ code: "unavailable", status: 500 });
+    expect(toApiError(404, { detail: "Not Found" }).code).toBe("unavailable");
+    expect(toApiError(400, { detail: { message: "no code" } }).code).toBe("unavailable");
   });
 });
