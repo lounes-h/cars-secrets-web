@@ -46,7 +46,7 @@ directly.
 
 The site is full width. There is no centered page container: sections span
 the viewport with side padding, and only running text is capped at a readable
-line length. Auth pages center their form in one 28rem column (`.auth-panel`).
+line length. Auth pages center their form in one 28rem raised panel (`.auth-panel`).
 The top banner shows the brand logo on the left and the account navigation on the
 right: "Sign in" and "Register", or the signed-in dealer's initial, name and "Sign out".
 The navigation is a client component that asks `/auth/session` (a route handler returning

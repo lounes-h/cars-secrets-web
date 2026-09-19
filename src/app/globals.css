@@ -1,14 +1,21 @@
 @import "tailwindcss";
 
-/* Brand palette: the red of the logo's "Car's" on white, with slate neutrals. */
+/*
+ * Brand palette: the red of the logo's "Car's" on white, slate ink, and a warm
+ * paper behind white panels. Red marks the one action that moves the dealer
+ * forward; the ink pill is the quieter, always-there account button.
+ */
 :root {
-  --paper: #f4f6f7;
+  --paper: #f6f4f1;
   --surface: #ffffff;
   --ink: #17222b;
   --muted: #53616c;
-  --line: #d5dbe0;
+  --line: #d9dde1;
+  --line-strong: #8a959e;
   /* Sampled from the logo. */
   --brand-red: #d7282b;
+  --on-ink: #ffffff;
+  --shadow-panel: 0 1px 2px rgb(23 34 43 / 0.06), 0 8px 24px rgb(23 34 43 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,7 +25,10 @@
     --ink: #e6ecef;
     --muted: #9aa7b1;
     --line: #2c3a44;
+    --line-strong: #5d6d79;
     --brand-red: #e8484a;
+    --on-ink: #11181d;
+    --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px rgb(0 0 0 / 0.35);
   }
 }
 
@@ -28,6 +38,7 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-brand-red: var(--brand-red);
   --font-sans: var(--font-libre-franklin), ui-sans-serif, system-ui, sans-serif;
 }
@@ -60,9 +71,9 @@ body {
   input:not([type]),
   select {
     width: 100%;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--line);
+    min-height: 3rem;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--line-strong);
     border-radius: 0.5rem;
     background: var(--surface);
     color: var(--ink);
@@ -80,8 +91,13 @@ body {
 
   a {
     color: var(--brand-red);
+    font-weight: 600;
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+    text-underline-offset: 3px;
+  }
+  a:hover {
+    text-decoration-color: currentColor;
   }
 
   [role="alert"] {
@@ -97,9 +113,9 @@ body {
     justify-content: center;
     gap: 0.5rem;
     min-height: 2.75rem;
-    padding: 0.5rem 1.125rem;
+    padding: 0.5rem 1.25rem;
     border: 1px solid transparent;
-    border-radius: 0.5rem;
+    border-radius: 999px;
     font-weight: 700;
     font-size: 0.9375rem;
     text-decoration: none;
@@ -117,16 +133,25 @@ body {
   .btn-primary:hover {
     filter: brightness(0.92);
   }
+  /* The header's account button: an ink pill, quieter than the red actions. */
+  .btn-dark {
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+  .btn-dark:hover {
+    filter: brightness(1.25);
+  }
   .btn-outline {
-    border-color: var(--line);
+    border-color: var(--ink);
     background: var(--surface);
     color: var(--ink);
   }
   .btn-outline:hover {
-    border-color: var(--muted);
+    background: var(--paper);
   }
   .btn-ghost {
     color: var(--ink);
+    font-weight: 600;
   }
   .btn-ghost:hover {
     background: var(--paper);
@@ -139,21 +164,44 @@ body {
     color: var(--muted);
   }
 
-  /* An auth page: the heading, lede and form in one readable column. */
+  /*
+   * An auth page: the heading, lede and form in one raised panel on the paper,
+   * like a sign-in dialog. The page's .card inside it drops its own frame.
+   */
   .auth-panel {
     width: 100%;
     max-width: 28rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-panel);
+    padding: 1.75rem 1.25rem;
+  }
+  @media (min-width: 40rem) {
+    .auth-panel {
+      padding: 2.25rem 2.25rem 2rem;
+    }
+  }
+  .auth-panel h1 {
+    font-size: 1.625rem;
   }
   .auth-panel > p:first-of-type {
     color: var(--muted);
+    margin-top: -0.5rem;
+  }
+  .auth-panel > .card {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
   }
   .card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     padding: 1.5rem;
   }
   .form-stack {
@@ -191,4 +239,13 @@ body {
   outline: 3px solid var(--brand-red);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* Text fields show focus as a thick ink edge, not the red ring used on buttons and links. */
+input:is([type="text"], [type="email"], [type="tel"], [type="password"], :not([type])):focus-visible,
+select:focus-visible {
+  border-color: var(--ink);
+  outline: 1px solid var(--ink);
+  outline-offset: 0;
+  border-radius: 0.5rem;
 }

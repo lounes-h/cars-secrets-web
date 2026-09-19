@@ -14,7 +14,7 @@ export const LOGO_SIZE = { width: 879, height: 120 } as const;
  */
 export function SiteBanner() {
   return (
-    <header className="w-full border-b border-line bg-surface">
+    <header className="sticky top-0 z-10 w-full border-b border-line bg-surface">
       <div className="flex h-16 w-full items-center px-4 sm:h-[4.5rem] sm:px-6 lg:px-10">
         <Link href="/" className="-mx-1 rounded-sm px-1 py-1 no-underline">
           <picture>

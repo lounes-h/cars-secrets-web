@@ -22,6 +22,8 @@ describe("AccountNav", () => {
     render(<AccountNav />);
     expect((await screen.findByRole("link", { name: "Sign in" })).getAttribute("href")).toBe("/login");
     expect(screen.getByRole("link", { name: "Register" }).getAttribute("href")).toBe("/register");
+    // Register is the banner's ink pill; red stays for the primary action on the page itself.
+    expect(screen.getByRole("link", { name: "Register" }).className).toContain("btn-dark");
   });
 
   it("shows the signed-in dealer and a sign out button", async () => {

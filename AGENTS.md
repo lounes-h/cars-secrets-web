@@ -52,13 +52,16 @@ See `docs/architecture.md` for details.
   span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
   running text is capped at a readable measure (`max-w-[65ch]`). Auth pages
   are the exception: their form sits in one centered `.auth-panel` column
-  (28rem), because a full-width form is hard to fill in.
+  (28rem), a raised white panel on the warm paper like a sign-in dialog,
+  because a full-width form is hard to fill in.
 - Basic styling lives in `src/app/globals.css`, on the brand tokens so dark
   mode follows: base styles for headings, labels, inputs, selects, checkboxes,
-  links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-outline`,
-  `btn-ghost`, `btn-link`, `card`, `auth-panel`, `form-stack`, `divider`,
-  `hint`, `notice`). Reuse them rather than adding one-off styles; a real
-  design system will replace them.
+  links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-dark`,
+  `btn-outline`, `btn-ghost`, `btn-link`, `card`, `auth-panel`, `form-stack`,
+  `divider`, `hint`, `notice`). Buttons are pills: red `btn-primary` for the
+  action that moves the dealer forward, the ink `btn-dark` for the banner's
+  Register. Reuse them rather than adding one-off styles; a real design
+  system will replace them.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
   and `logo-dark.png`, 879×120 16-colour palette PNGs of about 7 KB each. They
