@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: cars-secrets-web
+    runtime: node
+    plan: starter
+    branch: main
+    buildCommand: corepack enable && yarn install --immutable && yarn build
+    startCommand: yarn start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
