@@ -15,10 +15,16 @@ describe("JSON-LD builders", () => {
     expect(org).toMatchObject({
       "@type": "Organization",
       "@id": "https://cars-secrets.test/#organization",
-      name: "Cars Secrets",
+      name: "Car's Secrets",
+      alternateName: ["Cars Secrets", "Car’s Secrets"],
       logo: "https://cars-secrets.test/brand/logo-light.png",
     });
-    expect(webSite()).toMatchObject({ "@type": "WebSite", publisher: { "@id": org["@id"] } });
+    expect(webSite()).toMatchObject({
+      "@type": "WebSite",
+      name: "Car's Secrets",
+      alternateName: ["Cars Secrets", "Car’s Secrets"],
+      publisher: { "@id": org["@id"] },
+    });
     expect(softwareApplication()).toMatchObject({ "@type": "WebApplication", publisher: { "@id": org["@id"] } });
   });
 

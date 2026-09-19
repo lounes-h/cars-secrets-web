@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { analyzeDeal, exampleDeal, formatPercent, formatUsd, type DealInputs } from "@/lib/deal";
+import { analyzeDeal, type DealInputs } from "@/lib/deal";
+
+const exampleDeal: DealInputs = {
+  estimatedResaleValue: 18500,
+  currentBid: 9200,
+  auctionFees: 850,
+  repairEstimate: 2100,
+  transportEstimate: 450,
+  otherCosts: 300,
+  targetProfit: 2500,
+};
 
 describe("analyzeDeal", () => {
   it("computes cost, profit, margin and max bid for the worked example", () => {
@@ -45,13 +55,5 @@ describe("analyzeDeal", () => {
     ["negative other costs", { otherCosts: -5 }],
   ])("rejects %s inputs", (_label, override) => {
     expect(() => analyzeDeal({ ...exampleDeal, ...override })).toThrow(RangeError);
-  });
-});
-
-describe("formatting", () => {
-  it("formats whole dollars and one-decimal percentages", () => {
-    expect(formatUsd(12300)).toBe("$12,300");
-    expect(formatUsd(-1200)).toBe("-$1,200");
-    expect(formatPercent(0.3027)).toBe("30.3%");
   });
 });

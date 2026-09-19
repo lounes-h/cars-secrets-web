@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
-import { analyzeDeal, exampleDeal, formatUsd } from "@/lib/deal";
+import { LOGO_SIZE } from "@/components/SiteBanner";
+import { loadLogoDataUrl, loadOgFonts, OG_FONT_FAMILY } from "@/lib/og";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo/metadata";
 import { site } from "@/lib/site";
 
@@ -7,7 +8,11 @@ export const alt = DEFAULT_OG_IMAGE.alt;
 export const size = { width: DEFAULT_OG_IMAGE.width, height: DEFAULT_OG_IMAGE.height };
 export const contentType = "image/png";
 
-export default function OpengraphImage() {
+const LOGO_WIDTH = 720;
+
+export default async function OpengraphImage() {
+  const [fonts, logo] = await Promise.all([loadOgFonts(), loadLogoDataUrl()]);
+
   return new ImageResponse(
     (
       <div
@@ -17,19 +22,37 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: 72,
-          background: "#1d2a33",
-          color: "#e6ecef",
+          background: site.colors.white,
+          fontFamily: OG_FONT_FAMILY,
         }}
       >
-        <div style={{ fontSize: 40, fontWeight: 700 }}>{site.name}</div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 34, color: "#9aa7b1" }}>Suggested max bid</div>
-          <div style={{ fontSize: 150, fontWeight: 900, color: "#f2c230", transform: "rotate(-2deg)" }}>{formatUsd(analyzeDeal(exampleDeal).suggestedMaxBid)}</div>
+        <div style={{ display: "flex", flexDirection: "column", padding: "88px 88px 0" }}>
+          <img
+            src={logo}
+            alt=""
+            width={LOGO_WIDTH}
+            height={Math.round((LOGO_WIDTH * LOGO_SIZE.height) / LOGO_SIZE.width)}
+          />
+          <div
+            style={{
+              marginTop: 64,
+              fontSize: 56,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.1,
+              color: site.colors.ink,
+            }}
+          >
+            {site.tagline}
+          </div>
+          <div style={{ marginTop: 20, fontSize: 32, fontWeight: 400, color: site.colors.muted, maxWidth: 960 }}>
+            Copart, IAA and Manheim listings in one search, with the resale value, total cost, profit and max bid
+            for every vehicle.
+          </div>
         </div>
-        <div style={{ fontSize: 38, maxWidth: 1000 }}>Know your max bid before the auction starts.</div>
+        <div style={{ height: 20, background: site.colors.red }} />
       </div>
     ),
-    size,
+    { ...size, fonts },
   );
 }

@@ -1,23 +1,14 @@
 @import "tailwindcss";
 
-/*
- * Palette: auction-lot concrete and slate, with the yellow of the grease
- * pencil dealers use to write prices on windshields. Yellow is reserved for
- * the one number that matters — the max bid.
- */
+/* Brand palette: the red of the logo's "Car's" on white, with slate neutrals. */
 :root {
-  --paper: #eef1f3;
+  --paper: #f4f6f7;
   --surface: #ffffff;
   --ink: #17222b;
   --muted: #53616c;
-  --line: #cbd3d9;
-  --marker: #f2c230;
-  /* Sampled from the logo's "Car's". */
+  --line: #d5dbe0;
+  /* Sampled from the logo. */
   --brand-red: #d7282b;
-  --glass: #1d2a33;
-  --glass-ink: #e6ecef;
-  --profit: #1f7a4f;
-  --loss: #b3402a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,9 +18,7 @@
     --ink: #e6ecef;
     --muted: #9aa7b1;
     --line: #2c3a44;
-    --glass: #0b1115;
-    --profit: #4cc38a;
-    --loss: #e57a62;
+    --brand-red: #e8484a;
   }
 }
 
@@ -39,12 +28,7 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
-  --color-marker: var(--marker);
   --color-brand-red: var(--brand-red);
-  --color-glass: var(--glass);
-  --color-glass-ink: var(--glass-ink);
-  --color-profit: var(--profit);
-  --color-loss: var(--loss);
   --font-sans: var(--font-libre-franklin), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -61,23 +45,8 @@ body {
   line-height: 1.6;
 }
 
-/* Heavy, tightly set Libre Franklin, like lot numbers stencilled on a run list. */
-.display {
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1.02;
-}
-
-/* Grease-pencil numerals on the windshield panel. */
-.marker {
-  font-weight: 900;
-  letter-spacing: -0.045em;
-  color: var(--marker);
-  line-height: 0.9;
-}
-
 :focus-visible {
-  outline: 3px solid var(--marker);
+  outline: 3px solid var(--brand-red);
   outline-offset: 2px;
   border-radius: 2px;
 }

@@ -47,7 +47,7 @@ describe("robots", () => {
 
 describe("llms.txt", () => {
   it("starts with the site name and summary", () => {
-    expect(buildLlmsTxt().startsWith("# Cars Secrets\n\n> ")).toBe(true);
+    expect(buildLlmsTxt().startsWith("# Car's Secrets\n\n> ")).toBe(true);
   });
 
   it("links only the routes flagged for llms.txt", () => {

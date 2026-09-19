@@ -15,7 +15,7 @@ export function buildLlmsTxt(routes: readonly SiteRoute[] = registry): string {
     "",
     `> ${site.description}`,
     "",
-    "Cars Secrets is built for used-car dealers who buy at auction. It does not place bids: each listing links to the original auction site, where the dealer bids directly.",
+    `${site.name} is built for used-car dealers who buy at auction. It does not place bids: each listing links to the original auction site, where the dealer bids directly.`,
     "",
     ...(keyPages.length > 0 ? ["## Key pages", "", ...keyPages, ""] : []),
   ].join("\n");

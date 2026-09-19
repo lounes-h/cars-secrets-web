@@ -6,6 +6,6 @@ describe("GET /llms.txt", () => {
     const response = GET();
     expect(dynamic).toBe("force-static");
     expect(response.headers.get("content-type")).toBe("text/plain; charset=utf-8");
-    expect(await response.text()).toContain("# Cars Secrets");
+    expect(await response.text()).toContain("# Car's Secrets");
   });
 });

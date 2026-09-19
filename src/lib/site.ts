@@ -5,43 +5,34 @@
 
 const LOCAL_URL = "http://localhost:3000";
 
-type SiteUrlEnv = {
-  NEXT_PUBLIC_SITE_URL?: string;
-  RENDER_EXTERNAL_URL?: string;
-};
-
 /**
- * Resolves the public origin of the site, without a trailing slash.
- * Prefers the explicit NEXT_PUBLIC_SITE_URL, then the URL Render assigns to
- * the service, then localhost for development.
+ * Resolves the public origin of the site, without a trailing slash, from
+ * NEXT_PUBLIC_SITE_URL, falling back to localhost for development.
+ * NEXT_PUBLIC_ variables are inlined into client bundles too, so server and
+ * browser always agree on the value.
  */
-export function resolveSiteUrl(env: SiteUrlEnv): string {
-  const candidates = [env.NEXT_PUBLIC_SITE_URL, env.RENDER_EXTERNAL_URL];
-  for (const candidate of candidates) {
-    const value = candidate?.trim();
-    if (!value) continue;
-    let url: URL;
-    try {
-      url = new URL(value);
-    } catch {
-      throw new Error(`Invalid site URL: "${value}". Use an absolute URL such as https://example.com`);
-    }
-    return url.origin;
+export function resolveSiteUrl(value: string | undefined): string {
+  const trimmed = value?.trim();
+  if (!trimmed) return LOCAL_URL;
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    throw new Error(`Invalid NEXT_PUBLIC_SITE_URL: "${trimmed}". Use an absolute URL such as https://example.com`);
   }
-  return LOCAL_URL;
 }
 
 export const site = {
-  name: "Cars Secrets",
-  url: resolveSiteUrl({
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-    RENDER_EXTERNAL_URL: process.env.RENDER_EXTERNAL_URL,
-  }),
+  name: "Car's Secrets",
+  /** Other spellings people search for; listed in structured data. */
+  alternateNames: ["Cars Secrets", "Car’s Secrets"],
+  url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   locale: "en_US",
   language: "en",
   tagline: "Auction intelligence for car dealers",
   description:
-    "Cars Secrets brings active Copart, IAA and Manheim listings into one search and shows, for every vehicle, the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid.",
+    "Car's Secrets brings active Copart, IAA and Manheim listings into one search and shows, for every vehicle, the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid.",
+  /** Brand colours, for places CSS variables can't reach (manifest, generated images). */
+  colors: { red: "#d7282b", ink: "#17222b", muted: "#53616c", white: "#ffffff", dark: "#18222a" },
 } as const;
 
 /** Joins a site-relative path onto the site origin. */

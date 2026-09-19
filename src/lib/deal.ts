@@ -47,28 +47,3 @@ export function analyzeDeal(inputs: DealInputs): DealAnalysis {
 
   return { totalAcquisitionCost, projectedProfit, profitMargin, suggestedMaxBid };
 }
-
-const usd = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
-
-export function formatUsd(amount: number): string {
-  return usd.format(amount);
-}
-
-export function formatPercent(fraction: number): string {
-  return `${(fraction * 100).toFixed(1)}%`;
-}
-
-/** A worked example, used by the default Open Graph image. */
-export const exampleDeal: DealInputs = {
-  estimatedResaleValue: 18500,
-  currentBid: 9200,
-  auctionFees: 850,
-  repairEstimate: 2100,
-  transportEstimate: 450,
-  otherCosts: 300,
-  targetProfit: 2500,
-};

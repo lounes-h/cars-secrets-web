@@ -9,7 +9,6 @@ export const fixtureRoutes: readonly SiteRoute[] = [
     description: "Guide description.",
     changeFrequency: "monthly",
     priority: 0.8,
-    nav: true,
     llms: true,
   },
   { path: "/terms", title: "Terms", description: "Terms description.", changeFrequency: "yearly", priority: 0.2 },

@@ -8,8 +8,6 @@ export type SiteRoute = {
   description: string;
   changeFrequency: "daily" | "weekly" | "monthly" | "yearly";
   priority: number;
-  /** Shown in the site navigation. */
-  nav?: boolean;
   /** Listed in llms.txt under "Key pages". */
   llms?: boolean;
 };
@@ -22,5 +20,3 @@ export function getRoute(path: string, registry: readonly SiteRoute[] = routes):
   if (!route) throw new Error(`No route registered for "${path}". Add it to src/lib/routes.ts.`);
   return route;
 }
-
-export const navRoutes = routes.filter((route) => route.nav);

@@ -10,7 +10,7 @@ A dealer-focused vehicle auction intelligence platform that aggregates active li
 - Yarn 4 through Corepack (`packageManager` in `package.json`), with the
   `node-modules` linker.
 - Vitest with Testing Library for unit tests.
-- Hosted on Render (`render.yaml`), which deploys `main`.
+- Hosting is not chosen yet.
 
 Next 16 differs from older versions. Before using an API, read the bundled docs
 in `node_modules/next/dist/docs/`.
@@ -132,12 +132,17 @@ A code change is not considered complete until the relevant unit tests have been
 This is the foundation only. **No pages have been built yet**, and none should be
 added until the user asks. The route registry is empty and `/` returns 404.
 
+The brand name is **Car's Secrets** (`site.name` in `src/lib/site.ts`). "Cars
+Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.
+The repository keeps its `cars-secrets-web` name.
+
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
-(Libre Franklin, design tokens, Organization and WebSite JSON-LD, and the
-full-width top banner with the brand logo); the SEO
-builders (metadata, JSON-LD, sitemap, robots, llms.txt); `robots.txt` with AI
-crawlers allowed; the Open Graph image, manifest, icon and `logo.png`; security
-headers; and the deal calculation in `src/lib/deal.ts`.
+(Libre Franklin, brand design tokens, Organization and WebSite JSON-LD, and the
+full-width top banner with the brand logo); the SEO builders (metadata,
+JSON-LD, sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; the
+branded Open Graph image; the favicon, Apple touch icon and manifest icons (the
+red "C" from the logo); security headers; and the deal calculation in
+`src/lib/deal.ts`.
 
 There is no auth, database, auction data feed, search, saved vehicles or alerts
 yet.
@@ -148,7 +153,6 @@ Create a branch before starting work. The first Git action of a task is creating
 
 `main` is the production branch — what ships. That is the whole reason task
 work never lands on it directly: a commit there is a release, not a save.
-Render deploys `main`, so a push to it goes live.
 
 Check where the working tree is first:
 

@@ -8,14 +8,14 @@ afterEach(cleanup);
 describe("SiteBanner", () => {
   it("renders the logo as a link home, named after the site", () => {
     render(<SiteBanner />);
-    const link = screen.getByRole("link", { name: "Cars Secrets" });
+    const link = screen.getByRole("link", { name: "Car's Secrets" });
     expect(link.getAttribute("href")).toBe("/");
     expect(screen.getByRole("banner").contains(link)).toBe(true);
   });
 
   it("loads the light logo eagerly with its intrinsic size, so it doesn't shift the layout", () => {
     render(<SiteBanner />);
-    const img = screen.getByRole("img", { name: "Cars Secrets" });
+    const img = screen.getByRole("img", { name: "Car's Secrets" });
     expect(img.getAttribute("src")).toBe("/brand/logo-light.png");
     expect(img.getAttribute("width")).toBe(String(LOGO_SIZE.width));
     expect(img.getAttribute("height")).toBe(String(LOGO_SIZE.height));

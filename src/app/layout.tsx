@@ -22,8 +22,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef1f3" },
-    { media: "(prefers-color-scheme: dark)", color: "#11181d" },
+    // Match the banner, which is the first thing under the browser toolbar.
+    { media: "(prefers-color-scheme: light)", color: site.colors.white },
+    { media: "(prefers-color-scheme: dark)", color: site.colors.dark },
   ],
 };
 

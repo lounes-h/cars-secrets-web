@@ -6,15 +6,15 @@ describe("buildMetadata", () => {
   const metadata = buildMetadata({ title: "Features", description: "What it does.", path: "/features" });
 
   it("appends the site name and sets an absolute canonical URL", () => {
-    expect(metadata.title).toEqual({ absolute: "Features | Cars Secrets" });
+    expect(metadata.title).toEqual({ absolute: "Features | Car's Secrets" });
     expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/features");
   });
 
   it("fills Open Graph and Twitter with the same title, URL and share image", () => {
     expect(metadata.openGraph).toMatchObject({
       url: "https://cars-secrets.test/features",
-      title: "Features | Cars Secrets",
-      siteName: "Cars Secrets",
+      title: "Features | Car's Secrets",
+      siteName: "Car's Secrets",
       images: [
         {
           url: "https://cars-secrets.test/opengraph-image",
@@ -25,7 +25,7 @@ describe("buildMetadata", () => {
     });
     expect(metadata.twitter).toMatchObject({
       card: "summary_large_image",
-      title: "Features | Cars Secrets",
+      title: "Features | Car's Secrets",
       images: ["https://cars-secrets.test/opengraph-image"],
     });
   });
@@ -44,7 +44,7 @@ describe("buildMetadata", () => {
 describe("metadataForRoute", () => {
   it("uses the registry entry for the path", () => {
     const metadata = metadataForRoute("/guides/max-bid", {}, fixtureRoutes);
-    expect(metadata.title).toEqual({ absolute: "How to set a max bid | Cars Secrets" });
+    expect(metadata.title).toEqual({ absolute: "How to set a max bid | Car's Secrets" });
     expect(metadata.description).toBe("Guide description.");
     expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/guides/max-bid");
   });

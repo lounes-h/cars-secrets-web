@@ -2,25 +2,26 @@ import { describe, expect, it } from "vitest";
 import { absoluteUrl, resolveSiteUrl, site } from "@/lib/site";
 
 describe("resolveSiteUrl", () => {
-  it("prefers NEXT_PUBLIC_SITE_URL and strips the trailing slash", () => {
-    expect(
-      resolveSiteUrl({ NEXT_PUBLIC_SITE_URL: "https://carssecrets.com/", RENDER_EXTERNAL_URL: "https://x.onrender.com" }),
-    ).toBe("https://carssecrets.com");
+  it("uses NEXT_PUBLIC_SITE_URL and strips the trailing slash and path", () => {
+    expect(resolveSiteUrl("https://carssecrets.com/")).toBe("https://carssecrets.com");
+    expect(resolveSiteUrl("https://carssecrets.com/some/path")).toBe("https://carssecrets.com");
   });
 
-  it("falls back to the Render URL, then to localhost", () => {
-    expect(resolveSiteUrl({ RENDER_EXTERNAL_URL: "https://cars.onrender.com" })).toBe("https://cars.onrender.com");
-    expect(resolveSiteUrl({})).toBe("http://localhost:3000");
-  });
-
-  it("ignores blank values", () => {
-    expect(resolveSiteUrl({ NEXT_PUBLIC_SITE_URL: "  ", RENDER_EXTERNAL_URL: "https://cars.onrender.com" })).toBe(
-      "https://cars.onrender.com",
-    );
+  it("falls back to localhost when unset or blank", () => {
+    expect(resolveSiteUrl(undefined)).toBe("http://localhost:3000");
+    expect(resolveSiteUrl("   ")).toBe("http://localhost:3000");
   });
 
   it("rejects a value that is not an absolute URL", () => {
-    expect(() => resolveSiteUrl({ NEXT_PUBLIC_SITE_URL: "carssecrets.com" })).toThrow(/Invalid site URL/);
+    expect(() => resolveSiteUrl("carssecrets.com")).toThrow(/Invalid NEXT_PUBLIC_SITE_URL/);
+  });
+});
+
+describe("site", () => {
+  it("is branded Car's Secrets, with the other spellings as alternate names", () => {
+    expect(site.name).toBe("Car's Secrets");
+    expect(site.alternateNames).toContain("Cars Secrets");
+    expect(site.description.startsWith("Car's Secrets ")).toBe(true);
   });
 });
 
