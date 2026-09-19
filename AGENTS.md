@@ -43,6 +43,13 @@ See `docs/architecture.md` for details.
   rendered with `<JsonLd>`.
 - Each page has one `h1`. Its lede answers the page's question directly, so
   search engines and AI assistants can quote it.
+- The layout is full width: no centered `max-w-*` page container. Sections
+  span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
+  running text is capped at a readable measure (`max-w-[65ch]`).
+- The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
+  layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
+  and `logo-dark.png`, 879×120 16-colour palette PNGs of about 7 KB each. They
+  are served as-is because the Next image optimizer makes them larger.
 - Pages are Server Components and stay static. Add `"use client"` only where
   interaction needs it.
 - Deal arithmetic (cost, profit, margin, max bid) lives only in
@@ -126,7 +133,8 @@ This is the foundation only. **No pages have been built yet**, and none should b
 added until the user asks. The route registry is empty and `/` returns 404.
 
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
-(Libre Franklin, design tokens, Organization and WebSite JSON-LD); the SEO
+(Libre Franklin, design tokens, Organization and WebSite JSON-LD, and the
+full-width top banner with the brand logo); the SEO
 builders (metadata, JSON-LD, sitemap, robots, llms.txt); `robots.txt` with AI
 crawlers allowed; the Open Graph image, manifest, icon and `logo.png`; security
 headers; and the deal calculation in `src/lib/deal.ts`.

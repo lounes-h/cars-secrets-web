@@ -12,6 +12,8 @@
   --muted: #53616c;
   --line: #cbd3d9;
   --marker: #f2c230;
+  /* Sampled from the logo's "Car's". */
+  --brand-red: #d7282b;
   --glass: #1d2a33;
   --glass-ink: #e6ecef;
   --profit: #1f7a4f;
@@ -38,6 +40,7 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-marker: var(--marker);
+  --color-brand-red: var(--brand-red);
   --color-glass: var(--glass);
   --color-glass-ink: var(--glass-ink);
   --color-profit: var(--profit);

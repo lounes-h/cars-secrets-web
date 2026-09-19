@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Libre_Franklin } from "next/font/google";
 import { JsonLd } from "@/components/JsonLd";
+import { SiteBanner } from "@/components/SiteBanner";
 import { organization, webSite } from "@/lib/seo/jsonld";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang={site.language} className={libreFranklin.variable}>
       <body className="flex min-h-dvh flex-col antialiased">
         <JsonLd data={[organization(), webSite()]} />
+        <SiteBanner />
         {children}
       </body>
     </html>

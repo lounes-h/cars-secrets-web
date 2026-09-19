@@ -17,7 +17,7 @@ export function organization(): JsonLdObject {
     "@id": ORGANIZATION_ID,
     name: site.name,
     url: absoluteUrl("/"),
-    logo: absoluteUrl("/logo.png"),
+    logo: absoluteUrl("/brand/logo-light.png"),
     description: site.description,
   };
 }

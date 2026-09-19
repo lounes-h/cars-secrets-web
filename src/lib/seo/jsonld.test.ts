@@ -16,7 +16,7 @@ describe("JSON-LD builders", () => {
       "@type": "Organization",
       "@id": "https://cars-secrets.test/#organization",
       name: "Cars Secrets",
-      logo: "https://cars-secrets.test/logo.png",
+      logo: "https://cars-secrets.test/brand/logo-light.png",
     });
     expect(webSite()).toMatchObject({ "@type": "WebSite", publisher: { "@id": org["@id"] } });
     expect(softwareApplication()).toMatchObject({ "@type": "WebApplication", publisher: { "@id": org["@id"] } });
