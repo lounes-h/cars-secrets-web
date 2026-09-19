@@ -28,6 +28,8 @@ yarn build && yarn start
 ```
 
 Run `yarn lint && yarn typecheck && yarn test && yarn build` before committing.
+GitHub Actions runs the same four checks on every pull request and on pushes
+to `main` (`.github/workflows/ci.yml`).
 
 ## Architecture rules (important)
 
