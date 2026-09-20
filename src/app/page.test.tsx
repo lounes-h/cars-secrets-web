@@ -24,6 +24,12 @@ describe("home page", () => {
     expect(screen.getByRole("link", { name: "Sign in" }).getAttribute("href")).toBe("/login");
   });
 
+  it("presents the analysis as analysis, not as a promise", () => {
+    render(<HomePage />);
+    expect(screen.getByText(/A plain-English read on every lot, and a score to sort by\./)).toBeTruthy();
+    expect(screen.getByText(/Analysis, never a promise\./)).toBeTruthy();
+  });
+
   it("says the platform does not take bids", () => {
     render(<HomePage />);
     expect(screen.getByText(/every lot links back to the auction that runs it/i)).toBeTruthy();

@@ -31,6 +31,12 @@ const answers = [
     title: "Saved searches that tell you when it lists.",
     body: "Save the searches you run every morning and get told when a lot matching them appears.",
   },
+  {
+    eyebrow: "Why, not just what",
+    title: "A plain-English read on every lot, and a score to sort by.",
+    body:
+      "What looks good, what to check before you bid, and where each number came from — carrying the same confidence rating as the figures it is built on. Analysis, never a promise.",
+  },
 ];
 
 export default function HomePage() {
@@ -75,7 +81,7 @@ export default function HomePage() {
           </div>
           <ul className="grid gap-4 sm:grid-cols-2">
             {answers.map((answer) => (
-              <li key={answer.eyebrow} className="card-sunken flex flex-col gap-2">
+              <li key={answer.eyebrow} className="card-sunken flex flex-col gap-2 sm:last:col-span-2">
                 <p className="eyebrow">{answer.eyebrow}</p>
                 <h3 className="text-xl font-extrabold tracking-tight">{answer.title}</h3>
                 <p className="text-muted">{answer.body}</p>
