@@ -229,6 +229,9 @@ Confidence                       High
 
 Users should clearly understand that these numbers are **estimates**, not guarantees.
 
+The Confidence row is defined in Section 14, and carries the lowest confidence of the
+figures above it.
+
 ---
 
 ## 8. VIN Lookup
@@ -320,6 +323,9 @@ Availability may depend on subscription level.
 
 Car’s Secrets should provide information beyond the auction source's raw listing.
 
+Every value in this section is governed by Section 14, which defines where it comes
+from, how accurate it is known to be, and how that is shown to the buyer.
+
 Important calculated or enriched values include:
 
 ### Estimated Final Auction Price
@@ -390,9 +396,159 @@ Example:
 
 AI-generated information should always be clearly labeled as an estimate or analysis.
 
+Section 14 defines what that analysis may claim, what it may not, and how it is held to
+the same confidence rating as the computed estimates.
+
 ---
 
-## 14. Profit / Opportunity Scoring
+## 14. Estimate Quality and Confidence
+
+Section 21 positions Car’s Secrets on decision intelligence rather than
+aggregation. That makes the estimates the product, and an estimate nobody can
+audit is worth less than no estimate at all: a dealer burned once by a
+confident wrong number stops trusting every number on the page.
+
+This section defines where each figure comes from, how good it is known to be,
+and how both are communicated. It governs every value in Section 12 and every
+sentence in Section 13.
+
+---
+
+### Where each estimate comes from
+
+| Estimate | Primary inputs | Nature |
+|---|---|---|
+| Auction fees | The source’s published buyer fee schedule, applied to the purchase price | Deterministic |
+| Transportation | Distance from the auction location to the buyer’s base, lot class, whether it runs | Deterministic given a base |
+| Estimated market / resale value | Recent comparable sales and retail listings for the same year, make, model, trim, mileage band, condition and region | Modelled |
+| Estimated final auction price | Historical results for similar lots at the same source and location, current bid trajectory, time to sale | Modelled |
+| Repair / reconditioning | Declared primary and secondary damage, severity, assessable photos, model-specific parts and labour cost | Weakest |
+
+These are not equally knowable, and the product should never imply that they
+are. Auction fees are arithmetic on a published schedule. A repair estimate
+drawn from a damage code and four photographs is a guess with a wide
+distribution. Presenting both at the same weight, in the same column, with no
+distinction, is the easiest way to mislead a buyer.
+
+---
+
+### What an estimate may and may not use
+
+An estimate may use:
+
+- Normalized listing fields from the source (Section 5).
+- The platform’s own history for that source, location and segment.
+- Market data the platform is licensed to use.
+- The buyer’s own inputs, such as their labour rate, transport base or target margin.
+
+An estimate must not use:
+
+- Another user’s private data, saved searches or activity.
+- A value invented to fill a missing input.
+- An extrapolation beyond what the inputs support.
+
+**Every estimate must be reproducible.** The inputs, the method and the method
+version are recorded alongside the figure. If a number cannot be recomputed
+later and explained in plain language, it must not be shown.
+
+---
+
+### One confidence rating
+
+The platform uses a single confidence scale, and the same scale applies to
+computed estimates and to AI-generated analysis. Two different meanings of
+“confidence” in one product is a defect.
+
+| Rating | Meaning |
+|---|---|
+| **High** | Inputs complete, enough close comparables, method deterministic or validated in this segment |
+| **Medium** | Inputs partial or comparables thin. Shown as a range, not a point |
+| **Low** | Key inputs missing or contradictory. Shown as a wide range, or withheld |
+| **Unavailable** | Cannot be estimated responsibly. Shown as “not enough information” — never as $0, a blank or a dash |
+
+Three rules make the rating mean something:
+
+1. **Confidence travels with the number.** It appears next to the figure it
+   describes, not once in a legend at the bottom of the page.
+2. **A derived figure inherits the lowest confidence of its inputs.** Estimated
+   total cost cannot be High while the repair estimate inside it is Low. The
+   same applies to potential profit, profit margin and suggested maximum bid.
+3. **Nothing downstream may claim more.** The profit score of Section 15 and
+   the analysis of Section 13 must not be presented more confidently than the
+   figures they are built from.
+
+---
+
+### AI analysis is held to the same bar
+
+Section 13 describes what the AI produces. This is what it is accountable for.
+
+- **Grounded only in what the platform holds.** The normalized listing, its
+  photographs and the computed estimates of Section 12. No claim about a
+  specific lot may come from anywhere else.
+- **No invented condition facts.** “Worth checking the cooling system given the
+  front-end impact” is a question to investigate, and is allowed. “The radiator
+  is damaged” is a condition claim, and is allowed only where the listing
+  declares it.
+- **Figures are cited, not restated.** Where the analysis names a number it
+  must reference the computed value, so the prose can never contradict the
+  table beside it. In the Section 13 example, the “approximately $9,400” must
+  *be* the suggested maximum bid from Section 12, not a figure the model
+  produced.
+- **Always labelled**, always carrying its confidence, never phrased as a
+  guarantee and never as advice to buy.
+- **Reportable.** Buyers need a visible way to flag a summary as wrong, and
+  those reports feed the accuracy review below.
+- **Silent when the inputs are.** Where confidence is Unavailable there is no
+  AI summary either. A fluent paragraph about a lot the platform knows little
+  about is the most dangerous output it can produce.
+
+---
+
+### Measuring accuracy
+
+A confidence rating that is never checked is decoration.
+
+- Every figure shown to a buyer is recorded with its inputs, method version and
+  rating.
+- When a lot sells, the realized price is captured and compared against what
+  was estimated.
+- Accuracy is reviewed per estimate type, per source and per segment, using
+  median absolute error and the share of estimates within a stated tolerance.
+- **Confidence itself is calibrated.** High-confidence estimates must be right
+  more often than Medium ones. Where they are not, the rating is wrong and is
+  corrected before the model is.
+- A method version whose error degrades past an agreed threshold is rolled
+  back, and its confidence is downgraded until it is fixed.
+
+---
+
+### What the buyer sees
+
+- Estimated figures are labelled “estimated”, never presented as “value” or
+  “price” alone.
+- Anything below High confidence is shown as a range.
+- Every estimate offers “How is this calculated?”, showing its inputs and
+  method in plain language.
+- Buyers can replace the platform’s assumptions with their own labour rate,
+  transport base and target margin. Overridden figures are marked as theirs.
+- Estimates are decision support, not investment advice. The platform does not
+  tell anyone to buy.
+- Disclaimers sit at the point of the number, not only in a footer.
+
+---
+
+### When the platform shows nothing
+
+Withholding beats guessing. No figure is shown when there are too few
+comparables, the odometer or damage data is contradictory, the lot is too
+unusual to model, or the source data is older than the platform’s freshness
+limit. In each case the interface states that the estimate is unavailable, and
+what would be needed to produce one.
+
+---
+
+## 15. Profit / Opportunity Scoring
 
 Each vehicle may eventually receive a score designed to help users prioritize inventory.
 
@@ -419,9 +575,12 @@ The score could consider:
 
 The scoring algorithm should remain configurable.
 
+A score is only as good as the estimates beneath it, so it carries the confidence rules
+of Section 14 and is never presented more confidently than its inputs.
+
 ---
 
-## 15. Dashboard
+## 16. Dashboard
 
 Registered users should eventually have a personalized dashboard containing:
 
@@ -438,7 +597,7 @@ Pro and Premium users may receive more advanced intelligence such as personalize
 
 ---
 
-## 16. Original Auction Integration
+## 17. Original Auction Integration
 
 Car’s Secrets does **not** conduct auctions.
 
@@ -468,7 +627,7 @@ Vehicle pages should therefore have prominent actions such as:
 
 ---
 
-## 17. SEO Strategy
+## 18. SEO Strategy
 
 SEO should be treated as a core technical requirement from the beginning.
 
@@ -499,7 +658,7 @@ Sensitive or user-specific pages such as dashboards, account pages, saved search
 
 ---
 
-## 18. MVP Scope
+## 19. MVP Scope
 
 The first version should remain focused.
 
@@ -527,7 +686,7 @@ Advanced features can follow after actual users demonstrate demand.
 
 ---
 
-## 19. Out of Scope for Initial Version
+## 20. Out of Scope for Initial Version
 
 The initial version should **not** attempt to implement:
 
@@ -547,7 +706,7 @@ These can be evaluated later.
 
 ---
 
-## 20. Product Positioning
+## 21. Product Positioning
 
 Car’s Secrets should not position itself simply as:
 
