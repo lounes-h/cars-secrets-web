@@ -51,20 +51,29 @@ See `docs/architecture.md` for details.
   rendered with `<JsonLd>`.
 - Each page has one `h1`. Its lede answers the page's question directly, so
   search engines and AI assistants can quote it.
-- The layout is full width: no centered `max-w-*` page container. Sections
+- App pages are full width: no centered `max-w-*` page container. Sections
   span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
-  running text is capped at a readable measure (`max-w-[65ch]`). Auth pages
-  are the exception: their form sits in one centered `.auth-panel` column
-  (28rem), a raised white panel on the warm paper like a sign-in dialog,
-  because a full-width form is hard to fill in.
+  running text is capped at a readable measure (`max-w-[65ch]`).
+  Two kinds of page are the exception. Marketing pages (the home page) keep
+  their section full width — so a band can be full-bleed — and centre the
+  content inside it with `.page` (`--page`, 75rem). Auth pages sit in one
+  centered `.auth-panel` column (28rem), a raised white panel on the warm
+  paper like a sign-in dialog, because a full-width form is hard to fill in.
 - Basic styling lives in `src/app/globals.css`, on the brand tokens so dark
-  mode follows: base styles for headings, labels, inputs, selects, checkboxes,
-  links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-dark`,
-  `btn-outline`, `btn-ghost`, `btn-link`, `card`, `auth-panel`, `form-stack`,
-  `divider`, `hint`, `notice`). Buttons are pills: red `btn-primary` for the
-  action that moves the dealer forward, the ink `btn-dark` for the banner's
-  Register. Reuse them rather than adding one-off styles; a real design
-  system will replace them.
+  mode follows. The tokens are colour (`--paper`, `--surface`, `--sunken`,
+  `--ink`, `--muted`, `--line`, `--brand-red`, `--brand-red-hover`,
+  `--positive`), elevation (`--shadow-sm/md/lg`), radius (`--r-sm/md/lg/pill`)
+  and `--page`. Red means action — the primary button, the focus ring, an
+  error — so money that is good news uses `--positive` instead, and links are
+  ink with a hairline underline, red only on hover.
+- On top of the tokens are base styles for headings, labels, inputs, selects,
+  checkboxes, links and alerts, plus a few classes (`btn`, `btn-primary`,
+  `btn-dark`, `btn-outline`, `btn-ghost`, `btn-link`, `card-sunken`,
+  `auth-panel`, `form-stack`, `divider`, `hint`, `notice`, `page`, `eyebrow`,
+  `display`, `mark`). Buttons are pills: red `btn-primary` for the action that
+  moves the dealer forward, the ink `btn-dark` for the banner's Register.
+  Reuse them rather than adding one-off styles; a real design system will
+  replace them.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
   and `logo-dark.png`, 879×120 16-colour palette PNGs of about 7 KB each. They
@@ -175,10 +184,10 @@ A code change is not considered complete until the relevant unit tests have been
 
 ## Current state
 
-The only pages are the auth pages: `/register`, `/login`, `/forgot-password`,
-`/reset-password`, `/verify-email` and `/account`, with basic styling until a
-design system exists. The top banner links to sign in and register. `/` still
-returns 404. Add no other pages until the user asks.
+The pages are the home page `/` and the auth pages: `/register`, `/login`,
+`/forgot-password`, `/reset-password`, `/verify-email` and `/account`, with
+basic styling until a design system exists. The top banner links to sign in and
+register. Add no other pages until the user asks.
 
 The brand name is **Car's Secrets** (`site.name` in `src/lib/site.ts`). "Cars
 Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.
@@ -191,6 +200,15 @@ JSON-LD, sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; the
 branded Open Graph image; the favicon, Apple touch icon and manifest icons (the
 red "C" from the logo); security headers; and the deal calculation in
 `src/lib/deal.ts`.
+
+In place for the home page: the positioning ("find the lots worth buying"), a
+worked example of one lot and its deal analysis, what the platform answers
+that an auction site does not, the auction sources, and a closing call to
+register. The example lot lives in `src/lib/example-deal.ts` and every figure
+below its inputs is computed by `analyzeDeal`, so the marketing page cannot
+drift from the arithmetic the product uses. It is labelled as an example and
+its figures as estimates. There is no footer: the Terms of Use and Privacy
+Policy do not exist yet, and a footer of dead links is worse than none.
 
 In place for accounts: registration (names, email, optional phone with every
 country's flag and calling code, password with show/hide, terms checkbox,

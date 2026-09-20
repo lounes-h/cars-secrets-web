@@ -1,34 +1,64 @@
 @import "tailwindcss";
 
-/* Brand palette: the red of the logo's "Car's" on white, with slate neutrals. */
+/*
+ * Brand palette: the red of the logo's "Car's" on a warm paper, with warm
+ * neutrals. Red is reserved for action — the primary button, the focus ring
+ * and error states. Money that is good news is green, so profit never has to
+ * borrow the colour that means "click me" or "something is wrong".
+ */
 :root {
-  --paper: #f4f6f7;
+  --paper: #fdf8f5;
   --surface: #ffffff;
-  --ink: #17222b;
-  --muted: #53616c;
-  --line: #d5dbe0;
+  /* Borderless fill for cards that sit on --surface or --paper. */
+  --sunken: #f5f1ed;
+  --ink: #14181c;
+  --muted: #5c6670;
+  --line: #e5ded8;
   /* Sampled from the logo. */
   --brand-red: #d7282b;
+  --brand-red-hover: #b81f22;
+  --positive: #0f7b52;
+
+  --shadow-sm: 0 1px 2px rgb(20 24 28 / 0.06), 0 1px 3px rgb(20 24 28 / 0.04);
+  --shadow-md: 0 4px 12px rgb(20 24 28 / 0.08);
+  --shadow-lg: 0 16px 48px rgb(20 24 28 / 0.12);
+
+  --r-sm: 0.5rem;
+  --r-md: 0.75rem;
+  --r-lg: 1.25rem;
+  --r-pill: 999px;
+
+  /* Marketing pages centre their sections on this measure. */
+  --page: 75rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #11181d;
-    --surface: #18222a;
-    --ink: #e6ecef;
-    --muted: #9aa7b1;
-    --line: #2c3a44;
+    --paper: #131110;
+    --surface: #1c1917;
+    --sunken: #221f1d;
+    --ink: #f0ece8;
+    --muted: #a39c95;
+    --line: #33302d;
     --brand-red: #e8484a;
+    --brand-red-hover: #f26668;
+    --positive: #3dbb87;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+    --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.55);
   }
 }
 
 @theme inline {
   --color-paper: var(--paper);
   --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-brand-red: var(--brand-red);
+  --color-positive: var(--positive);
   --font-sans: var(--font-libre-franklin), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -48,6 +78,13 @@ body {
     letter-spacing: -0.01em;
   }
 
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
   label,
   legend {
     display: block;
@@ -63,7 +100,7 @@ body {
     min-height: 2.75rem;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--line);
-    border-radius: 0.5rem;
+    border-radius: var(--r-sm);
     background: var(--surface);
     color: var(--ink);
   }
@@ -78,10 +115,16 @@ body {
     accent-color: var(--brand-red);
   }
 
+  /* Links are ink, not red: red belongs to the action the page wants next. */
   a {
-    color: var(--brand-red);
+    color: var(--ink);
     text-decoration: underline;
+    text-decoration-color: var(--line);
     text-underline-offset: 2px;
+  }
+  a:hover {
+    color: var(--brand-red);
+    text-decoration-color: currentColor;
   }
 
   [role="alert"] {
@@ -97,11 +140,12 @@ body {
     justify-content: center;
     gap: 0.5rem;
     min-height: 2.75rem;
-    padding: 0.5rem 1.125rem;
+    padding: 0.5rem 1.25rem;
     border: 1px solid transparent;
-    border-radius: 0.5rem;
+    border-radius: var(--r-pill);
     font-weight: 700;
     font-size: 0.9375rem;
+    color: var(--ink);
     text-decoration: none;
     cursor: pointer;
     white-space: nowrap;
@@ -115,21 +159,29 @@ body {
     color: #fff;
   }
   .btn-primary:hover {
-    filter: brightness(0.92);
+    background: var(--brand-red-hover);
+    color: #fff;
+  }
+  /* The ink button: an action that is important but is not the red one. */
+  .btn-dark {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-dark:hover {
+    background: var(--muted);
+    color: var(--paper);
   }
   .btn-outline {
     border-color: var(--line);
     background: var(--surface);
-    color: var(--ink);
   }
   .btn-outline:hover {
     border-color: var(--muted);
-  }
-  .btn-ghost {
     color: var(--ink);
   }
   .btn-ghost:hover {
-    background: var(--paper);
+    background: var(--sunken);
+    color: var(--ink);
   }
   .btn-link {
     padding: 0.25rem 0.5rem;
@@ -139,22 +191,32 @@ body {
     color: var(--muted);
   }
 
-  /* An auth page: the heading, lede and form in one readable column. */
+  /* An auth page: heading, lede and form in one raised panel on the paper. */
   .auth-panel {
     width: 100%;
     max-width: 28rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    padding: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+  }
+  @media (min-width: 40rem) {
+    .auth-panel {
+      padding: 2rem;
+    }
   }
   .auth-panel > p:first-of-type {
     color: var(--muted);
   }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 0.75rem;
-    padding: 1.5rem;
+  /* A card that recedes instead of lifting: fill, no border, no shadow. */
+  .card-sunken {
+    background: var(--sunken);
+    border-radius: var(--r-lg);
+    padding: 1.75rem;
   }
   .form-stack {
     display: flex;
@@ -182,8 +244,39 @@ body {
     background: var(--surface);
     border: 1px solid var(--line);
     border-left: 4px solid var(--brand-red);
-    border-radius: 0.5rem;
+    border-radius: var(--r-sm);
     padding: 1rem;
+  }
+
+  /* Marketing pages: sections centre their content on one measure, while the
+     section itself still spans the viewport so bands can be full-bleed. */
+  .page {
+    width: 100%;
+    max-width: var(--page);
+    margin-inline: auto;
+  }
+  .eyebrow {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .display {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+  }
+  /* The one highlighted phrase in a display heading. It never breaks: half a
+     pill at the end of a line reads as a rendering bug. */
+  .mark {
+    white-space: nowrap;
+    background: color-mix(in srgb, var(--brand-red) 14%, transparent);
+    color: var(--brand-red);
+    border-radius: var(--r-pill);
+    padding: 0 0.3em;
+    box-decoration-break: clone;
   }
 }
 

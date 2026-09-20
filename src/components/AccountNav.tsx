@@ -37,7 +37,7 @@ export function AccountNav() {
         <Link href="/login" className="btn btn-ghost">
           Sign in
         </Link>
-        <Link href="/register" className="btn btn-primary">
+        <Link href="/register" className="btn btn-dark">
           Register
         </Link>
       </nav>

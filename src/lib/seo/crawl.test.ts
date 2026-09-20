@@ -45,7 +45,7 @@ describe("llms.txt", () => {
     expect(text).not.toContain("/terms");
   });
 
-  it("omits the key pages section while no page is flagged for it", () => {
-    expect(buildLlmsTxt()).not.toContain("## Key pages");
+  it("lists the home page from the real registry", () => {
+    expect(buildLlmsTxt()).toContain("- [Car's Secrets: find the lots worth buying](https://cars-secrets.test/)");
   });
 });

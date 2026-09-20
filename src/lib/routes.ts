@@ -16,6 +16,15 @@ export type SiteRoute = {
 
 export const routes: readonly SiteRoute[] = [
   {
+    path: "/",
+    title: "Car's Secrets: find the lots worth buying",
+    description:
+      "Search active Copart, IAA and Manheim lots in one place and see, for every lot, the estimated resale value, the total cost, the projected profit and a suggested maximum bid.",
+    changeFrequency: "daily",
+    priority: 1,
+    llms: true,
+  },
+  {
     path: "/register",
     title: "Create your account",
     description:
