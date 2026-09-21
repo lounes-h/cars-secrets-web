@@ -59,17 +59,16 @@ See `docs/architecture.md` for details.
   because a full-width form is hard to fill in.
 - Basic styling lives in `src/app/globals.css`, on the brand tokens so dark
   mode follows: base styles for headings, labels, inputs, selects, checkboxes,
-  links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-dark`,
-  `btn-outline`, `btn-ghost`, `btn-link`, `card`, `auth-panel`, `form-stack`,
-  `divider`, `hint`, `notice`). Buttons are pills: red `btn-primary` for the
-  action that moves the dealer forward, the ink `btn-dark` for the banner's
-  Register. Reuse them rather than adding one-off styles; a real design
-  system will replace them.
+  links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-navy`,
+  `btn-dark`, `btn-outline`, `btn-ghost`, `btn-link`, `card`, `auth-panel`,
+  `form-stack`, `divider`, `hint`, `notice`). Buttons are pills: red
+  `btn-primary` for the action that moves the dealer forward, the logo's navy
+  `btn-navy` for the banner's free trial button. Reuse them rather than adding
+  one-off styles; a real design system will replace them.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
-  and `logo-dark.png`, 312×144 16-colour palette PNGs of about 3.5 KB each,
-  the stacked wordmark on transparent. They
-  are served as-is because the Next image optimizer makes them larger. Its
+  and `logo-dark.png`, 333×144 16-colour palette PNGs of about 4 KB each, the
+  stacked navy-and-ink wordmark on transparent. They are served as-is because the Next image optimizer makes them larger. Its
   navigation (`src/components/AccountNav.tsx`) is a client component that asks
   `/auth/session` after each navigation and renders both the main menu and the
   account side: Auctions, VIN Lookup, Best Buys, then How It Works and Pricing

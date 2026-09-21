@@ -3,7 +3,7 @@ import { AccountNav } from "@/components/AccountNav";
 import { site } from "@/lib/site";
 
 /** Intrinsic size of the files in public/brand/ (trimmed, transparent, 3× the 48px display height). */
-export const LOGO_SIZE = { width: 312, height: 144 } as const;
+export const LOGO_SIZE = { width: 333, height: 144 } as const;
 
 /**
  * Full-width top banner with the brand logo. The logos are 16-colour palette

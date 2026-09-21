@@ -69,7 +69,7 @@ export function AccountNav() {
           <Link href="/login" className="btn btn-ghost font-medium">
             Sign in
           </Link>
-          <Link href="/register" className="btn btn-primary flex-col gap-0 font-medium leading-tight">
+          <Link href="/register" className="btn btn-navy flex-col gap-0 font-medium leading-tight">
             7 days free trial
             <span className="text-[0.6875rem] font-normal opacity-90">No credit cards required</span>
           </Link>

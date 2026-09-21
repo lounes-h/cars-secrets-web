@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
-/* Brand palette: the red of the logo's "Car's" on white, with slate neutrals. */
+/* Brand palette: the navy of the logo's "Car's", the red accent, and slate neutrals. */
 :root {
   --paper: #f4f6f7;
   --surface: #ffffff;
   --ink: #17222b;
   --muted: #53616c;
   --line: #d5dbe0;
-  /* Sampled from the logo. */
   --brand-red: #d7282b;
+  /* Sampled from the logo's "Car's". */
+  --brand-navy: #324b62;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,6 +20,7 @@
     --muted: #9aa7b1;
     --line: #2c3a44;
     --brand-red: #e8484a;
+    --brand-navy: #3f6485;
   }
 }
 
@@ -29,6 +31,7 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-brand-red: var(--brand-red);
+  --color-brand-navy: var(--brand-navy);
   --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -115,6 +118,13 @@ body {
     color: #fff;
   }
   .btn-primary:hover {
+    filter: brightness(0.92);
+  }
+  .btn-navy {
+    background: var(--brand-navy);
+    color: #fff;
+  }
+  .btn-navy:hover {
     filter: brightness(0.92);
   }
   .btn-outline {
