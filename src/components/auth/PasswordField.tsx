@@ -3,32 +3,31 @@
 import { useId, useState, type KeyboardEvent } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { FieldError } from "@/components/auth/FieldError";
-import { hasSpecialCharacter, PASSWORD_MAX, PASSWORD_MIN } from "@/lib/auth-schemas";
+import { PASSWORD_MAX, PASSWORD_RULES } from "@/lib/auth-schemas";
 
 type Props = {
   registration: UseFormRegisterReturn;
   label?: string;
   autoComplete: "new-password" | "current-password";
   error?: string;
-  /** The value typed so far, to show the length requirement live (new passwords only). */
+  /** The value typed so far, to tick the requirements live (new passwords only). */
   requirementFor?: string;
 };
 
-/** Password input with a show/hide toggle, a Caps Lock warning and, for new passwords, the requirement. */
+/** Password input with a show/hide toggle, a Caps Lock warning and, for new passwords, the requirements. */
 export function PasswordField({ registration, label = "Password", autoComplete, error, requirementFor }: Props) {
   const id = useId();
   const [visible, setVisible] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
+  // The requirements are noise until the field is someone's problem, so they appear on the
+  // first focus and stay from then on.
+  const [focused, setFocused] = useState(false);
   const checkCaps = (event: KeyboardEvent<HTMLInputElement>) => setCapsLock(event.getModifierState("CapsLock"));
+  const showRules = requirementFor !== undefined && focused;
   const describedBy =
-    [error && `${id}-error`, capsLock && `${id}-caps`, requirementFor !== undefined && `${id}-rule`]
-      .filter(Boolean)
-      .join(" ") || undefined;
+    [error && `${id}-error`, capsLock && `${id}-caps`, showRules && `${id}-rules`].filter(Boolean).join(" ") ||
+    undefined;
   const typed = requirementFor ?? "";
-  const rules = [
-    { met: typed.length >= PASSWORD_MIN, text: `At least ${PASSWORD_MIN} characters (${typed.length}/${PASSWORD_MIN})` },
-    { met: hasSpecialCharacter(typed), text: "At least one special character" },
-  ];
 
   return (
     <div>
@@ -43,6 +42,7 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
           aria-describedby={describedBy}
           className="pr-20"
           {...registration}
+          onFocus={() => setFocused(true)}
           onKeyDown={checkCaps}
           onKeyUp={checkCaps}
           onBlur={(event) => {
@@ -66,13 +66,16 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
           Caps Lock is on.
         </p>
       )}
-      {requirementFor !== undefined && (
-        <ul id={`${id}-rule`} className="hint mt-1">
-          {rules.map((rule) => (
-            <li key={rule.text} className={rule.met ? "text-green-700 dark:text-green-400" : undefined}>
-              {rule.met ? "✓" : "•"} {rule.text}
-            </li>
-          ))}
+      {showRules && (
+        <ul id={`${id}-rules`} className="hint mt-1">
+          {PASSWORD_RULES.map((rule) => {
+            const met = rule.test(typed);
+            return (
+              <li key={rule.text} className={met ? "font-medium text-ink" : undefined}>
+                {met ? "✓" : "•"} {rule.text}
+              </li>
+            );
+          })}
         </ul>
       )}
       <FieldError id={`${id}-error`} message={error} />

@@ -36,7 +36,7 @@ function fillRegistration() {
   type("First name", "Dana");
   type("Last name", "Lee");
   type("Email", "dana@example.com");
-  type("Password", "long-enough-pw");
+  type("Password", "long-enough-pw1");
   fireEvent.click(screen.getByLabelText("I accept the Terms of Use and Privacy Policy"));
 }
 
@@ -55,7 +55,7 @@ describe("RegisterForm", () => {
     expect(await screen.findByText("This password appears in a known data breach.")).toBeTruthy();
     expect(screen.getByLabelText<HTMLInputElement>("First name").value).toBe("Dana");
     expect(screen.getByLabelText<HTMLInputElement>("Email").value).toBe("dana@example.com");
-    expect(screen.getByLabelText<HTMLInputElement>("Password").value).toBe("long-enough-pw");
+    expect(screen.getByLabelText<HTMLInputElement>("Password").value).toBe("long-enough-pw1");
     expect(screen.getByLabelText<HTMLInputElement>("I accept the Terms of Use and Privacy Policy").checked).toBe(true);
   });
 
@@ -67,12 +67,25 @@ describe("RegisterForm", () => {
     expect(actions.registerAction).not.toHaveBeenCalled();
   });
 
-  it("shows the live password requirement and the default country", () => {
+  it("shows the password requirements only once the field has been focused", () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     expect(screen.getByLabelText<HTMLSelectElement>("Country").value).toBe("US");
-    expect(screen.getByText(/At least 8 characters \(0\/8\)/)).toBeTruthy();
-    type("Password", "abcdefghijk");
-    expect(screen.getByText(/✓ At least 8 characters \(11\/8\)/)).toBeTruthy();
+    expect(screen.queryByText(/At least 8 characters/)).toBeNull();
+    fireEvent.focus(screen.getByLabelText("Password"));
+    expect(screen.getByText(/• At least 8 characters/)).toBeTruthy();
+    type("Password", "abcdefghijk1!");
+    for (const rule of ["At least 8 characters", "At least one letter", "At least one number"]) {
+      expect(screen.getByText(new RegExp(`✓ ${rule}`))).toBeTruthy();
+    }
+  });
+
+  it("refuses a password missing a number, even with letters and a special character", async () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    fillRegistration();
+    type("Password", "long-enough-pw");
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText("Add at least one number.")).toBeTruthy();
+    expect(actions.registerAction).not.toHaveBeenCalled();
   });
 
   it("checks a field once the cursor leaves it", async () => {
@@ -213,14 +226,14 @@ describe("ResetPasswordForm", () => {
   it("sends the emailed token with the new password", async () => {
     actions.resetPasswordAction.mockResolvedValue({ ok: true });
     render(<ResetPasswordForm token="reset-tok" />);
-    type("New password", "brand-new-password");
-    type("Confirm new password", "brand-new-password");
+    type("New password", "brand-new-password1");
+    type("Confirm new password", "brand-new-password1");
     fireEvent.click(screen.getByRole("button", { name: "Change password" }));
     expect(await screen.findByRole("link", { name: "Sign in with your new password" })).toBeTruthy();
     expect(actions.resetPasswordAction).toHaveBeenCalledWith({
       token: "reset-tok",
-      password: "brand-new-password",
-      password_confirm: "brand-new-password",
+      password: "brand-new-password1",
+      password_confirm: "brand-new-password1",
     });
   });
 });

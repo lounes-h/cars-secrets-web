@@ -25,6 +25,26 @@ export function hasSpecialCharacter(value: string): boolean {
 }
 
 /**
+ * What a new password must contain. The checklist the form shows and the validation
+ * that rejects it are the same list, so the two can never drift apart. The API applies
+ * the same rules.
+ */
+export const PASSWORD_RULES = [
+  {
+    text: `At least ${PASSWORD_MIN} characters`,
+    error: `Use at least ${PASSWORD_MIN} characters.`,
+    test: (value: string) => value.length >= PASSWORD_MIN,
+  },
+  { text: "At least one letter", error: "Add at least one letter.", test: (value: string) => /\p{L}/u.test(value) },
+  { text: "At least one number", error: "Add at least one number.", test: (value: string) => /\p{N}/u.test(value) },
+  {
+    text: "At least one special character",
+    error: "Add at least one special character.",
+    test: hasSpecialCharacter,
+  },
+] as const;
+
+/**
  * Digits of a national number against the lengths its country allows, with or without the
  * trunk prefix people usually type ("06…" in France, "1…" in the US).
  */
@@ -45,9 +65,12 @@ const email = z
 
 const newPassword = z
   .string()
-  .min(PASSWORD_MIN, { error: `Use at least ${PASSWORD_MIN} characters.` })
   .max(PASSWORD_MAX, { error: `Use at most ${PASSWORD_MAX} characters.` })
-  .refine(hasSpecialCharacter, { error: "Add at least one special character, like ! ? or #." });
+  .superRefine((value, ctx) => {
+    for (const rule of PASSWORD_RULES) {
+      if (!rule.test(value)) ctx.addIssue({ code: "custom", message: rule.error });
+    }
+  });
 
 const name = (label: string) =>
   z

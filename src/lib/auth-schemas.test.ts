@@ -15,7 +15,7 @@ const register = {
   email: " dana@example.com ",
   phone_country: "US",
   phone_number: "",
-  password: "long-enough-pw!",
+  password: "long-enough-pw1!",
   accept_terms: true,
 };
 
@@ -47,11 +47,21 @@ describe("registerSchema", () => {
     });
   });
 
-  it("asks for a special character in the password", () => {
-    const result = registerSchema.safeParse({ ...register, password: "abcdefghijkl" });
-    expect(!result.success && fieldErrors(result.error)).toEqual({
-      password: "Add at least one special character, like ! ? or #.",
-    });
+  it("names the first rule a new password breaks", () => {
+    const problem = (password: string) => {
+      const result = registerSchema.safeParse({ ...register, password });
+      return result.success ? undefined : fieldErrors(result.error).password;
+    };
+    expect(problem("Ab1!")).toBe("Use at least 8 characters.");
+    expect(problem("12345678!")).toBe("Add at least one letter.");
+    expect(problem("abcdefghijkl!")).toBe("Add at least one number.");
+    expect(problem("abcdefghijkl1")).toBe("Add at least one special character.");
+    expect(problem("abcdefg1!")).toBeUndefined();
+  });
+
+  it("caps the password length", () => {
+    const result = registerSchema.safeParse({ ...register, password: `a1!${"b".repeat(126)}` });
+    expect(!result.success && fieldErrors(result.error)).toEqual({ password: "Use at most 128 characters." });
   });
 
   it("explains every problem on its own field", () => {
@@ -87,8 +97,13 @@ describe("loginSchema", () => {
 });
 
 describe("resetPasswordSchema", () => {
+  it("applies the same password rules as registration", () => {
+    const result = resetPasswordSchema.safeParse({ token: "t", password: "abcdefghij!", password_confirm: "abcdefghij!" });
+    expect(!result.success && fieldErrors(result.error)).toEqual({ password: "Add at least one number." });
+  });
+
   it("puts a mismatch on the confirmation field", () => {
-    const result = resetPasswordSchema.safeParse({ token: "t", password: "abcdefghij!", password_confirm: "other" });
+    const result = resetPasswordSchema.safeParse({ token: "t", password: "abcdefghij1!", password_confirm: "other" });
     expect(!result.success && fieldErrors(result.error)).toEqual({ password_confirm: "The two passwords differ." });
   });
 });
