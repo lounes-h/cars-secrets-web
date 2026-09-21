@@ -95,8 +95,7 @@ See `docs/architecture.md` for details.
   and again on submit. Every input carries the limit its schema enforces
   (`NAME_MAX`, `EMAIL_MAX`, `PASSWORD_MAX`). A new password needs at least
   `PASSWORD_MIN` (8) characters and one special character
-  (`hasSpecialCharacter`) — the API still asks for 10, so a shorter one is
-  refused there until it is lowered in `../cars-secrets-api`.
+  (`hasSpecialCharacter`); the API applies the same rule.
 - The register form picks the phone's country from the browser's time zone,
   falling back to its languages (`countryFromBrowser`), over the server's
   Accept-Language guess. The country's own example number (generated
@@ -105,8 +104,8 @@ See `docs/architecture.md` for details.
   lengths the number is checked against (`isValidNationalNumber`).
 - A complete email address typed in any auth form is remembered for the tab
   (`src/lib/remembered-email.ts`, sessionStorage; half-typed ones are not) and
-  prefilled in the others, and signing out forgets it (`forgetEmail`, from the
-  button, since a server action cannot reach the browser's storage)
+  prefilled in the others. Registering or signing out forgets it (`forgetEmail`,
+  called from the browser, since a server action cannot reach its storage)
   through `useRememberedEmail`. Never put it in a URL.
 - The session is the API's token in the httpOnly `cs_session` cookie, set and
   cleared only through `src/lib/session.ts`. Read the signed-in user with

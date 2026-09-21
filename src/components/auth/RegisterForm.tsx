@@ -12,6 +12,7 @@ import { PhoneField } from "@/components/auth/PhoneField";
 import { Turnstile } from "@/components/auth/Turnstile";
 import { EMAIL_MAX, NAME_MAX, registerSchema, type RegisterInput } from "@/lib/auth-schemas";
 import { countryFromBrowser, type Country } from "@/lib/countries";
+import { forgetEmail } from "@/lib/remembered-email";
 
 type Props = { countries: Country[]; defaultCountry: string };
 
@@ -49,6 +50,8 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   const onSubmit = handleSubmit(async (values) => {
     const state = await registerAction(values);
     if (state?.ok) {
+      // The account exists now, so the tab has no reason to keep offering the address.
+      forgetEmail();
       setSentTo(values.email);
       return;
     }

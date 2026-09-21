@@ -124,13 +124,15 @@ describe("RegisterForm", () => {
     vi.mocked(Intl.DateTimeFormat).mockRestore();
   });
 
-  it("confirms where the email went and links to sign in", async () => {
+  it("confirms where the email went, links to sign in and stops remembering the address", async () => {
     actions.registerAction.mockResolvedValue({ ok: true });
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     fillRegistration();
+    expect(window.sessionStorage.getItem("cs_email")).toBe("dana@example.com");
     fireEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText("dana@example.com")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Go to sign in" }).getAttribute("href")).toBe("/login");
+    expect(window.sessionStorage.getItem("cs_email")).toBe(null);
   });
 });
 

@@ -121,7 +121,7 @@ place. The server action parses
 the same schema again, calls the API and returns field errors, which `showServerErrors`
 puts on the matching inputs without clearing the form. The email typed in one auth form
 is remembered for the tab once it is a complete address, and prefilled in the others;
-sign in then focuses the password. Signing out forgets it.
+sign in then focuses the password. Registering or signing out forgets it.
 
 - **Register**: the form posts names, email, the phone (one control holding the country
   picker and the number, joined into `+<calling code><digits>`; the API normalizes to
@@ -133,8 +133,7 @@ sign in then focuses the password. Signing out forgets it.
   (`formatNational`), and the lengths the number is checked against
   (`isValidNationalNumber`). The password field
   shows both rules live — 8 characters and one special character — and warns about Caps
-  Lock. The API's own minimum is still 10, so it refuses a shorter password until that
-  changes there. On success the form shows where the email went and a "Go to
+  Lock; the API applies the same rule. On success the form shows where the email went and a "Go to
   sign in" button.
 - **Confirm**: the email links to `/verify-email?token=…`. The page shows a button;
   confirming on page load would let mail scanners that open links use the token.
