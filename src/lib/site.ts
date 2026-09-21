@@ -26,8 +26,6 @@ export const site = {
   tagline: "Know what it’s worth before you bid",
   description:
     "CarBidWise brings active Copart, IAA and Manheim listings into one search and shows, for every lot, the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid.",
-  /** Brand colours, for places CSS variables can't reach (manifest, generated images). */
-  colors: { teal: "#0e555b", red: "#d7282b", ink: "#17222b", muted: "#53616c", white: "#ffffff", dark: "#18222a" },
 } as const;
 
 /** Joins a site-relative path onto the site origin. */

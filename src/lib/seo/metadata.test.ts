@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fixtureRoutes } from "@/lib/seo/fixtures";
-import { buildMetadata, DEFAULT_OG_IMAGE, metadataForRoute } from "@/lib/seo/metadata";
+import { buildMetadata, metadataForRoute } from "@/lib/seo/metadata";
 
 describe("buildMetadata", () => {
   const metadata = buildMetadata({ title: "Features", description: "What it does.", path: "/features" });
@@ -10,24 +10,15 @@ describe("buildMetadata", () => {
     expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/features");
   });
 
-  it("fills Open Graph and Twitter with the same title, URL and share image", () => {
+  it("fills Open Graph and Twitter with the same title and URL, and no share image", () => {
     expect(metadata.openGraph).toMatchObject({
       url: "https://cars-secrets.test/features",
       title: "Features | CarBidWise",
       siteName: "CarBidWise",
-      images: [
-        {
-          url: "https://cars-secrets.test/opengraph-image",
-          width: DEFAULT_OG_IMAGE.width,
-          height: DEFAULT_OG_IMAGE.height,
-        },
-      ],
     });
-    expect(metadata.twitter).toMatchObject({
-      card: "summary_large_image",
-      title: "Features | CarBidWise",
-      images: ["https://cars-secrets.test/opengraph-image"],
-    });
+    expect(metadata.openGraph).not.toHaveProperty("images");
+    expect(metadata.twitter).toMatchObject({ card: "summary", title: "Features | CarBidWise" });
+    expect(metadata.twitter).not.toHaveProperty("images");
   });
 
   it("is indexable by default", () => {

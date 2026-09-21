@@ -84,7 +84,7 @@ export function AccountNav() {
       <Menu items={MEMBER_MENU} />
       <nav aria-label="Account" className="ml-auto flex items-center gap-2 sm:gap-3">
         <Link href="/account" className="btn btn-ghost font-medium" title={user.email}>
-          <span aria-hidden="true" className="grid size-7 place-items-center rounded-full bg-brand-navy text-sm text-white">
+          <span aria-hidden="true" className="grid size-7 place-items-center rounded-full bg-ink text-sm text-surface">
             {name.charAt(0).toUpperCase()}
           </span>
           <span className="hidden sm:inline">{name}</span>

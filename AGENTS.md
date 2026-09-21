@@ -9,7 +9,8 @@ read `docs/project-specification.md`
 - Next.js 16 (App Router) with React 19 and TypeScript, server-rendered and
   statically prerendered.
 - Tailwind CSS 4. Design tokens are CSS variables in `src/app/globals.css`.
-- Font: Work Sans via `next/font/google`.
+- No design system, logo or font choice yet: black, grey and white only, on the
+  system font stack.
 - Yarn 4 through Corepack (`packageManager` in `package.json`), with the
   `node-modules` linker.
 - Vitest with Testing Library for unit tests.
@@ -57,26 +58,21 @@ See `docs/architecture.md` for details.
   span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
   running text is capped at a readable measure (`max-w-[65ch]`). Auth pages
   are the exception: their form sits in one centered `.auth-panel` column
-  (28rem) inside `.auth-main`, which fills the viewport with white and pins the
-  brand tokens to their light values in both colour schemes, because a
+  (28rem) inside `.auth-main`, which fills the viewport with white, because a
   full-width form is hard to fill in.
-- Basic styling lives in `src/app/globals.css`, on the brand tokens so dark
-  mode follows: base styles for headings, labels, inputs, selects, checkboxes,
-  links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-dark`,
-  `btn-outline`, `btn-ghost`, `btn-link`, `card`, `auth-panel`, `form-stack`,
-  `phone-field`, `divider`, `hint`, `notice`). The wordmark's navy
-  (`--brand-navy`) carries the interface — buttons, links, checkboxes, focus
-  rings — `--brand-teal`, the colour of its "Wise", is the accent, and
-  `--brand-red` is left for errors alone. Buttons are pills:
-  `btn-primary` for the action that moves the dealer forward. Reuse them rather
-  than adding one-off styles; a real design system will replace them.
+- There is no design system, logo, favicon or share image yet, and no dark
+  mode. The interface uses black, grey and white only: `--ink`, `--muted`,
+  `--line`, `--paper` and `--surface` in `src/app/globals.css`. `--ink` carries
+  buttons, links, checkboxes and focus rings; errors read as bold text rather
+  than a colour, since there is no error colour. Basic styling lives on those
+  tokens: base styles for headings, labels, inputs, selects, checkboxes, links
+  and alerts, plus a few classes (`btn`, `btn-primary`, `btn-outline`,
+  `btn-ghost`, `btn-link`, `card`, `auth-main`, `auth-panel`, `form-stack`,
+  `phone-field`, `divider`, `hint`, `notice`). Reuse them rather than adding
+  one-off styles, and add no branding until the name and a design exist.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
-  layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
-  and `logo-dark.png`, 1024×144 16-colour palette PNGs, the single-line
-  navy-and-teal wordmark on transparent (white and teal in the dark one). The
-  wordmark is seven times wider than tall, so the banner shows it at 24px
-  (32px from `sm`), leaving the account side room on a phone. They are served as-is because the Next image optimizer makes them larger. Its
-  navigation (`src/components/AccountNav.tsx`) is a client component that asks
+  layout on every page and shows the site name as plain text. Its navigation
+  (`src/components/AccountNav.tsx`) is a client component that asks
   `/auth/session` after each navigation and renders both the main menu and the
   account side: Auctions, VIN Lookup, Best Buys, then How It Works and Pricing
   with "Sign in" and the "7 days free trial" button for visitors, or Saved and
@@ -207,20 +203,20 @@ Styling stays basic until a design system exists. `/` is the home page: the
 centred title "Everything You Need to Know Before Buying a Car at Auction" and
 nothing else yet. Add no other pages until the user asks.
 
-The brand name is **CarBidWise** (`site.name` in `src/lib/site.ts`), one word.
-"Car Bid Wise" and "CarBid Wise" are listed as `alternateName` in structured
-data. The repository and the API keep their `cars-secrets-*` names, and so does
-the `cars-secrets.test` origin the tests run against. The slogan is **Know what
-it’s worth before you bid** (`site.tagline`): it sits on the share image and as
-the Organization’s `slogan` in structured data.
+The working name is **CarBidWise** (`site.name` in `src/lib/site.ts`), one word,
+and it is not settled. "Car Bid Wise" and "CarBid Wise" are listed as
+`alternateName` in structured data. The repository and the API keep their
+`cars-secrets-*` names, and so does the `cars-secrets.test` origin the tests run
+against. The slogan is **Know what it’s worth before you bid**
+(`site.tagline`): it is the Organization’s `slogan` in structured data. Until
+the name is settled, the work is features and functionality, not branding.
 
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
-(Work Sans, brand design tokens, Organization and WebSite JSON-LD, and the
-full-width top banner with the brand logo); the SEO builders (metadata,
-JSON-LD, sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; the
-branded Open Graph image; the favicon, Apple touch icon and manifest icons (the
-navy "C" from the wordmark); security headers; and the deal calculation in
-`src/lib/deal.ts`.
+(grayscale tokens, Organization and WebSite JSON-LD, and the full-width top
+banner with the site name in text); the SEO builders (metadata, JSON-LD,
+sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; security
+headers; and the deal calculation in `src/lib/deal.ts`. There is no logo,
+favicon, touch icon, manifest icon or share image.
 
 In place for accounts: registration (names, email, optional phone with every
 country's flag and calling code, password with show/hide, terms checkbox,
