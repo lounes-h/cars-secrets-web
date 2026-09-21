@@ -1,5 +1,6 @@
 import { DIAL_CODES } from "@/lib/dial-codes";
 import { PHONE_FORMATS } from "@/lib/phone-formats";
+import { TIMEZONE_COUNTRIES } from "@/lib/timezone-countries";
 
 export type Country = {
   code: string;
@@ -46,6 +47,22 @@ export function composePhone(countryCode: string, national: string): string | nu
   if (!digits) return null;
   const entry = DIAL_CODES.find(([code]) => code === countryCode.toUpperCase());
   return entry ? `+${entry[1]}${digits}` : null;
+}
+
+/**
+ * The visitor's country as the browser knows it: its time zone first, because that follows
+ * where the visitor is rather than which language they read, then its languages. Returns null
+ * when the browser tells us nothing usable, so the server's guess stands.
+ */
+export function countryFromBrowser(
+  timeZone: string | undefined,
+  languages: readonly string[] | undefined,
+): string | null {
+  const known = new Set(DIAL_CODES.map(([code]) => code));
+  const fromZone = timeZone ? TIMEZONE_COUNTRIES[timeZone] : undefined;
+  if (fromZone && known.has(fromZone)) return fromZone;
+  const fromLanguages = countryFromLanguages((languages ?? []).join(","), "");
+  return fromLanguages && known.has(fromLanguages) ? fromLanguages : null;
 }
 
 /**

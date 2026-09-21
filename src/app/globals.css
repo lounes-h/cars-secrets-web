@@ -211,6 +211,10 @@ body {
     outline: none;
   }
   .phone-field input {
+    /* Takes the room left by the country, instead of the base rule's full width. */
+    flex: 1;
+    width: auto;
+    min-width: 0;
     border: 0;
     border-radius: 0;
     background: transparent;

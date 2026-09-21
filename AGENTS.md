@@ -91,8 +91,10 @@ See `docs/architecture.md` for details.
   (`showServerErrors` in `src/components/auth/form-helpers.ts`). Actions take
   the form's values as an object, not `FormData`. Only the social buttons post
   a plain form (`socialLoginAction`).
-- Auth forms validate on submit only (`mode: "onSubmit"`), never when a field
-  loses focus. A new password needs at least 10 characters and one special
+- Auth forms validate on submit only (`mode: "onSubmit"` and
+  `reValidateMode: "onSubmit"`), never when a field loses focus. The register
+  form picks the phone's country from the browser's time zone, falling back to
+  its languages (`countryFromBrowser`), over the server's Accept-Language guess. A new password needs at least 10 characters and one special
   character (`hasSpecialCharacter`), and the phone field checks the number
   against the lengths its country allows (`isValidNationalNumber`, from the
   generated `src/lib/phone-formats.ts`, which also gives the placeholder).

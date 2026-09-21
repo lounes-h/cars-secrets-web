@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { registerAction } from "@/app/(auth)/actions";
 import { FieldError, FormError } from "@/components/auth/FieldError";
@@ -11,7 +11,7 @@ import { PasswordField } from "@/components/auth/PasswordField";
 import { PhoneField } from "@/components/auth/PhoneField";
 import { Turnstile } from "@/components/auth/Turnstile";
 import { registerSchema, type RegisterInput } from "@/lib/auth-schemas";
-import type { Country } from "@/lib/countries";
+import { countryFromBrowser, type Country } from "@/lib/countries";
 
 type Props = { countries: Country[]; defaultCountry: string };
 
@@ -20,8 +20,10 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
-    // Errors appear on submit, not when the cursor leaves a field.
+    // Errors appear on submit only: never when the cursor leaves a field, and not again
+    // while the visitor is correcting one.
     mode: "onSubmit",
+    reValidateMode: "onSubmit",
     defaultValues: {
       first_name: "",
       last_name: "",
@@ -37,6 +39,13 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   const { errors, isSubmitting } = formState;
   const password = useWatch({ control, name: "password" });
   const phoneCountry = useWatch({ control, name: "phone_country" });
+
+  // The server guesses the country from Accept-Language; the browser knows better.
+  useEffect(() => {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const detected = countryFromBrowser(zone, navigator.languages);
+    if (detected) setValue("phone_country", detected);
+  }, [setValue]);
   useRememberedEmail(form, { empty: "first_name", filled: "first_name" });
 
   const onSubmit = handleSubmit(async (values) => {

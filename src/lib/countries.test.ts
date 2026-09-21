@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { composePhone, countries, countryFromLanguages, flagEmoji } from "@/lib/countries";
+import { composePhone, countries, countryFromBrowser, countryFromLanguages, flagEmoji } from "@/lib/countries";
 
 describe("countries", () => {
   it("lists every region with a flag, a name and its calling code, sorted by name", () => {
@@ -51,5 +51,22 @@ describe("countryFromLanguages", () => {
     expect(countryFromLanguages("en")).toBe("US");
     expect(countryFromLanguages(null, "GB")).toBe("GB");
     expect(countryFromLanguages("xx-ZZ")).toBe("US");
+  });
+});
+
+describe("countryFromBrowser", () => {
+  it("takes the time zone's country first, because it follows where the visitor is", () => {
+    expect(countryFromBrowser("Europe/Paris", ["en-US", "en"])).toBe("FR");
+    expect(countryFromBrowser("America/Chicago", ["fr-FR"])).toBe("US");
+  });
+
+  it("falls back to the languages when the zone says nothing", () => {
+    expect(countryFromBrowser(undefined, ["en-GB", "en"])).toBe("GB");
+    expect(countryFromBrowser("Mars/Olympus", ["de-AT"])).toBe("AT");
+  });
+
+  it("answers null when the browser tells us nothing usable, so the server's guess stands", () => {
+    expect(countryFromBrowser(undefined, ["en"])).toBe(null);
+    expect(countryFromBrowser("UTC", [])).toBe(null);
   });
 });

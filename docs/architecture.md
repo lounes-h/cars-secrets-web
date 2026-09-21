@@ -32,6 +32,7 @@ src/
     countries.ts       Countries with flag, name and calling code; phone composition
     dial-codes.ts      Generated: region code and calling code for 245 regions
     phone-formats.ts   Generated: example number, allowed lengths and trunk prefix per region
+    timezone-countries.ts  Generated: IANA time zone → country, for detecting the visitor's
     seo/               Metadata, JSON-LD, robots, sitemap and llms.txt builders
 public/
   brand/               logo-light.png, logo-dark.png (transparent, 333×144, ~4 KB),
@@ -114,8 +115,8 @@ visitor's address with the shared `API_INTERNAL_KEY` so the API rate-limits visi
 not this server.
 
 Forms use React Hook Form and the Zod schemas in `src/lib/auth-schemas.ts`. Errors show
-on submit only (`mode: "onSubmit"`), never when a field loses focus, and then clear as
-the field is corrected. The server action parses
+on submit only (`mode: "onSubmit"` with `reValidateMode: "onSubmit"`): never when a field
+loses focus, and not re-checked while the visitor corrects one — the next submit does that. The server action parses
 the same schema again, calls the API and returns field errors, which `showServerErrors`
 puts on the matching inputs without clearing the form. The email typed in one auth form
 is remembered for the tab and prefilled in the others; sign in then focuses the password.
@@ -123,9 +124,10 @@ is remembered for the tab and prefilled in the others; sign in then focuses the 
 - **Register**: the form posts names, email, the phone (one control holding the country
   picker and the number, joined into `+<calling code><digits>`; the API normalizes to
   E.164), password, the terms checkbox and the Turnstile token. The country defaults to
-  the region of the browser's first language (`countryFromLanguages`) and decides both
-  the placeholder and the lengths the number is checked against
-  (`isValidNationalNumber`). The password field shows both rules live — length and one
+  the region of the browser's first language (`countryFromLanguages`), and on mount the
+  form replaces it with what the browser itself knows (`countryFromBrowser`: its time
+  zone first, its languages second). The country decides both the placeholder and the
+  lengths the number is checked against (`isValidNationalNumber`). The password field shows both rules live — length and one
   special character — and warns about Caps Lock. On success the form shows where the email went and a "Go to
   sign in" button.
 - **Confirm**: the email links to `/verify-email?token=…`. The page shows a button;

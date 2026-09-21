@@ -25,8 +25,10 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<EmailInput>({
     resolver: zodResolver(emailSchema),
-    // Errors appear on submit, not when the cursor leaves a field.
+    // Errors appear on submit only: never when the cursor leaves a field, and not again
+    // while the visitor is correcting one.
     mode: "onSubmit",
+    reValidateMode: "onSubmit",
     defaultValues: { email: "", captcha_token: "" },
   });
   const { register, handleSubmit, setValue, formState } = form;

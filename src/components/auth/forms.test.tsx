@@ -20,7 +20,7 @@ const { ForgotPasswordForm } = await import("@/components/auth/ForgotPasswordFor
 const { SocialButtons } = await import("@/components/auth/SocialButtons");
 const { ResetPasswordForm } = await import("@/components/auth/ResetPasswordForm");
 
-const COUNTRIES = countries().slice(0, 5).concat(countries().filter((c) => c.code === "US"));
+const COUNTRIES = countries().filter((c) => ["US", "FR", "GB"].includes(c.code));
 
 beforeEach(() => {
   window.sessionStorage.clear();
@@ -86,6 +86,22 @@ describe("RegisterForm", () => {
     expect(await screen.findByText(/valid email address/)).toBeTruthy();
   });
 
+  it("leaves a corrected field alone until the form is submitted again", async () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    fillRegistration();
+    type("Email", "nope");
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText(/valid email address/)).toBeTruthy();
+    type("Email", "dana@example.com");
+    fireEvent.blur(screen.getByLabelText("Email"));
+    await Promise.resolve();
+    // No check runs between submits, so nothing new appears on the way.
+    expect(screen.getAllByText(/valid email address/).length).toBe(1);
+    actions.registerAction.mockResolvedValue({ ok: true });
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() => expect(actions.registerAction).toHaveBeenCalled());
+  });
+
   it("refuses a number that does not fit the chosen country", async () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     fillRegistration();
@@ -93,6 +109,18 @@ describe("RegisterForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText(/valid phone number/)).toBeTruthy();
     expect(actions.registerAction).not.toHaveBeenCalled();
+  });
+
+  it("picks the country the browser's time zone points to", async () => {
+    const real = Intl.DateTimeFormat;
+    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(
+      (...args: ConstructorParameters<typeof Intl.DateTimeFormat>) =>
+        ({ ...new real(...args), resolvedOptions: () => ({ ...new real(...args).resolvedOptions(), timeZone: "Europe/Paris" }) }) as Intl.DateTimeFormat,
+    );
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    await waitFor(() => expect(screen.getByLabelText<HTMLSelectElement>("Country").value).toBe("FR"));
+    expect(screen.getByLabelText("Number").getAttribute("placeholder")).toBe("06 12 34 56 78");
+    vi.mocked(Intl.DateTimeFormat).mockRestore();
   });
 
   it("confirms where the email went and links to sign in", async () => {
