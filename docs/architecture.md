@@ -133,8 +133,9 @@ sign in then focuses the password. Registering or signing out forgets it.
   (`formatNational`), and the lengths the number is checked against
   (`isValidNationalNumber`). The password field
   shows both rules live — 8 characters and one special character — and warns about Caps
-  Lock; the API applies the same rule. On success the form shows where the email went and a "Go to
-  sign in" button.
+  Lock; the API applies the same rule. The form also renders the Google and Apple
+  buttons, so the confirmation that replaces it on success — where the email went and a
+  "Go to sign in" button — replaces them too.
 - **Confirm**: the email links to `/verify-email?token=…`. The page shows a button;
   confirming on page load would let mail scanners that open links use the token.
 - **Sign in**: on success the API returns a token, which becomes the `cs_session`

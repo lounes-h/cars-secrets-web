@@ -1,7 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { RegisterForm } from "@/components/auth/RegisterForm";
-import { SocialButtons } from "@/components/auth/SocialButtons";
 import { countries, countryFromLanguages } from "@/lib/countries";
 import { currentUser } from "@/lib/session";
 import { metadataForRoute } from "@/lib/seo/metadata";
@@ -16,8 +15,6 @@ export default async function RegisterPage() {
       <div className="auth-panel">
       <h1>Start your free trial</h1>
       <div className="card form-stack">
-        <SocialButtons intent="Register" />
-        <p className="divider">or register with your email</p>
         <RegisterForm countries={countries()} defaultCountry={defaultCountry} />
       </div>
       </div>

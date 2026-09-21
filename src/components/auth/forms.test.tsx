@@ -133,6 +133,15 @@ describe("RegisterForm", () => {
     expect(await screen.findByText("dana@example.com")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Go to sign in" }).getAttribute("href")).toBe("/login");
     expect(window.sessionStorage.getItem("cs_email")).toBe(null);
+    // Nothing is left to register with: the account exists.
+    expect(screen.queryByRole("button", { name: /Register with/ })).toBeNull();
+    expect(screen.queryByText("or register with your email")).toBeNull();
+  });
+
+  it("offers Google and Apple above the email form", () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    expect(screen.getByRole("button", { name: "Register with Google" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Register with Apple" })).toBeTruthy();
   });
 });
 
