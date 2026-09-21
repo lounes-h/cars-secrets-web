@@ -75,6 +75,26 @@ describe("RegisterForm", () => {
     expect(screen.getByText(/✓ At least 10 characters \(11\/10\)/)).toBeTruthy();
   });
 
+  it("keeps quiet until the form is submitted, not when a field is left", async () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    const email = screen.getByLabelText("Email");
+    fireEvent.input(email, { target: { value: "nope" } });
+    fireEvent.blur(email);
+    await Promise.resolve();
+    expect(screen.queryByText(/valid email address/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText(/valid email address/)).toBeTruthy();
+  });
+
+  it("refuses a number that does not fit the chosen country", async () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    fillRegistration();
+    type("Number", "201555");
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText(/valid phone number/)).toBeTruthy();
+    expect(actions.registerAction).not.toHaveBeenCalled();
+  });
+
   it("confirms where the email went and links to sign in", async () => {
     actions.registerAction.mockResolvedValue({ ok: true });
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);

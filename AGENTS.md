@@ -62,12 +62,13 @@ See `docs/architecture.md` for details.
   full-width form is hard to fill in.
 - Basic styling lives in `src/app/globals.css`, on the brand tokens so dark
   mode follows: base styles for headings, labels, inputs, selects, checkboxes,
-  links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-navy`,
-  `btn-dark`, `btn-outline`, `btn-ghost`, `btn-link`, `card`, `auth-panel`,
-  `form-stack`, `divider`, `hint`, `notice`). Buttons are pills: red
-  `btn-primary` for the action that moves the dealer forward, the logo's navy
-  `btn-navy` for the banner's free trial button. Reuse them rather than adding
-  one-off styles; a real design system will replace them.
+  links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-dark`,
+  `btn-outline`, `btn-ghost`, `btn-link`, `card`, `auth-panel`, `form-stack`,
+  `phone-field`, `divider`, `hint`, `notice`). The logo's navy
+  (`--brand-navy`) carries the interface — buttons, links, checkboxes, focus
+  rings — and `--brand-red` is left for errors alone. Buttons are pills:
+  `btn-primary` for the action that moves the dealer forward. Reuse them rather
+  than adding one-off styles; a real design system will replace them.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
   and `logo-dark.png`, 333×144 16-colour palette PNGs of about 4 KB each, the
@@ -90,6 +91,11 @@ See `docs/architecture.md` for details.
   (`showServerErrors` in `src/components/auth/form-helpers.ts`). Actions take
   the form's values as an object, not `FormData`. Only the social buttons post
   a plain form (`socialLoginAction`).
+- Auth forms validate on submit only (`mode: "onSubmit"`), never when a field
+  loses focus. A new password needs at least 10 characters and one special
+  character (`hasSpecialCharacter`), and the phone field checks the number
+  against the lengths its country allows (`isValidNationalNumber`, from the
+  generated `src/lib/phone-formats.ts`, which also gives the placeholder).
 - The email typed in any auth form is remembered for the tab
   (`src/lib/remembered-email.ts`, sessionStorage) and prefilled in the others
   through `useRememberedEmail`. Never put it in a URL.

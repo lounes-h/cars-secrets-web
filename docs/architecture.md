@@ -31,6 +31,7 @@ src/
     remembered-email.ts  The email last typed in an auth form, per tab (sessionStorage)
     countries.ts       Countries with flag, name and calling code; phone composition
     dial-codes.ts      Generated: region code and calling code for 245 regions
+    phone-formats.ts   Generated: example number, allowed lengths and trunk prefix per region
     seo/               Metadata, JSON-LD, robots, sitemap and llms.txt builders
 public/
   brand/               logo-light.png, logo-dark.png (transparent, 333×144, ~4 KB),
@@ -113,16 +114,19 @@ visitor's address with the shared `API_INTERNAL_KEY` so the API rate-limits visi
 not this server.
 
 Forms use React Hook Form and the Zod schemas in `src/lib/auth-schemas.ts`. Errors show
-when a field loses focus and on submit, before any request. The server action parses
+on submit only (`mode: "onSubmit"`), never when a field loses focus, and then clear as
+the field is corrected. The server action parses
 the same schema again, calls the API and returns field errors, which `showServerErrors`
 puts on the matching inputs without clearing the form. The email typed in one auth form
 is remembered for the tab and prefilled in the others; sign in then focuses the password.
 
-- **Register**: the form posts names, email, the phone (country select + number, joined
-  into `+<calling code><digits>`; the API normalizes to E.164), password, the terms
-  checkbox and the Turnstile token. The country defaults to the region of the browser's
-  first language (`countryFromLanguages`). The password field shows the length rule live
-  and warns about Caps Lock. On success the form shows where the email went and a "Go to
+- **Register**: the form posts names, email, the phone (one control holding the country
+  picker and the number, joined into `+<calling code><digits>`; the API normalizes to
+  E.164), password, the terms checkbox and the Turnstile token. The country defaults to
+  the region of the browser's first language (`countryFromLanguages`) and decides both
+  the placeholder and the lengths the number is checked against
+  (`isValidNationalNumber`). The password field shows both rules live — length and one
+  special character — and warns about Caps Lock. On success the form shows where the email went and a "Go to
   sign in" button.
 - **Confirm**: the email links to `/verify-email?token=…`. The page shows a button;
   confirming on page load would let mail scanners that open links use the token.
@@ -145,4 +149,6 @@ from the phonenumbers metadata the API uses), names from `Intl.DisplayNames` and
 from the regional indicator symbols, and passes it to the form, so no flag images ship
 and server and browser agree on the names.
 To regenerate `dial-codes.ts`, run the snippet in its header against the API's
-environment.
+environment. `phone-formats.ts` carries the example number shown as the placeholder,
+the national lengths the number is validated against and the trunk prefix, from the
+same metadata; the snippet in its header regenerates it the same way.

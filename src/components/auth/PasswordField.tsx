@@ -3,7 +3,7 @@
 import { useId, useState, type KeyboardEvent } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { FieldError } from "@/components/auth/FieldError";
-import { PASSWORD_MIN } from "@/lib/auth-schemas";
+import { hasSpecialCharacter, PASSWORD_MIN } from "@/lib/auth-schemas";
 
 type Props = {
   registration: UseFormRegisterReturn;
@@ -24,7 +24,11 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
     [error && `${id}-error`, capsLock && `${id}-caps`, requirementFor !== undefined && `${id}-rule`]
       .filter(Boolean)
       .join(" ") || undefined;
-  const met = (requirementFor ?? "").length >= PASSWORD_MIN;
+  const typed = requirementFor ?? "";
+  const rules = [
+    { met: typed.length >= PASSWORD_MIN, text: `At least ${PASSWORD_MIN} characters (${typed.length}/${PASSWORD_MIN})` },
+    { met: hasSpecialCharacter(typed), text: "At least one special character" },
+  ];
 
   return (
     <div>
@@ -63,10 +67,13 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
         </p>
       )}
       {requirementFor !== undefined && (
-        <p id={`${id}-rule`} className={`hint mt-1 ${met ? "text-green-700 dark:text-green-400" : ""}`}>
-          {met ? "✓" : "•"} At least {PASSWORD_MIN} characters ({requirementFor.length}/{PASSWORD_MIN}). Passwords
-          found in known data breaches are refused.
-        </p>
+        <ul id={`${id}-rule`} className="hint mt-1">
+          {rules.map((rule) => (
+            <li key={rule.text} className={rule.met ? "text-green-700 dark:text-green-400" : undefined}>
+              {rule.met ? "✓" : "•"} {rule.text}
+            </li>
+          ))}
+        </ul>
       )}
       <FieldError id={`${id}-error`} message={error} />
     </div>

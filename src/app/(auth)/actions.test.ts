@@ -97,7 +97,7 @@ describe("loginAction", () => {
 
 describe("resetPasswordAction", () => {
   it("rejects a mismatched confirmation before calling the API", async () => {
-    const state = await resetPasswordAction({ token: "t", password: "abcdefghij", password_confirm: "other" });
+    const state = await resetPasswordAction({ token: "t", password: "abcdefghij!", password_confirm: "other" });
     expect(state.errors).toEqual({ password_confirm: "The two passwords differ." });
     expect(apiMock).not.toHaveBeenCalled();
   });

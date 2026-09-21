@@ -1,6 +1,16 @@
 import { DIAL_CODES } from "@/lib/dial-codes";
+import { PHONE_FORMATS } from "@/lib/phone-formats";
 
-export type Country = { code: string; name: string; flag: string; dialCode: number };
+export type Country = {
+  code: string;
+  name: string;
+  flag: string;
+  dialCode: number;
+  /** An example national number, shown as the field's placeholder. */
+  example: string;
+  /** The national number lengths this country allows. */
+  lengths: readonly number[];
+};
 
 /** 🇫🇷 from "FR": each letter maps to its regional indicator symbol. */
 export function flagEmoji(code: string): string {
@@ -17,9 +27,14 @@ export function countries(locale = "en"): Country[] {
       return code;
     }
   };
-  return DIAL_CODES.map(([code, dialCode]) => ({ code, dialCode, flag: flagEmoji(code), name: name(code) })).sort(
-    (a, b) => a.name.localeCompare(b.name, locale),
-  );
+  return DIAL_CODES.map(([code, dialCode]) => ({
+    code,
+    dialCode,
+    flag: flagEmoji(code),
+    name: name(code),
+    example: PHONE_FORMATS[code]?.example ?? "",
+    lengths: PHONE_FORMATS[code]?.lengths ?? [],
+  })).sort((a, b) => a.name.localeCompare(b.name, locale));
 }
 
 /**

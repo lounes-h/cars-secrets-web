@@ -54,7 +54,7 @@ body {
   label,
   legend {
     display: block;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.9375rem;
     margin-bottom: 0.25rem;
   }
@@ -78,11 +78,11 @@ body {
   input[type="checkbox"] {
     width: 1.125rem;
     height: 1.125rem;
-    accent-color: var(--brand-red);
+    accent-color: var(--brand-navy);
   }
 
   a {
-    color: var(--brand-red);
+    color: var(--brand-navy);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
@@ -103,7 +103,7 @@ body {
     padding: 0.5rem 1.125rem;
     border: 1px solid transparent;
     border-radius: 0.5rem;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 0.9375rem;
     text-decoration: none;
     cursor: pointer;
@@ -114,17 +114,10 @@ body {
     cursor: progress;
   }
   .btn-primary {
-    background: var(--brand-red);
-    color: #fff;
-  }
-  .btn-primary:hover {
-    filter: brightness(0.92);
-  }
-  .btn-navy {
     background: var(--brand-navy);
     color: #fff;
   }
-  .btn-navy:hover {
+  .btn-primary:hover {
     filter: brightness(0.92);
   }
   .btn-outline {
@@ -144,7 +137,7 @@ body {
   .btn-link {
     padding: 0.25rem 0.5rem;
     min-height: 0;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.875rem;
     color: var(--muted);
   }
@@ -175,6 +168,55 @@ body {
   }
   .auth-panel > p:first-of-type {
     color: var(--muted);
+  }
+  /* Country and national number in one bordered control. */
+  .phone-field {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+  }
+  .phone-field:focus-within {
+    outline: 3px solid var(--brand-navy);
+    outline-offset: 2px;
+  }
+  .phone-field[data-invalid] {
+    border-color: var(--brand-red);
+  }
+  .phone-field-country {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0 0.5rem 0 0.75rem;
+    white-space: nowrap;
+  }
+  .phone-field-country::after {
+    content: "▾";
+    color: var(--muted);
+  }
+  /* The native picker, laid over the flag and calling code so only they show. */
+  .phone-field-country select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .phone-field-country select:focus-visible {
+    outline: none;
+  }
+  .phone-field input {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .phone-field input:focus-visible {
+    outline: none;
   }
   .card {
     background: var(--surface);
@@ -207,14 +249,14 @@ body {
   .notice {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-left: 4px solid var(--brand-red);
+    border-left: 4px solid var(--brand-navy);
     border-radius: 0.5rem;
     padding: 1rem;
   }
 }
 
 :focus-visible {
-  outline: 3px solid var(--brand-red);
+  outline: 3px solid var(--brand-navy);
   outline-offset: 2px;
   border-radius: 2px;
 }

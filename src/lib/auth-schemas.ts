@@ -5,9 +5,29 @@
  */
 
 import { z } from "zod";
+import { PHONE_FORMATS } from "@/lib/phone-formats";
 
 export const PASSWORD_MIN = 10;
 export const PASSWORD_MAX = 128;
+
+/** Anything that is not a letter or a digit counts, spaces included. */
+export const SPECIAL_CHARACTER = /[^\p{L}\p{N}]/u;
+
+export function hasSpecialCharacter(value: string): boolean {
+  return SPECIAL_CHARACTER.test(value);
+}
+
+/**
+ * Digits of a national number against the lengths its country allows, with or without the
+ * trunk prefix people usually type ("06…" in France, "1…" in the US).
+ */
+export function isValidNationalNumber(countryCode: string, national: string): boolean {
+  const digits = national.replace(/\D/g, "");
+  const format = PHONE_FORMATS[countryCode.toUpperCase()];
+  if (!format || format.lengths.length === 0) return digits.length >= 4;
+  const withoutTrunk = format.trunk && digits.startsWith(format.trunk) ? digits.slice(format.trunk.length) : digits;
+  return format.lengths.includes(digits.length) || format.lengths.includes(withoutTrunk.length);
+}
 
 const email = z
   .string()
@@ -18,7 +38,8 @@ const email = z
 const newPassword = z
   .string()
   .min(PASSWORD_MIN, { error: `Use at least ${PASSWORD_MIN} characters.` })
-  .max(PASSWORD_MAX, { error: `Use at most ${PASSWORD_MAX} characters.` });
+  .max(PASSWORD_MAX, { error: `Use at most ${PASSWORD_MAX} characters.` })
+  .refine(hasSpecialCharacter, { error: "Add at least one special character, like ! ? or #." });
 
 const name = (label: string) =>
   z
@@ -29,23 +50,23 @@ const name = (label: string) =>
 
 const captchaToken = z.string().optional();
 
-export const registerSchema = z.object({
-  first_name: name("first name"),
-  last_name: name("last name"),
-  email,
-  phone_country: z.string(),
-  phone_number: z
-    .string()
-    .trim()
-    .refine((value) => value === "" || /^[\d\s().-]{4,20}$/.test(value), {
-      error: "Use digits only, without the country code.",
+export const registerSchema = z
+  .object({
+    first_name: name("first name"),
+    last_name: name("last name"),
+    email,
+    phone_country: z.string(),
+    phone_number: z.string().trim(),
+    password: newPassword,
+    accept_terms: z.boolean().refine((accepted) => accepted, {
+      error: "Accept the Terms of Use and Privacy Policy to continue.",
     }),
-  password: newPassword,
-  accept_terms: z.boolean().refine((accepted) => accepted, {
-    error: "Accept the Terms of Use and Privacy Policy to continue.",
-  }),
-  captcha_token: captchaToken,
-});
+    captcha_token: captchaToken,
+  })
+  .refine((data) => data.phone_number === "" || isValidNationalNumber(data.phone_country, data.phone_number), {
+    path: ["phone_number"],
+    error: "Enter a valid phone number for the country you picked.",
+  });
 
 export const loginSchema = z.object({
   email,

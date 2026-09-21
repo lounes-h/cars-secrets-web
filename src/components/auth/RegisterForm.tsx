@@ -20,7 +20,8 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
-    mode: "onTouched",
+    // Errors appear on submit, not when the cursor leaves a field.
+    mode: "onSubmit",
     defaultValues: {
       first_name: "",
       last_name: "",
@@ -35,6 +36,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   const { register, handleSubmit, setValue, control, formState } = form;
   const { errors, isSubmitting } = formState;
   const password = useWatch({ control, name: "password" });
+  const phoneCountry = useWatch({ control, name: "phone_country" });
   useRememberedEmail(form, { empty: "first_name", filled: "first_name" });
 
   const onSubmit = handleSubmit(async (values) => {
@@ -108,6 +110,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
         country={register("phone_country")}
         number={register("phone_number")}
         defaultCountry={defaultCountry}
+        selected={phoneCountry}
         error={errors.phone_number?.message}
       />
       <PasswordField

@@ -14,7 +14,8 @@ export function ResetPasswordForm({ token }: { token: string }) {
   const [done, setDone] = useState(false);
   const form = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
-    mode: "onTouched",
+    // Errors appear on submit, not when the cursor leaves a field.
+    mode: "onSubmit",
     defaultValues: { token, password: "", password_confirm: "" },
   });
   const { register, handleSubmit, control, setFocus, formState } = form;

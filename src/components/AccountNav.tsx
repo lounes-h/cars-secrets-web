@@ -69,7 +69,7 @@ export function AccountNav() {
           <Link href="/login" className="btn btn-ghost font-medium">
             Sign in
           </Link>
-          <Link href="/register" className="btn btn-navy flex-col gap-0 font-medium leading-tight">
+          <Link href="/register" className="btn btn-primary flex-col gap-0 font-medium leading-tight">
             7 days free trial
             <span className="text-[0.6875rem] font-normal opacity-90">No credit cards required</span>
           </Link>
@@ -83,7 +83,7 @@ export function AccountNav() {
       <Menu items={MEMBER_MENU} />
       <nav aria-label="Account" className="ml-auto flex items-center gap-2 sm:gap-3">
         <Link href="/account" className="btn btn-ghost font-medium" title={user.email}>
-          <span aria-hidden="true" className="grid size-7 place-items-center rounded-full bg-brand-red text-sm text-white">
+          <span aria-hidden="true" className="grid size-7 place-items-center rounded-full bg-brand-navy text-sm text-white">
             {name.charAt(0).toUpperCase()}
           </span>
           <span className="hidden sm:inline">{name}</span>

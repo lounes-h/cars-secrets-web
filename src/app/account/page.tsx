@@ -13,9 +13,9 @@ export default async function AccountPage() {
       <div className="auth-panel">
       <h1>Your account</h1>
       <dl className="card grid grid-cols-[auto_1fr] gap-x-6 gap-y-2">
-        <dt className="font-semibold">Email</dt>
+        <dt className="font-medium">Email</dt>
         <dd>{user.email}</dd>
-        <dt className="font-semibold">Phone</dt>
+        <dt className="font-medium">Phone</dt>
         <dd>{user.phone ?? "Not provided"}</dd>
       </dl>
       <form action={logoutAction}>

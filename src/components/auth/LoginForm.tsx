@@ -16,7 +16,8 @@ export function LoginForm() {
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    mode: "onTouched",
+    // Errors appear on submit, not when the cursor leaves a field.
+    mode: "onSubmit",
     defaultValues: { email: "", password: "", remember: false, captcha_token: "" },
   });
   const { register, handleSubmit, setValue, formState } = form;

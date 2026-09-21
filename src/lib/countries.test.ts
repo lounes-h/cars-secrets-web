@@ -5,11 +5,22 @@ describe("countries", () => {
   it("lists every region with a flag, a name and its calling code, sorted by name", () => {
     const list = countries();
     expect(list.length).toBeGreaterThan(240);
-    expect(list.find((c) => c.code === "FR")).toEqual({ code: "FR", name: "France", flag: "🇫🇷", dialCode: 33 });
+    expect(list.find((c) => c.code === "FR")).toMatchObject({
+      code: "FR",
+      name: "France",
+      flag: "🇫🇷",
+      dialCode: 33,
+    });
     expect(list.find((c) => c.code === "US")?.dialCode).toBe(1);
     const names = list.map((c) => c.name);
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, "en")));
     expect(new Set(list.map((c) => c.code)).size).toBe(list.length);
+  });
+
+  it("carries an example number and the lengths it allows, for the field", () => {
+    const france = countries().find((c) => c.code === "FR");
+    expect(france?.example).toBe("06 12 34 56 78");
+    expect(france?.lengths).toEqual([9]);
   });
 
   it("builds flags from the regional indicators", () => {

@@ -14,7 +14,7 @@ export default async function RegisterPage() {
   return (
     <main className="auth-main flex justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-10">
       <div className="auth-panel">
-      <h1>Create your account</h1>
+      <h1>Start your free trial</h1>
       <div className="card form-stack">
         <SocialButtons intent="Register" />
         <p className="divider">or register with your email</p>
