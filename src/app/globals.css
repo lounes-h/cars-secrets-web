@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-/* Brand palette: the navy of the logo's "Car's", the red accent, and slate neutrals. */
+/* Brand palette: the navy of the logo's "CarBid", the teal of its "Wise", and slate neutrals.
+   Red is not part of the wordmark: it marks errors and nothing else. */
 :root {
   --paper: #f4f6f7;
   --surface: #ffffff;
@@ -8,8 +9,9 @@
   --muted: #53616c;
   --line: #d5dbe0;
   --brand-red: #d7282b;
-  /* Sampled from the logo's "Car's". */
-  --brand-navy: #324b62;
+  /* Sampled from the wordmark. */
+  --brand-navy: #132d4a;
+  --brand-teal: #0e555b;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,7 +22,8 @@
     --muted: #9aa7b1;
     --line: #2c3a44;
     --brand-red: #e8484a;
-    --brand-navy: #3f6485;
+    --brand-navy: #5b8cba;
+    --brand-teal: #3fb2ac;
   }
 }
 
@@ -32,6 +35,7 @@
   --color-line: var(--line);
   --color-brand-red: var(--brand-red);
   --color-brand-navy: var(--brand-navy);
+  --color-brand-teal: var(--brand-teal);
   --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -155,7 +159,8 @@ body {
     --muted: #53616c;
     --line: #d5dbe0;
     --brand-red: #d7282b;
-    --brand-navy: #324b62;
+    --brand-navy: #132d4a;
+    --brand-teal: #0e555b;
     background: var(--surface);
     color: var(--ink);
   }

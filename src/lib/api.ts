@@ -1,5 +1,5 @@
 /**
- * Server-side client for the Car's Secrets API. Only the web server calls the API: it forwards
+ * Server-side client for the CarBidWise API. Only the web server calls the API: it forwards
  * the visitor's IP (with the shared internal key, so the API can trust it) and never exposes
  * API_URL or API_INTERNAL_KEY to the browser.
  */
@@ -59,7 +59,7 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
   if (response.ok) return data as T;
   const error = toApiError(response.status, data);
   if (error.code === "unavailable") {
-    // Not an answer the Car's Secrets API gives: usually API_URL points at another service.
+    // Not an answer the CarBidWise API gives: usually API_URL points at another service.
     console.error(`[api] ${method} ${apiUrl()}${path} returned HTTP ${response.status}, unexpected body:`, data);
   }
   throw error;
@@ -85,7 +85,7 @@ export function toApiError(status: number, data: unknown): ApiError {
     return new ApiError(status, code, message ?? "Something went wrong. Please try again.");
   }
   // Anything else (a 404 page, a proxy error, another service's error format) did not come
-  // from a working Car's Secrets API.
+  // from a working CarBidWise API.
   const error = unavailable();
   return new ApiError(status, error.code, error.message);
 }

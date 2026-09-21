@@ -47,10 +47,10 @@ export default async function OpengraphImage() {
           </div>
           <div style={{ marginTop: 20, fontSize: 32, fontWeight: 400, color: site.colors.muted, maxWidth: 960 }}>
             Copart, IAA and Manheim listings in one search, with the resale value, total cost, profit and max bid
-            for every vehicle.
+            for every lot.
           </div>
         </div>
-        <div style={{ height: 20, background: site.colors.red }} />
+        <div style={{ height: 20, background: site.colors.teal }} />
       </div>
     ),
     { ...size, fonts },

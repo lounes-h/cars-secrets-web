@@ -1,5 +1,5 @@
 /**
- * The arithmetic behind every vehicle analysis. Amounts are in whole dollars.
+ * The arithmetic behind every lot analysis. Amounts are in whole dollars.
  *
  *   total acquisition cost = bid + auction fees + repairs + transport + other costs
  *   projected profit       = estimated resale value - total acquisition cost

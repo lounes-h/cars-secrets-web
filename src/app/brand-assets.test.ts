@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { LOGO_SIZE } from "@/components/SiteBanner";
+import { LOGO_SIZE, MARK_SIZE } from "@/components/SiteBanner";
 import manifest from "./manifest";
 
 const root = process.cwd();
@@ -20,6 +20,12 @@ describe("brand assets", () => {
   it("serves both banner logos at the size the banner declares", () => {
     for (const file of ["public/brand/logo-light.png", "public/brand/logo-dark.png"]) {
       expect(size(file), file).toBe(`${LOGO_SIZE.width}x${LOGO_SIZE.height}`);
+    }
+  });
+
+  it("serves both marks at the size the banner declares", () => {
+    for (const file of ["public/brand/mark-light.png", "public/brand/mark-dark.png"]) {
+      expect(size(file), file).toBe(`${MARK_SIZE.width}x${MARK_SIZE.height}`);
     }
   });
 

@@ -16,6 +16,15 @@ export type SiteRoute = {
 
 export const routes: readonly SiteRoute[] = [
   {
+    path: "/",
+    title: "Everything You Need to Know Before Buying a Car at Auction",
+    description:
+      "CarBidWise shows what a Copart, IAA or Manheim lot is worth, what it will cost to own and what to bid, before the auction closes.",
+    changeFrequency: "daily",
+    priority: 1,
+    llms: true,
+  },
+  {
     path: "/auctions",
     title: "Auction lots",
     description:
@@ -41,14 +50,14 @@ export const routes: readonly SiteRoute[] = [
     path: "/how-it-works",
     title: "How it works",
     description:
-      "How Car's Secrets turns auction listings into a buying decision: resale value, total cost, profit, margin and a max bid.",
+      "How CarBidWise turns auction listings into a buying decision: resale value, total cost, profit, margin and a max bid.",
     changeFrequency: "monthly",
     priority: 0.6,
   },
   {
     path: "/pricing",
     title: "Pricing",
-    description: "What a Car's Secrets subscription costs, and what the seven day free trial includes.",
+    description: "What a CarBidWise subscription costs, and what the seven day free trial includes.",
     changeFrequency: "monthly",
     priority: 0.6,
   },
@@ -72,28 +81,28 @@ export const routes: readonly SiteRoute[] = [
     path: "/register",
     title: "Create your account",
     description:
-      "Register for Car's Secrets to search auction lots from Copart, IAA and Manheim and see resale value, total cost, profit and a suggested max bid.",
+      "Register for CarBidWise to search auction lots from Copart, IAA and Manheim and see resale value, total cost, profit and a suggested max bid.",
     changeFrequency: "yearly",
     priority: 0.5,
   },
   {
     path: "/login",
     title: "Sign in",
-    description: "Sign in to Car's Secrets with your email and password, or continue with Google or Apple.",
+    description: "Sign in to CarBidWise with your email and password, or continue with Google or Apple.",
     changeFrequency: "yearly",
     priority: 0.5,
   },
   {
     path: "/forgot-password",
     title: "Forgot your password",
-    description: "Request a password reset link by email for your Car's Secrets account.",
+    description: "Request a password reset link by email for your CarBidWise account.",
     changeFrequency: "yearly",
     priority: 0.2,
   },
   {
     path: "/reset-password",
     title: "Choose a new password",
-    description: "Set a new password for your Car's Secrets account from the link we emailed you.",
+    description: "Set a new password for your CarBidWise account from the link we emailed you.",
     changeFrequency: "yearly",
     priority: 0.1,
     noindex: true,
@@ -101,7 +110,7 @@ export const routes: readonly SiteRoute[] = [
   {
     path: "/verify-email",
     title: "Confirm your email",
-    description: "Confirm the email address of your Car's Secrets account, or request a new confirmation email.",
+    description: "Confirm the email address of your CarBidWise account, or request a new confirmation email.",
     changeFrequency: "yearly",
     priority: 0.1,
     noindex: true,
@@ -109,7 +118,7 @@ export const routes: readonly SiteRoute[] = [
   {
     path: "/account",
     title: "Your account",
-    description: "Your Car's Secrets account: who you are signed in as, and where to sign out.",
+    description: "Your CarBidWise account: who you are signed in as, and where to sign out.",
     changeFrequency: "yearly",
     priority: 0.1,
     noindex: true,
