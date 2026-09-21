@@ -28,7 +28,7 @@ src/
     api.ts             Server-only client for the API; errors become ApiError
     session.ts         Session and OAuth-state cookies, currentUser(), visitor IP, safePath
     auth-schemas.ts    Zod schemas shared by the auth forms and server actions
-    remembered-email.ts  The email last typed in an auth form, per tab (sessionStorage)
+    remembered-email.ts  The last complete address typed in an auth form, per tab (sessionStorage)
     countries.ts       Countries with flag, name and calling code; phone composition
     dial-codes.ts      Generated: region code and calling code for 245 regions
     phone-formats.ts   Generated: example number, allowed lengths and trunk prefix per region
@@ -120,7 +120,8 @@ input carries the same limit as its schema, so nothing over-long is typed in the
 place. The server action parses
 the same schema again, calls the API and returns field errors, which `showServerErrors`
 puts on the matching inputs without clearing the form. The email typed in one auth form
-is remembered for the tab and prefilled in the others; sign in then focuses the password.
+is remembered for the tab once it is a complete address, and prefilled in the others;
+sign in then focuses the password. Signing out forgets it.
 
 - **Register**: the form posts names, email, the phone (one control holding the country
   picker and the number, joined into `+<calling code><digits>`; the API normalizes to

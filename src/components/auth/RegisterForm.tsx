@@ -44,7 +44,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
     const detected = countryFromBrowser(zone, navigator.languages);
     if (detected) setValue("phone_country", detected);
   }, [setValue]);
-  useRememberedEmail(form, { empty: "first_name", filled: "first_name" });
+  useRememberedEmail(form, "first_name");
 
   const onSubmit = handleSubmit(async (values) => {
     const state = await registerAction(values);

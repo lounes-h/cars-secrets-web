@@ -22,7 +22,7 @@ export function LoginForm() {
   });
   const { register, handleSubmit, setValue, formState } = form;
   const { errors, isSubmitting } = formState;
-  useRememberedEmail(form, { empty: "email", filled: "password" });
+  useRememberedEmail(form, "email", "password");
 
   const onSubmit = handleSubmit(async (values) => {
     // On success the action redirects to /account and does not return.

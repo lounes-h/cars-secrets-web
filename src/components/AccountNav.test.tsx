@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -59,6 +59,14 @@ describe("AccountNav", () => {
     expect(account.getAttribute("href")).toBe("/account");
     expect(screen.getByRole("button", { name: "Sign out" })).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Sign in" })).toBeNull();
+  });
+
+  it("forgets the remembered email when the dealer signs out", async () => {
+    window.sessionStorage.setItem("cs_email", "dana@example.com");
+    session({ first_name: "Lounes", email: "l@example.com" });
+    render(<AccountNav />);
+    fireEvent.submit(await screen.findByRole("button", { name: "Sign out" }));
+    expect(window.sessionStorage.getItem("cs_email")).toBe(null);
   });
 
   it("falls back to signed out when the session cannot be read", async () => {

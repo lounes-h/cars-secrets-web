@@ -15,6 +15,11 @@ export const EMAIL_MAX = 254;
 /** Anything that is not a letter or a digit counts, spaces included. */
 export const SPECIAL_CHARACTER = /[^\p{L}\p{N}]/u;
 
+/** Whether a value is a complete address, for the places that act only on real ones. */
+export function isEmailAddress(value: string): boolean {
+  return z.email().safeParse(value.trim()).success;
+}
+
 export function hasSpecialCharacter(value: string): boolean {
   return SPECIAL_CHARACTER.test(value);
 }

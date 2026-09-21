@@ -103,8 +103,10 @@ See `docs/architecture.md` for details.
   `src/lib/phone-formats.ts`) is the placeholder, the shape the typed digits
   are formatted into and the ceiling they stop at (`formatNational`), and the
   lengths the number is checked against (`isValidNationalNumber`).
-- The email typed in any auth form is remembered for the tab
-  (`src/lib/remembered-email.ts`, sessionStorage) and prefilled in the others
+- A complete email address typed in any auth form is remembered for the tab
+  (`src/lib/remembered-email.ts`, sessionStorage; half-typed ones are not) and
+  prefilled in the others, and signing out forgets it (`forgetEmail`, from the
+  button, since a server action cannot reach the browser's storage)
   through `useRememberedEmail`. Never put it in a URL.
 - The session is the API's token in the httpOnly `cs_session` cookie, set and
   cleared only through `src/lib/session.ts`. Read the signed-in user with

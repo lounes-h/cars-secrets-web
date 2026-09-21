@@ -174,6 +174,15 @@ describe("remembered email", () => {
     await waitFor(() => expect(screen.getByLabelText<HTMLInputElement>("Email").value).toBe("dana@example.com"));
   });
 
+  it("does not carry over half an address", async () => {
+    const first = render(<LoginForm />);
+    type("Email", "dana@exa");
+    first.unmount();
+    render(<ForgotPasswordForm />);
+    await waitFor(() => expect(screen.getByLabelText<HTMLInputElement>("Email")).toBeTruthy());
+    expect(screen.getByLabelText<HTMLInputElement>("Email").value).toBe("");
+  });
+
   it("focuses the password at sign in when the email is already known", async () => {
     window.sessionStorage.setItem("cs_email", "dana@example.com");
     render(<LoginForm />);

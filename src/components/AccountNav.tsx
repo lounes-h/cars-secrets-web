@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logoutAction } from "@/app/(auth)/actions";
+import { forgetEmail } from "@/lib/remembered-email";
 import type { SessionSummary } from "@/app/auth/session/route";
 
 type User = SessionSummary["user"];
@@ -89,7 +90,7 @@ export function AccountNav() {
           <span className="hidden sm:inline">{name}</span>
           <span className="sr-only sm:hidden">Your account ({name})</span>
         </Link>
-        <form action={logoutAction}>
+        <form action={logoutAction} onSubmit={forgetEmail}>
           <button type="submit" className="btn btn-outline font-medium">
             Sign out
           </button>
