@@ -23,6 +23,10 @@ describe("site", () => {
     expect(site.alternateNames).toContain("Cars Secrets");
     expect(site.description.startsWith("Car's Secrets ")).toBe(true);
   });
+
+  it("carries the slogan", () => {
+    expect(site.tagline).toBe("Know what it’s worth before you bid");
+  });
 });
 
 describe("absoluteUrl", () => {

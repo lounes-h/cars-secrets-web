@@ -18,6 +18,7 @@ describe("JSON-LD builders", () => {
       name: "Car's Secrets",
       alternateName: ["Cars Secrets", "Car’s Secrets"],
       logo: "https://cars-secrets.test/brand/logo-light.png",
+      slogan: "Know what it’s worth before you bid",
     });
     expect(webSite()).toMatchObject({
       "@type": "WebSite",
