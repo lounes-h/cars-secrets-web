@@ -210,7 +210,9 @@ nothing else yet. Add no other pages until the user asks.
 The brand name is **CarBidWise** (`site.name` in `src/lib/site.ts`), one word.
 "Car Bid Wise" and "CarBid Wise" are listed as `alternateName` in structured
 data. The repository and the API keep their `cars-secrets-*` names, and so does
-the `cars-secrets.test` origin the tests run against.
+the `cars-secrets.test` origin the tests run against. The slogan is **Know what
+it’s worth before you bid** (`site.tagline`): it sits on the share image and as
+the Organization’s `slogan` in structured data.
 
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
 (Work Sans, brand design tokens, Organization and WebSite JSON-LD, and the

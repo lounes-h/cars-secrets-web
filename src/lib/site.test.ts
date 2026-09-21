@@ -23,6 +23,10 @@ describe("site", () => {
     expect(site.alternateNames).toContain("Car Bid Wise");
     expect(site.description.startsWith("CarBidWise ")).toBe(true);
   });
+
+  it("carries the slogan", () => {
+    expect(site.tagline).toBe("Know what it’s worth before you bid");
+  });
 });
 
 describe("absoluteUrl", () => {
