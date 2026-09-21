@@ -33,7 +33,7 @@ src/
     dial-codes.ts      Generated: region code and calling code for 245 regions
     seo/               Metadata, JSON-LD, robots, sitemap and llms.txt builders
 public/
-  brand/               logo-light.png, logo-dark.png (transparent, 879×120, ~7 KB),
+  brand/               logo-light.png, logo-dark.png (transparent, 312×144, ~3.5 KB),
                        icon-192.png, icon-512.png (manifest)
 assets/
   fonts/               Work Sans 400 and 800 as woff, plus OFL licence

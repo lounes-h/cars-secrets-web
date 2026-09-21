@@ -67,7 +67,8 @@ See `docs/architecture.md` for details.
   system will replace them.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
-  and `logo-dark.png`, 879×120 16-colour palette PNGs of about 7 KB each. They
+  and `logo-dark.png`, 312×144 16-colour palette PNGs of about 3.5 KB each,
+  the stacked wordmark on transparent. They
   are served as-is because the Next image optimizer makes them larger. Its
   navigation (`src/components/AccountNav.tsx`) is a client component that asks
   `/auth/session` after each navigation and renders both the main menu and the
