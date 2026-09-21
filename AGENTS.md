@@ -55,8 +55,9 @@ See `docs/architecture.md` for details.
   span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
   running text is capped at a readable measure (`max-w-[65ch]`). Auth pages
   are the exception: their form sits in one centered `.auth-panel` column
-  (28rem), a raised white panel on the warm paper like a sign-in dialog,
-  because a full-width form is hard to fill in.
+  (28rem) inside `.auth-main`, which fills the viewport with white and pins the
+  brand tokens to their light values in both colour schemes, because a
+  full-width form is hard to fill in.
 - Basic styling lives in `src/app/globals.css`, on the brand tokens so dark
   mode follows: base styles for headings, labels, inputs, selects, checkboxes,
   links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-navy`,
