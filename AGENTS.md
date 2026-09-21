@@ -50,7 +50,9 @@ See `docs/architecture.md` for details.
 - Structured data comes from the builders in `src/lib/seo/jsonld.ts`,
   rendered with `<JsonLd>`.
 - Each page has one `h1`. Its lede answers the page's question directly, so
-  search engines and AI assistants can quote it.
+  search engines and AI assistants can quote it. The auth pages are the
+  exception: heading and form only, no lede — their registered description
+  carries the answer.
 - The layout is full width: no centered `max-w-*` page container. Sections
   span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
   running text is capped at a readable measure (`max-w-[65ch]`). Auth pages

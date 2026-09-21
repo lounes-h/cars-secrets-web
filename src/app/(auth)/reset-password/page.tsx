@@ -11,12 +11,9 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
       <div className="auth-panel">
       <h1>Choose a new password</h1>
       {token ? (
-        <>
-          <p>Your new password must be at least 10 characters long.</p>
-          <div className="card">
-            <ResetPasswordForm token={token} />
-          </div>
-        </>
+        <div className="card">
+          <ResetPasswordForm token={token} />
+        </div>
       ) : (
         <p>
           This link is incomplete. <Link href="/forgot-password">Request a new reset link</Link>.
