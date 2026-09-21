@@ -40,7 +40,8 @@ describe("SiteBanner", () => {
     const nav = screen.getByRole("navigation", { name: "Account" });
     expect(screen.getByRole("banner").contains(nav)).toBe(true);
     expect((await screen.findByRole("link", { name: "Sign in" })).getAttribute("href")).toBe("/login");
-    expect(screen.getByRole("link", { name: "Register" }).getAttribute("href")).toBe("/register");
+    expect(screen.getByRole("link", { name: /7 days free trial/ }).getAttribute("href")).toBe("/register");
+    expect(screen.getByRole("navigation", { name: "Main" })).toBeTruthy();
   });
 
   it("spans the full width with no max-width container", () => {

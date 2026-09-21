@@ -17,11 +17,39 @@ function session(user: { first_name: string; email: string } | null) {
 }
 
 describe("AccountNav", () => {
-  it("offers sign in and register to visitors", async () => {
+  it("offers sign in and the free trial to visitors", async () => {
     session(null);
     render(<AccountNav />);
     expect((await screen.findByRole("link", { name: "Sign in" })).getAttribute("href")).toBe("/login");
-    expect(screen.getByRole("link", { name: "Register" }).getAttribute("href")).toBe("/register");
+    const trial = screen.getByRole("link", { name: /7 days free trial/ });
+    expect(trial.getAttribute("href")).toBe("/register");
+    expect(trial.textContent).toContain("No credit cards required");
+  });
+
+  it("shows the visitor menu", async () => {
+    session(null);
+    render(<AccountNav />);
+    const menu = await screen.findByRole("navigation", { name: "Main" });
+    expect([...menu.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
+      ["Auctions", "/auctions"],
+      ["VIN Lookup", "/vin-lookup"],
+      ["Best Buys", "/best-buys"],
+      ["How It Works", "/how-it-works"],
+      ["Pricing", "/pricing"],
+    ]);
+  });
+
+  it("swaps How It Works and Pricing for Saved and Alerts once signed in", async () => {
+    session({ first_name: "Lounes", email: "l@example.com" });
+    render(<AccountNav />);
+    const menu = await screen.findByRole("navigation", { name: "Main" });
+    expect([...menu.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
+      ["Auctions", "/auctions"],
+      ["VIN Lookup", "/vin-lookup"],
+      ["Best Buys", "/best-buys"],
+      ["Saved", "/saved"],
+      ["Alerts", "/alerts"],
+    ]);
   });
 
   it("shows the signed-in dealer and a sign out button", async () => {

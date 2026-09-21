@@ -69,10 +69,13 @@ See `docs/architecture.md` for details.
   layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
   and `logo-dark.png`, 879×120 16-colour palette PNGs of about 7 KB each. They
   are served as-is because the Next image optimizer makes them larger. Its
-  account navigation (`src/components/AccountNav.tsx`) is a client component
-  that asks `/auth/session` after each navigation: "Sign in" and "Register"
-  for visitors, the dealer's name and "Sign out" once signed in. Never read the
-  session in the root layout: it would make every page dynamic.
+  navigation (`src/components/AccountNav.tsx`) is a client component that asks
+  `/auth/session` after each navigation and renders both the main menu and the
+  account side: Auctions, VIN Lookup, Best Buys, then How It Works and Pricing
+  with "Sign in" and the "7 days free trial" button for visitors, or Saved and
+  Alerts with the dealer's avatar and "Sign out" once signed in. The menu is
+  hidden below `lg`. Never read the session in the root layout: it would make
+  every page dynamic.
 - Pages are Server Components and stay static. Add `"use client"` only where
   interaction needs it. Pages that read the session (`/register`, `/login`,
   `/account`) or a token from the URL are dynamic by necessity.
@@ -175,10 +178,12 @@ A code change is not considered complete until the relevant unit tests have been
 
 ## Current state
 
-The only pages are the auth pages: `/register`, `/login`, `/forgot-password`,
-`/reset-password`, `/verify-email` and `/account`, with basic styling until a
-design system exists. The top banner links to sign in and register. `/` still
-returns 404. Add no other pages until the user asks.
+The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
+`/reset-password`, `/verify-email`, `/account`) and the empty placeholders the
+banner menu links to: `/auctions`, `/vin-lookup`, `/best-buys`,
+`/how-it-works`, `/pricing`, `/saved` and `/alerts` — a heading and a lede
+each, nothing behind them yet. Styling stays basic until a design system
+exists. `/` still returns 404. Add no other pages until the user asks.
 
 The brand name is **Car's Secrets** (`site.name` in `src/lib/site.ts`). "Cars
 Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.

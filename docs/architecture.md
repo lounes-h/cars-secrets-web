@@ -16,7 +16,8 @@ src/
     opengraph-image.tsx  Share image: logo, tagline, brand red (fonts from assets/fonts)
     icon.png, apple-icon.png, manifest.ts
   components/          Presentational Server Components (JsonLd, SiteBanner)
-    AccountNav.tsx     Banner's account links: asks /auth/session, shows sign in / register or the user
+    AccountNav.tsx     Banner's menu and account links: asks /auth/session, shows the visitor menu with
+                       sign in / free trial, or the member menu with the user
     auth/              Auth forms (React Hook Form), PasswordField, PhoneField, Turnstile, SocialButtons,
                        form-helpers (server errors on fields, remembered email)
   lib/

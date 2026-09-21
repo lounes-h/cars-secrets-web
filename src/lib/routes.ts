@@ -16,6 +16,59 @@ export type SiteRoute = {
 
 export const routes: readonly SiteRoute[] = [
   {
+    path: "/auctions",
+    title: "Auction lots",
+    description:
+      "Search active lots from Copart, IAA, Manheim and other auctions, with resale value, total cost, profit and a suggested max bid.",
+    changeFrequency: "daily",
+    priority: 0.9,
+  },
+  {
+    path: "/vin-lookup",
+    title: "VIN lookup",
+    description: "Look up a VIN to see the lot's history, condition and what it is worth before you bid on it.",
+    changeFrequency: "weekly",
+    priority: 0.7,
+  },
+  {
+    path: "/best-buys",
+    title: "Best buys",
+    description: "The lots with the strongest projected profit and margin right now, ranked from the active auction listings.",
+    changeFrequency: "daily",
+    priority: 0.8,
+  },
+  {
+    path: "/how-it-works",
+    title: "How it works",
+    description:
+      "How Car's Secrets turns auction listings into a buying decision: resale value, total cost, profit, margin and a max bid.",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/pricing",
+    title: "Pricing",
+    description: "What a Car's Secrets subscription costs, and what the seven day free trial includes.",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/saved",
+    title: "Saved lots and searches",
+    description: "The lots and searches you saved, so you can come back to them before the auction closes.",
+    changeFrequency: "daily",
+    priority: 0.1,
+    noindex: true,
+  },
+  {
+    path: "/alerts",
+    title: "Your alerts",
+    description: "Alerts that tell you when a lot matching one of your saved searches comes up for auction.",
+    changeFrequency: "daily",
+    priority: 0.1,
+    noindex: true,
+  },
+  {
     path: "/register",
     title: "Create your account",
     description:
