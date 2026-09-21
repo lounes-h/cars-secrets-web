@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadLogoDataUrl, loadOgFonts, OG_FONT_FAMILY } from "@/lib/og";
 
 describe("loadOgFonts", () => {
-  it("loads regular and extra-bold Libre Franklin as woff", async () => {
+  it("loads regular and extra-bold Work Sans as woff", async () => {
     const fonts = await loadOgFonts();
     expect(fonts.map((font) => [font.name, font.weight, font.style])).toEqual([
       [OG_FONT_FAMILY, 400, "normal"],

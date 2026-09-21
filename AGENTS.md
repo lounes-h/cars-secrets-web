@@ -9,7 +9,7 @@ read `docs/project-specification.md`
 - Next.js 16 (App Router) with React 19 and TypeScript, server-rendered and
   statically prerendered.
 - Tailwind CSS 4. Design tokens are CSS variables in `src/app/globals.css`.
-- Font: Libre Franklin via `next/font/google`.
+- Font: Work Sans via `next/font/google`.
 - Yarn 4 through Corepack (`packageManager` in `package.json`), with the
   `node-modules` linker.
 - Vitest with Testing Library for unit tests.
@@ -185,7 +185,7 @@ Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.
 The repository keeps its `cars-secrets-web` name.
 
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
-(Libre Franklin, brand design tokens, Organization and WebSite JSON-LD, and the
+(Work Sans, brand design tokens, Organization and WebSite JSON-LD, and the
 full-width top banner with the brand logo); the SEO builders (metadata,
 JSON-LD, sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; the
 branded Open Graph image; the favicon, Apple touch icon and manifest icons (the

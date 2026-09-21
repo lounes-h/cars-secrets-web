@@ -7,11 +7,11 @@ import { join } from "node:path";
  * logo are read from disk. Paths are relative to the project root.
  */
 
-export const OG_FONT_FAMILY = "Libre Franklin";
+export const OG_FONT_FAMILY = "Work Sans";
 
 const FONT_FILES = [
-  { weight: 400, file: "assets/fonts/libre-franklin-latin-400-normal.woff" },
-  { weight: 800, file: "assets/fonts/libre-franklin-latin-800-normal.woff" },
+  { weight: 400, file: "assets/fonts/work-sans-latin-400-normal.woff" },
+  { weight: 800, file: "assets/fonts/work-sans-latin-800-normal.woff" },
 ] as const;
 
 export async function loadOgFonts() {

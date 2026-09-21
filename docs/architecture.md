@@ -35,7 +35,7 @@ public/
   brand/               logo-light.png, logo-dark.png (transparent, 879×120, ~7 KB),
                        icon-192.png, icon-512.png (manifest)
 assets/
-  fonts/               Libre Franklin 400 and 800 as woff, plus OFL licence
+  fonts/               Work Sans 400 and 800 as woff, plus OFL licence
 ```
 
 Dependencies point downward: `app` → `components` → `lib`. The
@@ -70,7 +70,7 @@ code declares.
 `src/app/opengraph-image.tsx` renders the Open Graph and Twitter image with
 `next/og`. That renderer can't use `next/font` or CSS, and reads only static
 woff, ttf or otf fonts (not woff2 or variable fonts). So `src/lib/og.ts` reads
-the Libre Franklin 400 and 800 woff files from `assets/fonts/` and the logo from
+the Work Sans 400 and 800 woff files from `assets/fonts/` and the logo from
 `public/brand/`. Without those fonts it falls back to a single built-in weight
 and ignores `fontWeight`.
 
