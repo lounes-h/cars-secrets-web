@@ -104,10 +104,13 @@ describe("RegisterForm", () => {
     expect(number.value).toBe("(201) 55");
     type("Number", "2015550123");
     expect(number.value).toBe("(201) 555-0123");
-    // The placeholder is the ceiling: nothing longer can be typed.
-    expect(number.getAttribute("maxlength")).toBe("14");
+    // Formatting is the ceiling: nothing longer than the placeholder survives.
     type("Number", "2015550123999");
     expect(number.value).toBe("(201) 555-0123");
+    // maxlength still lets a pasted international number in, so it can be reformatted.
+    expect(number.getAttribute("maxlength")).toBe("17");
+    type("Number", "+1 (551) 358-8130");
+    expect(number.value).toBe("(551) 358-8130");
   });
 
   it("caps what can be typed in the name and email fields", () => {
