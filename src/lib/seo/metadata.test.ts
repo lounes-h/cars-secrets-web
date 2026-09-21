@@ -1,41 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { fixtureRoutes } from "@/lib/seo/fixtures";
-import { buildMetadata, DEFAULT_OG_IMAGE, metadataForRoute } from "@/lib/seo/metadata";
+import { buildMetadata, metadataForRoute } from "@/lib/seo/metadata";
 
 describe("buildMetadata", () => {
   const metadata = buildMetadata({ title: "Features", description: "What it does.", path: "/features" });
 
   it("appends the site name and sets an absolute canonical URL", () => {
-    expect(metadata.title).toEqual({ absolute: "Features | CarBidWise" });
+    expect(metadata.title).toEqual({ absolute: "Features" });
     expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/features");
   });
 
-  it("fills Open Graph and Twitter with the same title, URL and share image", () => {
+  it("fills Open Graph and Twitter with the same title and URL, and no share image or site name", () => {
     expect(metadata.openGraph).toMatchObject({
       url: "https://cars-secrets.test/features",
-      title: "Features | CarBidWise",
-      siteName: "CarBidWise",
-      images: [
-        {
-          url: "https://cars-secrets.test/opengraph-image",
-          width: DEFAULT_OG_IMAGE.width,
-          height: DEFAULT_OG_IMAGE.height,
-        },
-      ],
+      title: "Features",
     });
-    expect(metadata.twitter).toMatchObject({
-      card: "summary_large_image",
-      title: "Features | CarBidWise",
-      images: ["https://cars-secrets.test/opengraph-image"],
-    });
+    expect(metadata.openGraph).not.toHaveProperty("siteName");
+    expect(metadata.openGraph).not.toHaveProperty("images");
+    expect(metadata.twitter).toMatchObject({ card: "summary", title: "Features" });
+    expect(metadata.twitter).not.toHaveProperty("images");
   });
 
   it("is indexable by default", () => {
     expect(metadata.robots).toMatchObject({ index: true, follow: true });
   });
 
-  it("supports noindex and absolute titles", () => {
-    const draft = buildMetadata({ title: "Draft", description: "d", path: "/draft", noindex: true, absoluteTitle: true });
+  it("supports noindex", () => {
+    const draft = buildMetadata({ title: "Draft", description: "d", path: "/draft", noindex: true });
     expect(draft.robots).toEqual({ index: false, follow: true });
     expect(draft.title).toEqual({ absolute: "Draft" });
   });
@@ -44,7 +35,7 @@ describe("buildMetadata", () => {
 describe("metadataForRoute", () => {
   it("uses the registry entry for the path", () => {
     const metadata = metadataForRoute("/guides/max-bid", {}, fixtureRoutes);
-    expect(metadata.title).toEqual({ absolute: "How to set a max bid | CarBidWise" });
+    expect(metadata.title).toEqual({ absolute: "How to set a max bid" });
     expect(metadata.description).toBe("Guide description.");
     expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/guides/max-bid");
   });

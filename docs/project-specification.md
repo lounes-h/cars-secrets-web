@@ -1,24 +1,24 @@
-# CarBidWise — Project Specification
+# Project Specification
 
 ## 1. Project Overview
 
-**CarBidWise** is a vehicle-auction discovery and intelligence platform that aggregates active and upcoming vehicle listings from multiple auction sources such as **Copart, IAA, Manheim**, and potentially other auction marketplaces into one searchable interface.
+**The platform** is a vehicle-auction discovery and intelligence platform that aggregates active and upcoming vehicle listings from multiple auction sources such as **Copart, IAA, Manheim**, and potentially other auction marketplaces into one searchable interface.
 
 The platform is designed to save buyers and dealers time by eliminating the need to search multiple auction websites separately. Users will also be able to search directly by **VIN** to quickly locate a specific vehicle across supported auction sources.
 
-In addition to displaying auction listings, CarBidWise will provide decision-support information that helps users understand whether a vehicle may be a good purchase and how much they should consider paying.
+In addition to displaying auction listings, the platform will provide decision-support information that helps users understand whether a vehicle may be a good purchase and how much they should consider paying.
 
 The core question the product should help answer is:
 
 > **“Is this vehicle worth buying, and how much should I pay for it?”**
 
-CarBidWise does **not** conduct auctions or place bids. Users will be redirected to the original auction provider when they are ready to bid or purchase a vehicle.
+The platform does **not** conduct auctions or place bids. Users will be redirected to the original auction provider when they are ready to bid or purchase a vehicle.
 
 ---
 
 ## 2. Primary Goals
 
-CarBidWise should provide users with:
+The platform should provide users with:
 
 - One unified search experience across multiple vehicle auctions.
 - VIN lookup across supported auction sources.
@@ -69,7 +69,7 @@ The system may also be useful to individual buyers, but the primary product expe
 
 ## 4. User Access Levels
 
-CarBidWise will support four user levels.
+The platform will support four user levels.
 
 | User Type | Purpose |
 |---|---|
@@ -242,7 +242,7 @@ VIN lookup should:
 - Clearly identify the auction source.
 - Show the lot or stock number.
 - Show the auction date, location, current bid, Buy Now price where available, mileage, title, damage, photos, and other available listing data.
-- Link directly to the full CarBidWise vehicle detail page.
+- Link directly to the full vehicle detail page on the platform.
 - Provide a direct link to the original auction listing.
 - Respect feature and usage limits based on the user’s subscription level.
 
@@ -303,7 +303,7 @@ Maximum estimated total cost: $15,000
 Minimum expected profit: $3,000
 ```
 
-When a matching vehicle appears, CarBidWise can notify the user.
+When a matching vehicle appears, the platform can notify the user.
 
 Future notification channels may include:
 
@@ -318,7 +318,7 @@ Availability may depend on subscription level.
 
 ## 12. Vehicle Intelligence
 
-CarBidWise should provide information beyond the auction source's raw listing.
+The platform should provide information beyond the auction source's raw listing.
 
 Important calculated or enriched values include:
 
@@ -440,7 +440,7 @@ Pro and Premium users may receive more advanced intelligence such as personalize
 
 ## 16. Original Auction Integration
 
-CarBidWise does **not** conduct auctions.
+The platform does **not** conduct auctions.
 
 There should be no native bidding during the initial product phase.
 
@@ -549,7 +549,7 @@ These can be evaluated later.
 
 ## 20. Product Positioning
 
-CarBidWise should not position itself simply as:
+The platform should not position itself simply as:
 
 > **“All auctions in one place.”**
 
@@ -561,6 +561,6 @@ The stronger positioning is:
 
 Or more explicitly:
 
-> **CarBidWise searches multiple vehicle auctions and helps buyers understand what a car is worth, what it will really cost, and how much they should bid.**
+> **The platform searches multiple vehicle auctions and helps buyers understand what a car is worth, what it will really cost, and how much they should bid.**
 
 The long-term product advantage should come from **decision intelligence**, not merely auction aggregation.

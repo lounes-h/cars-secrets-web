@@ -1,30 +1,13 @@
 @import "tailwindcss";
 
-/* Brand palette: the navy of the logo's "CarBid", the teal of its "Wise", and slate neutrals.
-   Red is not part of the wordmark: it marks errors and nothing else. */
+/* No design system yet: black, grey and white only, so the interface stays
+   neutral until the brand and a real design exist. */
 :root {
-  --paper: #f4f6f7;
+  --paper: #f5f5f5;
   --surface: #ffffff;
-  --ink: #17222b;
-  --muted: #53616c;
-  --line: #d5dbe0;
-  --brand-red: #d7282b;
-  /* Sampled from the wordmark. */
-  --brand-navy: #132d4a;
-  --brand-teal: #0e555b;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #11181d;
-    --surface: #18222a;
-    --ink: #e6ecef;
-    --muted: #9aa7b1;
-    --line: #2c3a44;
-    --brand-red: #e8484a;
-    --brand-navy: #5b8cba;
-    --brand-teal: #3fb2ac;
-  }
+  --ink: #111111;
+  --muted: #666666;
+  --line: #d4d4d4;
 }
 
 @theme inline {
@@ -33,10 +16,7 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
-  --color-brand-red: var(--brand-red);
-  --color-brand-navy: var(--brand-navy);
-  --color-brand-teal: var(--brand-teal);
-  --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
@@ -52,7 +32,6 @@ body {
     font-size: 1.875rem;
     font-weight: 600;
     line-height: 1.2;
-    letter-spacing: -0.01em;
   }
 
   label,
@@ -70,30 +49,32 @@ body {
     min-height: 2.75rem;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--line);
-    border-radius: 0.5rem;
+    border-radius: 0.25rem;
     background: var(--surface);
     color: var(--ink);
   }
 
   input[aria-invalid="true"] {
-    border-color: var(--brand-red);
+    border-color: var(--ink);
   }
 
   input[type="checkbox"] {
     width: 1.125rem;
     height: 1.125rem;
-    accent-color: var(--brand-navy);
+    accent-color: var(--ink);
   }
 
   a {
-    color: var(--brand-navy);
+    color: var(--ink);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
 
+  /* Grey and white leave no error colour, so errors read as bold text. */
   [role="alert"] {
-    color: var(--brand-red);
+    color: var(--ink);
     font-size: 0.9375rem;
+    font-weight: 600;
   }
 }
 
@@ -106,7 +87,7 @@ body {
     min-height: 2.75rem;
     padding: 0.5rem 1.125rem;
     border: 1px solid transparent;
-    border-radius: 0.5rem;
+    border-radius: 0.25rem;
     font-weight: 600;
     font-size: 0.9375rem;
     text-decoration: none;
@@ -118,11 +99,11 @@ body {
     cursor: progress;
   }
   .btn-primary {
-    background: var(--brand-navy);
-    color: #fff;
+    background: var(--ink);
+    color: var(--surface);
   }
   .btn-primary:hover {
-    filter: brightness(0.92);
+    background: var(--muted);
   }
   .btn-outline {
     border-color: var(--line);
@@ -146,23 +127,10 @@ body {
     color: var(--muted);
   }
 
-  /* An auth page: the heading, lede and form in one readable column. */
-  /*
-   * The auth pages sit on white in both colour schemes, so the tokens are
-   * pinned to their light values for everything inside them.
-   */
+  /* An auth page: the heading and form in one readable column on white. */
   .auth-main {
     flex: 1;
-    --paper: #f4f6f7;
-    --surface: #ffffff;
-    --ink: #17222b;
-    --muted: #53616c;
-    --line: #d5dbe0;
-    --brand-red: #d7282b;
-    --brand-navy: #132d4a;
-    --brand-teal: #0e555b;
     background: var(--surface);
-    color: var(--ink);
   }
   .auth-panel {
     width: 100%;
@@ -179,15 +147,15 @@ body {
     display: flex;
     align-items: center;
     border: 1px solid var(--line);
-    border-radius: 0.5rem;
+    border-radius: 0.25rem;
     background: var(--surface);
   }
   .phone-field:focus-within {
-    outline: 3px solid var(--brand-navy);
+    outline: 3px solid var(--ink);
     outline-offset: 2px;
   }
   .phone-field[data-invalid] {
-    border-color: var(--brand-red);
+    border-color: var(--ink);
   }
   .phone-field-country {
     position: relative;
@@ -224,7 +192,7 @@ body {
   .card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 0.75rem;
+    border-radius: 0.25rem;
     padding: 1.5rem;
   }
   .form-stack {
@@ -252,14 +220,14 @@ body {
   .notice {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-left: 4px solid var(--brand-navy);
-    border-radius: 0.5rem;
+    border-left: 4px solid var(--ink);
+    border-radius: 0.25rem;
     padding: 1rem;
   }
 }
 
 :focus-visible {
-  outline: 3px solid var(--brand-navy);
+  outline: 3px solid var(--ink);
   outline-offset: 2px;
   border-radius: 2px;
 }

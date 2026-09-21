@@ -2,22 +2,12 @@ import type { Metadata } from "next";
 import { absoluteUrl, site } from "@/lib/site";
 import { getRoute, routes as registry, type SiteRoute } from "@/lib/routes";
 
-/** The site-wide share image, served by src/app/opengraph-image.tsx. */
-export const DEFAULT_OG_IMAGE = {
-  path: "/opengraph-image",
-  width: 1200,
-  height: 630,
-  alt: `${site.name}: ${site.tagline}`,
-} as const;
-
 type BuildMetadataInput = {
   title: string;
   description: string;
   path: string;
   /** Keeps the page out of search indexes (e.g. drafts, utility pages). */
   noindex?: boolean;
-  /** Use the title as-is instead of appending the site name. */
-  absoluteTitle?: boolean;
   openGraphType?: "website" | "article";
 };
 
@@ -30,38 +20,25 @@ export function buildMetadata({
   description,
   path,
   noindex = false,
-  absoluteTitle = false,
   openGraphType = "website",
 }: BuildMetadataInput): Metadata {
   const url = absoluteUrl(path);
-  const fullTitle = absoluteTitle ? title : `${title} | ${site.name}`;
-  // Setting openGraph on a page replaces the parent's, including the file-based
-  // image, so the image is attached explicitly every time.
-  const image = {
-    url: absoluteUrl(DEFAULT_OG_IMAGE.path),
-    width: DEFAULT_OG_IMAGE.width,
-    height: DEFAULT_OG_IMAGE.height,
-    alt: DEFAULT_OG_IMAGE.alt,
-  };
 
   return {
-    title: { absolute: fullTitle },
+    title: { absolute: title },
     description,
     alternates: { canonical: url },
     openGraph: {
       type: openGraphType,
       url,
-      title: fullTitle,
+      title,
       description,
-      siteName: site.name,
       locale: site.locale,
-      images: [image],
     },
     twitter: {
-      card: "summary_large_image",
-      title: fullTitle,
+      card: "summary",
+      title,
       description,
-      images: [image.url],
     },
     robots: noindex
       ? { index: false, follow: true }
