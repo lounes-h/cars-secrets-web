@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import type { FormState } from "@/app/(auth)/actions";
@@ -51,8 +50,7 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
           Wrong address?{" "}
           <button type="button" className="btn btn-link inline p-0 underline" onClick={() => setSentTo(null)}>
             Try another one
-          </button>{" "}
-          or <Link href="/login">go back to sign in</Link>.
+          </button>
         </p>
       </div>
     );
