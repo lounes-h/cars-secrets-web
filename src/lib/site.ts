@@ -22,7 +22,8 @@ export const site = {
   url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   locale: "en_US",
   language: "en",
-  tagline: "Auction intelligence for car dealers",
+  /** The slogan: shown on the share image and as the brand's schema.org slogan. */
+  tagline: "Know what it’s worth before you bid",
   description:
     "Car's Secrets brings active Copart, IAA and Manheim listings into one search and shows, for every vehicle, the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid.",
   /** Brand colours, for places CSS variables can't reach (manifest, generated images). */

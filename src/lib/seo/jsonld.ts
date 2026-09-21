@@ -19,6 +19,7 @@ export function organization(): JsonLdObject {
     alternateName: [...site.alternateNames],
     url: absoluteUrl("/"),
     logo: absoluteUrl("/brand/logo-light.png"),
+    slogan: site.tagline,
     description: site.description,
   };
 }

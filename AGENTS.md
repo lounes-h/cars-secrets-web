@@ -204,7 +204,9 @@ Styling stays basic until a design system exists. `/` still returns 404. Add no 
 
 The brand name is **Car's Secrets** (`site.name` in `src/lib/site.ts`). "Cars
 Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.
-The repository keeps its `cars-secrets-web` name.
+The repository keeps its `cars-secrets-web` name. The slogan is **Know what
+it’s worth before you bid** (`site.tagline`): it sits on the share image and as
+the Organization’s `slogan` in structured data.
 
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
 (Work Sans, brand design tokens, Organization and WebSite JSON-LD, and the
