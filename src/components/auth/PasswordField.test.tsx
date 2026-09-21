@@ -29,15 +29,43 @@ describe("PasswordField", () => {
     expect(registration.onBlur).toHaveBeenCalled();
   });
 
-  it("ticks each requirement as the password meets it, and mentions no breach list", () => {
+  it("hides the requirements until the input has been focused once", () => {
+    render(<PasswordField registration={registration} autoComplete="new-password" requirementFor="" />);
+    expect(screen.queryByText(/At least 8 characters/)).toBeNull();
+    const input = screen.getByLabelText("Password");
+    fireEvent.focus(input);
+    expect(screen.getByText(/• At least 8 characters/)).toBeTruthy();
+    // Still there once the cursor leaves: they explain the error the field may now show.
+    fireEvent.blur(input);
+    expect(screen.getByText(/• At least 8 characters/)).toBeTruthy();
+  });
+
+  it("never shows the requirements for a current password", () => {
+    render(<PasswordField registration={registration} autoComplete="current-password" />);
+    fireEvent.focus(screen.getByLabelText("Password"));
+    expect(screen.queryByText(/At least 8 characters/)).toBeNull();
+  });
+
+  it("ticks each of the four requirements as the password meets it", () => {
     const { rerender } = render(
       <PasswordField registration={registration} autoComplete="new-password" requirementFor="abcdefghijk" />,
     );
-    expect(screen.getByText(/✓ At least 8 characters \(11\/8\)/)).toBeTruthy();
+    fireEvent.focus(screen.getByLabelText("Password"));
+    expect(screen.getByText(/✓ At least 8 characters/)).toBeTruthy();
+    expect(screen.getByText(/✓ At least one letter/)).toBeTruthy();
+    expect(screen.getByText(/• At least one number/)).toBeTruthy();
     expect(screen.getByText(/• At least one special character/)).toBeTruthy();
-    expect(screen.queryByText(/data breach/)).toBeNull();
-    rerender(<PasswordField registration={registration} autoComplete="new-password" requirementFor="abcdefghij!" />);
+    rerender(<PasswordField registration={registration} autoComplete="new-password" requirementFor="abcdefghij1!" />);
+    expect(screen.getByText(/✓ At least one number/)).toBeTruthy();
     expect(screen.getByText(/✓ At least one special character/)).toBeTruthy();
+  });
+
+  it("links the requirements to the input for a screen reader", () => {
+    render(<PasswordField registration={registration} autoComplete="new-password" requirementFor="" />);
+    const input = screen.getByLabelText("Password");
+    fireEvent.focus(input);
+    const described = input.getAttribute("aria-describedby")!;
+    expect(document.getElementById(described)?.tagName).toBe("UL");
   });
 
   it("stops the password at the length the schema allows", () => {

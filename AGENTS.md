@@ -92,9 +92,14 @@ See `docs/architecture.md` for details.
   a plain form (`socialLoginAction`).
 - Auth forms validate a field once the cursor has left it (`mode: "onTouched"`)
   and again on submit. Every input carries the limit its schema enforces
-  (`NAME_MAX`, `EMAIL_MAX`, `PASSWORD_MAX`). A new password needs at least
-  `PASSWORD_MIN` (8) characters and one special character
-  (`hasSpecialCharacter`); the API applies the same rule.
+  (`NAME_MAX`, `EMAIL_MAX`, `PASSWORD_MAX`). A new password must satisfy every
+  entry of `PASSWORD_RULES` in `src/lib/auth-schemas.ts` — at least
+  `PASSWORD_MIN` (8) characters, one letter, one number and one special
+  character (`hasSpecialCharacter`). That one list is both the checklist the
+  form shows and the validation the schema applies, so add a rule there and
+  nowhere else; the API applies the same rules. The checklist appears on the
+  password field's first focus and stays from then on, so it is not noise
+  before the dealer reaches the field.
 - The register form picks the phone's country from the browser's time zone,
   falling back to its languages (`countryFromBrowser`), over the server's
   Accept-Language guess. The country's own example number (generated

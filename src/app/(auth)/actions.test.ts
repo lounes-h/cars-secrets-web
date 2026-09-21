@@ -35,7 +35,7 @@ const registration = {
   email: "d@example.com",
   phone_country: "US",
   phone_number: "(415) 555-2671",
-  password: "long-enough-pw",
+  password: "long-enough-pw1",
   accept_terms: true,
   captcha_token: "cap",
 };
@@ -56,7 +56,7 @@ describe("registerAction", () => {
         last_name: "Lee",
         email: "d@example.com",
         phone: "+14155552671",
-        password: "long-enough-pw",
+        password: "long-enough-pw1",
         accept_terms: true,
         captcha_token: "cap",
       },
@@ -97,7 +97,7 @@ describe("loginAction", () => {
 
 describe("resetPasswordAction", () => {
   it("rejects a mismatched confirmation before calling the API", async () => {
-    const state = await resetPasswordAction({ token: "t", password: "abcdefghij!", password_confirm: "other" });
+    const state = await resetPasswordAction({ token: "t", password: "abcdefghij1!", password_confirm: "other" });
     expect(state.errors).toEqual({ password_confirm: "The two passwords differ." });
     expect(apiMock).not.toHaveBeenCalled();
   });
