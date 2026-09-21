@@ -12,7 +12,7 @@ export default async function RegisterPage() {
   if (await currentUser()) redirect("/account");
   const defaultCountry = countryFromLanguages((await headers()).get("accept-language"));
   return (
-    <main className="flex justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-10">
+    <main className="auth-main flex justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-10">
       <div className="auth-panel">
       <h1>Create your account</h1>
       <p>

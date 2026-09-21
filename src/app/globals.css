@@ -46,7 +46,7 @@ body {
 @layer base {
   h1 {
     font-size: 1.875rem;
-    font-weight: 800;
+    font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.01em;
   }
@@ -150,6 +150,22 @@ body {
   }
 
   /* An auth page: the heading, lede and form in one readable column. */
+  /*
+   * The auth pages sit on white in both colour schemes, so the tokens are
+   * pinned to their light values for everything inside them.
+   */
+  .auth-main {
+    flex: 1;
+    --paper: #f4f6f7;
+    --surface: #ffffff;
+    --ink: #17222b;
+    --muted: #53616c;
+    --line: #d5dbe0;
+    --brand-red: #d7282b;
+    --brand-navy: #324b62;
+    background: var(--surface);
+    color: var(--ink);
+  }
   .auth-panel {
     width: 100%;
     max-width: 28rem;
