@@ -1,4 +1,4 @@
-# CarBidWise Web
+# Web app (cars-secrets-web)
 A dealer-focused vehicle auction intelligence platform that aggregates active listings from Copart, IAA, Manheim, and other auction sources into one searchable interface. The platform helps dealers identify the best vehicles to buy by showing current auction data, estimated resale value, total acquisition cost, repair/transport estimates, projected profit, profit margin, and a suggested maximum bid. Users can search and filter inventory, view detailed vehicle analysis, save vehicles and searches, and receive alerts. Bidding is not handled by the platform; users are redirected to the original auction site to place bids.
 
 ## Project specification
@@ -48,8 +48,8 @@ See `docs/architecture.md` for details.
 - Build page metadata with `metadataForRoute()` or `buildMetadata()` from
   `src/lib/seo/metadata.ts`. Never hand-write `title`, canonical or Open Graph
   metadata.
-- Structured data comes from the builders in `src/lib/seo/jsonld.ts`,
-  rendered with `<JsonLd>`.
+- There is no structured data: schema.org needs a brand name, and there is
+  none yet. Add the builders back with the brand.
 - Each page has one `h1`. Its lede answers the page's question directly, so
   search engines and AI assistants can quote it. The auth pages are the
   exception: heading and form only, no lede — their registered description
@@ -203,20 +203,19 @@ Styling stays basic until a design system exists. `/` is the home page: the
 centred title "Everything You Need to Know Before Buying a Car at Auction" and
 nothing else yet. Add no other pages until the user asks.
 
-The working name is **CarBidWise** (`site.name` in `src/lib/site.ts`), one word,
-and it is not settled. "Car Bid Wise" and "CarBid Wise" are listed as
-`alternateName` in structured data. The repository and the API keep their
-`cars-secrets-*` names, and so does the `cars-secrets.test` origin the tests run
-against. The slogan is **Know what it’s worth before you bid**
-(`site.tagline`): it is the Organization’s `slogan` in structured data. Until
-the name is settled, the work is features and functionality, not branding.
+**There is no brand name.** `src/lib/site.ts` holds only the URL, language,
+locale and a description; nothing invents a name, a slogan or a wordmark.
+Page titles stand alone (no "| Name" suffix), the banner links home with the
+word "Home", and `llms.txt` is headed by the site host (`siteHost`). The
+repository and the API keep their `cars-secrets-*` names, and so does the
+`cars-secrets.test` origin the tests run against. Until a name is chosen, the
+work is features and functionality, not branding — do not add one.
 
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
-(grayscale tokens, Organization and WebSite JSON-LD, and the full-width top
-banner with the site name in text); the SEO builders (metadata, JSON-LD,
+(grayscale tokens and the full-width top banner); the SEO builders (metadata,
 sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; security
 headers; and the deal calculation in `src/lib/deal.ts`. There is no logo,
-favicon, touch icon, manifest icon or share image.
+favicon, touch icon, web app manifest, share image or structured data.
 
 In place for accounts: registration (names, email, optional phone with every
 country's flag and calling code, password with show/hide, terms checkbox,

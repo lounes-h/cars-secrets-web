@@ -33,8 +33,8 @@ describe("robots", () => {
 });
 
 describe("llms.txt", () => {
-  it("starts with the site name and summary", () => {
-    expect(buildLlmsTxt().startsWith("# CarBidWise\n\n> ")).toBe(true);
+  it("starts with the site host and summary, since there is no brand name", () => {
+    expect(buildLlmsTxt().startsWith("# cars-secrets.test\n\n> ")).toBe(true);
   });
 
   it("links only the routes flagged for llms.txt", () => {

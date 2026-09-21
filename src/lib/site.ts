@@ -1,6 +1,7 @@
 /**
  * Single source of truth for site-wide identity. Anything that ends up in
- * metadata, structured data, the sitemap or llms.txt reads from here.
+ * metadata, the sitemap or llms.txt reads from here. There is no brand name
+ * yet: nothing here should invent one.
  */
 
 const LOCAL_URL = "http://localhost:3000";
@@ -16,17 +17,15 @@ export function resolveSiteUrl(value: string | undefined): string {
 }
 
 export const site = {
-  name: "CarBidWise",
-  /** Other spellings people search for; listed in structured data. */
-  alternateNames: ["Car Bid Wise", "CarBid Wise"],
   url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   locale: "en_US",
   language: "en",
-  /** The slogan: shown on the share image and as the brand's schema.org slogan. */
-  tagline: "Know what it’s worth before you bid",
   description:
-    "CarBidWise brings active Copart, IAA and Manheim listings into one search and shows, for every lot, the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid.",
+    "Active Copart, IAA and Manheim listings in one search, with the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid for every lot.",
 } as const;
+
+/** The site's host, used where a name would otherwise go. */
+export const siteHost = new URL(site.url).host;
 
 /** Joins a site-relative path onto the site origin. */
 export function absoluteUrl(path: string, base: string = site.url): string {

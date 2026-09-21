@@ -11,9 +11,10 @@ const { SiteBanner } = await import("@/components/SiteBanner");
 afterEach(cleanup);
 
 describe("SiteBanner", () => {
-  it("renders the site name as a link home, and no logo image", () => {
+  it("renders a link home, with no brand name or logo image", () => {
     const { container } = render(<SiteBanner />);
-    const link = screen.getByRole("link", { name: "CarBidWise" });
+    const link = screen.getByRole("link", { name: "Home" });
+    expect(screen.getByRole("banner").textContent).not.toMatch(/CarBidWise/i);
     expect(link.getAttribute("href")).toBe("/");
     expect(screen.getByRole("banner").contains(link)).toBe(true);
     expect(container.querySelector("img, picture, svg")).toBe(null);

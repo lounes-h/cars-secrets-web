@@ -8,8 +8,6 @@ type BuildMetadataInput = {
   path: string;
   /** Keeps the page out of search indexes (e.g. drafts, utility pages). */
   noindex?: boolean;
-  /** Use the title as-is instead of appending the site name. */
-  absoluteTitle?: boolean;
   openGraphType?: "website" | "article";
 };
 
@@ -22,27 +20,24 @@ export function buildMetadata({
   description,
   path,
   noindex = false,
-  absoluteTitle = false,
   openGraphType = "website",
 }: BuildMetadataInput): Metadata {
   const url = absoluteUrl(path);
-  const fullTitle = absoluteTitle ? title : `${title} | ${site.name}`;
 
   return {
-    title: { absolute: fullTitle },
+    title: { absolute: title },
     description,
     alternates: { canonical: url },
     openGraph: {
       type: openGraphType,
       url,
-      title: fullTitle,
+      title,
       description,
-      siteName: site.name,
       locale: site.locale,
     },
     twitter: {
       card: "summary",
-      title: fullTitle,
+      title,
       description,
     },
     robots: noindex
