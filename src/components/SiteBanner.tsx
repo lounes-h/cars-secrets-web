@@ -2,8 +2,8 @@ import Link from "next/link";
 import { AccountNav } from "@/components/AccountNav";
 import { site } from "@/lib/site";
 
-/** Intrinsic size of the files in public/brand/ (trimmed, transparent, 3× the 36px display height). */
-export const LOGO_SIZE = { width: 879, height: 120 } as const;
+/** Intrinsic size of the files in public/brand/ (trimmed, transparent, 3× the 48px display height). */
+export const LOGO_SIZE = { width: 333, height: 144 } as const;
 
 /**
  * Full-width top banner with the brand logo. The logos are 16-colour palette
@@ -27,7 +27,7 @@ export function SiteBanner() {
               height={LOGO_SIZE.height}
               fetchPriority="high"
               decoding="async"
-              className="h-7 w-auto sm:h-9"
+              className="h-10 w-auto sm:h-12"
             />
           </picture>
         </Link>

@@ -2,16 +2,18 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { registerAction } from "@/app/(auth)/actions";
 import { FieldError, FormError } from "@/components/auth/FieldError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { PhoneField } from "@/components/auth/PhoneField";
+import { SocialButtons } from "@/components/auth/SocialButtons";
 import { Turnstile } from "@/components/auth/Turnstile";
-import { registerSchema, type RegisterInput } from "@/lib/auth-schemas";
-import type { Country } from "@/lib/countries";
+import { EMAIL_MAX, NAME_MAX, registerSchema, type RegisterInput } from "@/lib/auth-schemas";
+import { countryFromBrowser, type Country } from "@/lib/countries";
+import { forgetEmail } from "@/lib/remembered-email";
 
 type Props = { countries: Country[]; defaultCountry: string };
 
@@ -20,6 +22,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
+    // A field is checked once it has been visited, then on every submit.
     mode: "onTouched",
     defaultValues: {
       first_name: "",
@@ -35,11 +38,21 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   const { register, handleSubmit, setValue, control, formState } = form;
   const { errors, isSubmitting } = formState;
   const password = useWatch({ control, name: "password" });
-  useRememberedEmail(form, { empty: "first_name", filled: "first_name" });
+  const phoneCountry = useWatch({ control, name: "phone_country" });
+
+  // The server guesses the country from Accept-Language; the browser knows better.
+  useEffect(() => {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const detected = countryFromBrowser(zone, navigator.languages);
+    if (detected) setValue("phone_country", detected);
+  }, [setValue]);
+  useRememberedEmail(form, "first_name");
 
   const onSubmit = handleSubmit(async (values) => {
     const state = await registerAction(values);
     if (state?.ok) {
+      // The account exists now, so the tab has no reason to keep offering the address.
+      forgetEmail();
       setSentTo(values.email);
       return;
     }
@@ -63,86 +76,95 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
     );
   }
 
+  // The social buttons sit here, not on the page, so the confirmation replaces them too.
   return (
-    <form onSubmit={onSubmit} noValidate className="form-stack">
-      <FormError message={errors.root?.server?.message} />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="first_name">First name</label>
-          <input
-            id="first_name"
-            autoComplete="given-name"
-            aria-invalid={errors.first_name ? true : undefined}
-            aria-describedby={errors.first_name ? "first_name-error" : undefined}
-            {...register("first_name")}
-          />
-          <FieldError id="first_name-error" message={errors.first_name?.message} />
+    <>
+      <SocialButtons intent="Register" />
+      <p className="divider">or register with your email</p>
+      <form onSubmit={onSubmit} noValidate className="form-stack">
+        <FormError message={errors.root?.server?.message} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="first_name">First name</label>
+            <input
+              id="first_name"
+              autoComplete="given-name"
+              maxLength={NAME_MAX}
+              aria-invalid={errors.first_name ? true : undefined}
+              aria-describedby={errors.first_name ? "first_name-error" : undefined}
+              {...register("first_name")}
+            />
+            <FieldError id="first_name-error" message={errors.first_name?.message} />
+          </div>
+          <div>
+            <label htmlFor="last_name">Last name</label>
+            <input
+              id="last_name"
+              autoComplete="family-name"
+              maxLength={NAME_MAX}
+              aria-invalid={errors.last_name ? true : undefined}
+              aria-describedby={errors.last_name ? "last_name-error" : undefined}
+              {...register("last_name")}
+            />
+            <FieldError id="last_name-error" message={errors.last_name?.message} />
+          </div>
         </div>
         <div>
-          <label htmlFor="last_name">Last name</label>
+          <label htmlFor="email">Email</label>
           <input
-            id="last_name"
-            autoComplete="family-name"
-            aria-invalid={errors.last_name ? true : undefined}
-            aria-describedby={errors.last_name ? "last_name-error" : undefined}
-            {...register("last_name")}
+            id="email"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            maxLength={EMAIL_MAX}
+            aria-invalid={errors.email ? true : undefined}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            {...register("email")}
           />
-          <FieldError id="last_name-error" message={errors.last_name?.message} />
+          <FieldError id="email-error" message={errors.email?.message} />
         </div>
-      </div>
-      <div>
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          inputMode="email"
-          aria-invalid={errors.email ? true : undefined}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          {...register("email")}
+        <PhoneField
+          countries={countries}
+          country={register("phone_country")}
+          number={register("phone_number")}
+          defaultCountry={defaultCountry}
+          selected={phoneCountry}
+          error={errors.phone_number?.message}
         />
-        <FieldError id="email-error" message={errors.email?.message} />
-      </div>
-      <PhoneField
-        countries={countries}
-        country={register("phone_country")}
-        number={register("phone_number")}
-        defaultCountry={defaultCountry}
-        error={errors.phone_number?.message}
-      />
-      <PasswordField
-        registration={register("password")}
-        autoComplete="new-password"
-        error={errors.password?.message}
-        requirementFor={password}
-      />
-      <div>
-        <div className="flex items-start gap-2">
-          <input
-            id="accept_terms"
-            type="checkbox"
-            className="mt-1"
-            aria-invalid={errors.accept_terms ? true : undefined}
-            aria-describedby={errors.accept_terms ? "accept_terms-error" : undefined}
-            {...register("accept_terms")}
-          />
-          <label htmlFor="accept_terms" className="font-normal">
-            I accept the Terms of Use and Privacy Policy
-          </label>
+        <PasswordField
+          registration={register("password")}
+          autoComplete="new-password"
+          error={errors.password?.message}
+          requirementFor={password}
+        />
+        <div>
+          <div className="flex items-start gap-2">
+            <input
+              id="accept_terms"
+              type="checkbox"
+              className="mt-1"
+              aria-invalid={errors.accept_terms ? true : undefined}
+              aria-describedby={errors.accept_terms ? "accept_terms-error" : undefined}
+              {...register("accept_terms")}
+            />
+            <label htmlFor="accept_terms" className="font-normal">
+              I accept the Terms of Use and Privacy Policy
+            </label>
+          </div>
+          <FieldError id="accept_terms-error" message={errors.accept_terms?.message} />
         </div>
-        <FieldError id="accept_terms-error" message={errors.accept_terms?.message} />
-      </div>
-      <Turnstile
-        action="register"
-        resetSignal={captchaReset}
-        onToken={(token) => setValue("captcha_token", token ?? "")}
-      />
-      <button type="submit" disabled={isSubmitting} className="btn btn-primary w-full">
-        {isSubmitting ? "Creating your account…" : "Create account"}
-      </button>
-      <p className="hint text-center">
-        Already registered? <Link href="/login">Sign in</Link>
-      </p>
-    </form>
+        <Turnstile
+          action="register"
+          resetSignal={captchaReset}
+          onToken={(token) => setValue("captcha_token", token ?? "")}
+        />
+        <button type="submit" disabled={isSubmitting} className="btn btn-primary w-full">
+          {isSubmitting ? "Creating your account…" : "Create account"}
+        </button>
+        <p className="hint text-center">
+          Already registered? <Link href="/login">Sign in</Link>
+        </p>
+      </form>
+    </>
   );
 }

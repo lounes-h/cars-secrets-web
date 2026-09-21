@@ -8,7 +8,7 @@ export const alt = DEFAULT_OG_IMAGE.alt;
 export const size = { width: DEFAULT_OG_IMAGE.width, height: DEFAULT_OG_IMAGE.height };
 export const contentType = "image/png";
 
-const LOGO_WIDTH = 720;
+const LOGO_WIDTH = 320;
 
 export default async function OpengraphImage() {
   const [fonts, logo] = await Promise.all([loadOgFonts(), loadLogoDataUrl()]);

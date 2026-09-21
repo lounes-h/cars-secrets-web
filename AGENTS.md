@@ -50,29 +50,36 @@ See `docs/architecture.md` for details.
 - Structured data comes from the builders in `src/lib/seo/jsonld.ts`,
   rendered with `<JsonLd>`.
 - Each page has one `h1`. Its lede answers the page's question directly, so
-  search engines and AI assistants can quote it.
+  search engines and AI assistants can quote it. The auth pages are the
+  exception: heading and form only, no lede — their registered description
+  carries the answer.
 - The layout is full width: no centered `max-w-*` page container. Sections
   span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
   running text is capped at a readable measure (`max-w-[65ch]`). Auth pages
   are the exception: their form sits in one centered `.auth-panel` column
-  (28rem), a raised white panel on the warm paper like a sign-in dialog,
-  because a full-width form is hard to fill in.
+  (28rem) inside `.auth-main`, which fills the viewport with white and pins the
+  brand tokens to their light values in both colour schemes, because a
+  full-width form is hard to fill in.
 - Basic styling lives in `src/app/globals.css`, on the brand tokens so dark
   mode follows: base styles for headings, labels, inputs, selects, checkboxes,
   links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-dark`,
   `btn-outline`, `btn-ghost`, `btn-link`, `card`, `auth-panel`, `form-stack`,
-  `divider`, `hint`, `notice`). Buttons are pills: red `btn-primary` for the
-  action that moves the dealer forward, the ink `btn-dark` for the banner's
-  Register. Reuse them rather than adding one-off styles; a real design
-  system will replace them.
+  `phone-field`, `divider`, `hint`, `notice`). The logo's navy
+  (`--brand-navy`) carries the interface — buttons, links, checkboxes, focus
+  rings — and `--brand-red` is left for errors alone. Buttons are pills:
+  `btn-primary` for the action that moves the dealer forward. Reuse them rather
+  than adding one-off styles; a real design system will replace them.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
-  and `logo-dark.png`, 879×120 16-colour palette PNGs of about 7 KB each. They
-  are served as-is because the Next image optimizer makes them larger. Its
-  account navigation (`src/components/AccountNav.tsx`) is a client component
-  that asks `/auth/session` after each navigation: "Sign in" and "Register"
-  for visitors, the dealer's name and "Sign out" once signed in. Never read the
-  session in the root layout: it would make every page dynamic.
+  and `logo-dark.png`, 333×144 16-colour palette PNGs of about 4 KB each, the
+  stacked navy-and-ink wordmark on transparent. They are served as-is because the Next image optimizer makes them larger. Its
+  navigation (`src/components/AccountNav.tsx`) is a client component that asks
+  `/auth/session` after each navigation and renders both the main menu and the
+  account side: Auctions, VIN Lookup, Best Buys, then How It Works and Pricing
+  with "Sign in" and the "7 days free trial" button for visitors, or Saved and
+  Alerts with the dealer's avatar and "Sign out" once signed in. The menu is
+  hidden below `lg`. Never read the session in the root layout: it would make
+  every page dynamic.
 - Pages are Server Components and stay static. Add `"use client"` only where
   interaction needs it. Pages that read the session (`/register`, `/login`,
   `/account`) or a token from the URL are dynamic by necessity.
@@ -84,8 +91,21 @@ See `docs/architecture.md` for details.
   (`showServerErrors` in `src/components/auth/form-helpers.ts`). Actions take
   the form's values as an object, not `FormData`. Only the social buttons post
   a plain form (`socialLoginAction`).
-- The email typed in any auth form is remembered for the tab
-  (`src/lib/remembered-email.ts`, sessionStorage) and prefilled in the others
+- Auth forms validate a field once the cursor has left it (`mode: "onTouched"`)
+  and again on submit. Every input carries the limit its schema enforces
+  (`NAME_MAX`, `EMAIL_MAX`, `PASSWORD_MAX`). A new password needs at least
+  `PASSWORD_MIN` (8) characters and one special character
+  (`hasSpecialCharacter`); the API applies the same rule.
+- The register form picks the phone's country from the browser's time zone,
+  falling back to its languages (`countryFromBrowser`), over the server's
+  Accept-Language guess. The country's own example number (generated
+  `src/lib/phone-formats.ts`) is the placeholder, the shape the typed digits
+  are formatted into and the ceiling they stop at (`formatNational`), and the
+  lengths the number is checked against (`isValidNationalNumber`).
+- A complete email address typed in any auth form is remembered for the tab
+  (`src/lib/remembered-email.ts`, sessionStorage; half-typed ones are not) and
+  prefilled in the others. Registering or signing out forgets it (`forgetEmail`,
+  called from the browser, since a server action cannot reach its storage)
   through `useRememberedEmail`. Never put it in a URL.
 - The session is the API's token in the httpOnly `cs_session` cookie, set and
   cleared only through `src/lib/session.ts`. Read the signed-in user with
@@ -175,10 +195,12 @@ A code change is not considered complete until the relevant unit tests have been
 
 ## Current state
 
-The only pages are the auth pages: `/register`, `/login`, `/forgot-password`,
-`/reset-password`, `/verify-email` and `/account`, with basic styling until a
-design system exists. The top banner links to sign in and register. `/` still
-returns 404. Add no other pages until the user asks.
+The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
+`/reset-password`, `/verify-email`, `/account`) and the empty placeholders the
+banner menu links to: `/auctions`, `/vin-lookup`, `/best-buys`,
+`/how-it-works`, `/pricing`, `/saved` and `/alerts` — blank white pages with
+metadata only, so they have no `h1` until there is something to put on them.
+Styling stays basic until a design system exists. `/` still returns 404. Add no other pages until the user asks.
 
 The brand name is **Car's Secrets** (`site.name` in `src/lib/site.ts`). "Cars
 Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.

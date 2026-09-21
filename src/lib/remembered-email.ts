@@ -5,6 +5,8 @@
  * unavailable (private mode, blocked site data), so every access is guarded.
  */
 
+import { isEmailAddress } from "@/lib/auth-schemas";
+
 const KEY = "cs_email";
 
 export function readRememberedEmail(): string {
@@ -15,12 +17,22 @@ export function readRememberedEmail(): string {
   }
 }
 
+/** Only a complete address is kept: half-typed ones would prefill the next form with rubbish. */
 export function rememberEmail(email: string): void {
   const value = email.trim();
-  if (!value) return;
+  if (!isEmailAddress(value)) return;
   try {
     window.sessionStorage.setItem(KEY, value);
   } catch {
     // Not remembering is fine.
+  }
+}
+
+/** Signing out ends the tab's memory of who was here. */
+export function forgetEmail(): void {
+  try {
+    window.sessionStorage.removeItem(KEY);
+  } catch {
+    // Nothing stored, nothing to forget.
   }
 }

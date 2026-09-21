@@ -1,6 +1,17 @@
 import { DIAL_CODES } from "@/lib/dial-codes";
+import { PHONE_FORMATS } from "@/lib/phone-formats";
+import { TIMEZONE_COUNTRIES } from "@/lib/timezone-countries";
 
-export type Country = { code: string; name: string; flag: string; dialCode: number };
+export type Country = {
+  code: string;
+  name: string;
+  flag: string;
+  dialCode: number;
+  /** An example national number, shown as the field's placeholder. */
+  example: string;
+  /** The national number lengths this country allows. */
+  lengths: readonly number[];
+};
 
 /** 🇫🇷 from "FR": each letter maps to its regional indicator symbol. */
 export function flagEmoji(code: string): string {
@@ -17,9 +28,30 @@ export function countries(locale = "en"): Country[] {
       return code;
     }
   };
-  return DIAL_CODES.map(([code, dialCode]) => ({ code, dialCode, flag: flagEmoji(code), name: name(code) })).sort(
-    (a, b) => a.name.localeCompare(b.name, locale),
-  );
+  return DIAL_CODES.map(([code, dialCode]) => ({
+    code,
+    dialCode,
+    flag: flagEmoji(code),
+    name: name(code),
+    example: PHONE_FORMATS[code]?.example ?? "",
+    lengths: PHONE_FORMATS[code]?.lengths ?? [],
+  })).sort((a, b) => a.name.localeCompare(b.name, locale));
+}
+
+/**
+ * Digits typed so far, laid into the shape of the country's example: "2015550123" with the
+ * example "(201) 555-0123" gives "(201) 555-0123", and "20155" gives "(201) 55". The example
+ * is also the ceiling: digits past it are dropped, so a number never outgrows its placeholder.
+ */
+export function formatNational(example: string, typed: string): string {
+  const digits = typed.replace(/\D/g, "");
+  let formatted = "";
+  let next = 0;
+  for (const character of example) {
+    if (next >= digits.length) break;
+    formatted += /\d/.test(character) ? digits[next++] : character;
+  }
+  return formatted;
 }
 
 /**
@@ -31,6 +63,22 @@ export function composePhone(countryCode: string, national: string): string | nu
   if (!digits) return null;
   const entry = DIAL_CODES.find(([code]) => code === countryCode.toUpperCase());
   return entry ? `+${entry[1]}${digits}` : null;
+}
+
+/**
+ * The visitor's country as the browser knows it: its time zone first, because that follows
+ * where the visitor is rather than which language they read, then its languages. Returns null
+ * when the browser tells us nothing usable, so the server's guess stands.
+ */
+export function countryFromBrowser(
+  timeZone: string | undefined,
+  languages: readonly string[] | undefined,
+): string | null {
+  const known = new Set(DIAL_CODES.map(([code]) => code));
+  const fromZone = timeZone ? TIMEZONE_COUNTRIES[timeZone] : undefined;
+  if (fromZone && known.has(fromZone)) return fromZone;
+  const fromLanguages = countryFromLanguages((languages ?? []).join(","), "");
+  return fromLanguages && known.has(fromLanguages) ? fromLanguages : null;
 }
 
 /**

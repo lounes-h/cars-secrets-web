@@ -1,14 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import type { FormState } from "@/app/(auth)/actions";
 import { FieldError, FormError } from "@/components/auth/FieldError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { Turnstile } from "@/components/auth/Turnstile";
-import { emailSchema, type EmailInput } from "@/lib/auth-schemas";
+import { EMAIL_MAX, emailSchema, type EmailInput } from "@/lib/auth-schemas";
 
 type Props = {
   action: (input: EmailInput) => Promise<FormState>;
@@ -25,6 +24,7 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<EmailInput>({
     resolver: zodResolver(emailSchema),
+    // A field is checked once it has been visited, then on every submit.
     mode: "onTouched",
     defaultValues: { email: "", captcha_token: "" },
   });
@@ -50,8 +50,7 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
           Wrong address?{" "}
           <button type="button" className="btn btn-link inline p-0 underline" onClick={() => setSentTo(null)}>
             Try another one
-          </button>{" "}
-          or <Link href="/login">go back to sign in</Link>.
+          </button>
         </p>
       </div>
     );
@@ -67,6 +66,7 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
           type="email"
           autoComplete="email"
           inputMode="email"
+          maxLength={EMAIL_MAX}
           aria-invalid={errors.email ? true : undefined}
           aria-describedby={errors.email ? "email-error" : undefined}
           {...register("email")}

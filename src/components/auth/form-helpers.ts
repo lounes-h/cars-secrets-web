@@ -20,24 +20,24 @@ export function showServerErrors<T extends FieldValues>(form: UseFormReturn<T>, 
 }
 
 /**
- * Fills the email field with the address typed earlier in this tab, and remembers whatever the
- * visitor types. Then focuses `focus.filled` when an address was known, else `focus.empty`
- * (e.g. sign in jumps straight to the password).
+ * Fills the email field with the address typed earlier in this tab, and remembers the address
+ * as the visitor types it. Focus lands on `focus`, or on `focusWhenRemembered` when an address
+ * was already known — sign in jumps straight to the password.
  */
 export function useRememberedEmail<T extends FieldValues & { email: string }>(
   form: UseFormReturn<T>,
-  focus: { empty: Path<T>; filled: Path<T> } = { empty: "email" as Path<T>, filled: "email" as Path<T> },
+  focus: Path<T> = "email" as Path<T>,
+  focusWhenRemembered: Path<T> = focus,
 ) {
   const { control, getValues, setValue, setFocus } = form;
   const email = useWatch({ control, name: "email" as Path<T> }) as string | undefined;
-  const { empty, filled } = focus;
 
   useEffect(() => {
     const saved = readRememberedEmail();
     const field = "email" as Path<T>;
     if (saved && !getValues(field)) setValue(field, saved as T[Path<T>]);
-    setFocus(saved ? filled : empty);
-  }, [getValues, setValue, setFocus, empty, filled]);
+    setFocus(saved ? focusWhenRemembered : focus);
+  }, [getValues, setValue, setFocus, focus, focusWhenRemembered]);
 
   useEffect(() => {
     if (email) rememberEmail(email);

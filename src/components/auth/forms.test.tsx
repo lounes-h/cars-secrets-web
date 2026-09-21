@@ -20,7 +20,7 @@ const { ForgotPasswordForm } = await import("@/components/auth/ForgotPasswordFor
 const { SocialButtons } = await import("@/components/auth/SocialButtons");
 const { ResetPasswordForm } = await import("@/components/auth/ResetPasswordForm");
 
-const COUNTRIES = countries().slice(0, 5).concat(countries().filter((c) => c.code === "US"));
+const COUNTRIES = countries().filter((c) => ["US", "FR", "GB"].includes(c.code));
 
 beforeEach(() => {
   window.sessionStorage.clear();
@@ -70,18 +70,78 @@ describe("RegisterForm", () => {
   it("shows the live password requirement and the default country", () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     expect(screen.getByLabelText<HTMLSelectElement>("Country").value).toBe("US");
-    expect(screen.getByText(/At least 10 characters \(0\/10\)/)).toBeTruthy();
+    expect(screen.getByText(/At least 8 characters \(0\/8\)/)).toBeTruthy();
     type("Password", "abcdefghijk");
-    expect(screen.getByText(/✓ At least 10 characters \(11\/10\)/)).toBeTruthy();
+    expect(screen.getByText(/✓ At least 8 characters \(11\/8\)/)).toBeTruthy();
   });
 
-  it("confirms where the email went and links to sign in", async () => {
+  it("checks a field once the cursor leaves it", async () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    const email = screen.getByLabelText("Email");
+    fireEvent.input(email, { target: { value: "nope" } });
+    fireEvent.blur(email);
+    expect(await screen.findByText(/valid email address/)).toBeTruthy();
+    expect(actions.registerAction).not.toHaveBeenCalled();
+  });
+
+  it("formats the number into the country's own shape as it is typed", () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    const number = screen.getByLabelText<HTMLInputElement>("Number");
+    type("Number", "20155");
+    expect(number.value).toBe("(201) 55");
+    type("Number", "2015550123");
+    expect(number.value).toBe("(201) 555-0123");
+    // The placeholder is the ceiling: nothing longer can be typed.
+    expect(number.getAttribute("maxlength")).toBe("14");
+    type("Number", "2015550123999");
+    expect(number.value).toBe("(201) 555-0123");
+  });
+
+  it("caps what can be typed in the name and email fields", () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    expect(screen.getByLabelText("First name").getAttribute("maxlength")).toBe("100");
+    expect(screen.getByLabelText("Email").getAttribute("maxlength")).toBe("254");
+  });
+
+  it("refuses a number that does not fit the chosen country", async () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    fillRegistration();
+    type("Number", "201555");
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText(/valid phone number/)).toBeTruthy();
+    expect(actions.registerAction).not.toHaveBeenCalled();
+  });
+
+  it("picks the country the browser's time zone points to", async () => {
+    const real = Intl.DateTimeFormat;
+    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(
+      (...args: ConstructorParameters<typeof Intl.DateTimeFormat>) =>
+        ({ ...new real(...args), resolvedOptions: () => ({ ...new real(...args).resolvedOptions(), timeZone: "Europe/Paris" }) }) as Intl.DateTimeFormat,
+    );
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    await waitFor(() => expect(screen.getByLabelText<HTMLSelectElement>("Country").value).toBe("FR"));
+    expect(screen.getByLabelText("Number").getAttribute("placeholder")).toBe("06 12 34 56 78");
+    vi.mocked(Intl.DateTimeFormat).mockRestore();
+  });
+
+  it("confirms where the email went, links to sign in and stops remembering the address", async () => {
     actions.registerAction.mockResolvedValue({ ok: true });
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     fillRegistration();
+    expect(window.sessionStorage.getItem("cs_email")).toBe("dana@example.com");
     fireEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText("dana@example.com")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Go to sign in" }).getAttribute("href")).toBe("/login");
+    expect(window.sessionStorage.getItem("cs_email")).toBe(null);
+    // Nothing is left to register with: the account exists.
+    expect(screen.queryByRole("button", { name: /Register with/ })).toBeNull();
+    expect(screen.queryByText("or register with your email")).toBeNull();
+  });
+
+  it("offers Google and Apple above the email form", () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    expect(screen.getByRole("button", { name: "Register with Google" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Register with Apple" })).toBeTruthy();
   });
 });
 
@@ -123,6 +183,15 @@ describe("remembered email", () => {
     first.unmount();
     render(<ForgotPasswordForm />);
     await waitFor(() => expect(screen.getByLabelText<HTMLInputElement>("Email").value).toBe("dana@example.com"));
+  });
+
+  it("does not carry over half an address", async () => {
+    const first = render(<LoginForm />);
+    type("Email", "dana@exa");
+    first.unmount();
+    render(<ForgotPasswordForm />);
+    await waitFor(() => expect(screen.getByLabelText<HTMLInputElement>("Email")).toBeTruthy());
+    expect(screen.getByLabelText<HTMLInputElement>("Email").value).toBe("");
   });
 
   it("focuses the password at sign in when the email is already known", async () => {

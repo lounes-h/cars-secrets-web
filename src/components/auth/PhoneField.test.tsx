@@ -20,6 +20,23 @@ describe("PhoneField", () => {
     expect(screen.getByLabelText("Number").getAttribute("type")).toBe("tel");
   });
 
+  it("shows the flag and calling code inside the field, with the country's own example as placeholder", () => {
+    const { container } = render(
+      <PhoneField
+        countries={countries()}
+        country={field("phone_country")}
+        number={field("phone_number")}
+        defaultCountry="US"
+        selected="FR"
+      />,
+    );
+    expect(container.querySelector(".phone-field-country")?.textContent).toContain("🇫🇷 +33");
+    expect(screen.getByLabelText("Number").getAttribute("placeholder")).toBe("06 12 34 56 78");
+    // One control: the picker and the number sit in the same bordered field.
+    expect(container.querySelector(".phone-field")?.contains(screen.getByLabelText("Country"))).toBe(true);
+    expect(container.querySelector(".phone-field")?.contains(screen.getByLabelText("Number"))).toBe(true);
+  });
+
   it("shows its error under the number", () => {
     render(
       <PhoneField countries={countries()} country={field("phone_country")} number={field("phone_number")} defaultCountry="US" error="Digits only." />,

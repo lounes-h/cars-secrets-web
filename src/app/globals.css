@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
-/* Brand palette: the red of the logo's "Car's" on white, with slate neutrals. */
+/* Brand palette: the navy of the logo's "Car's", the red accent, and slate neutrals. */
 :root {
   --paper: #f4f6f7;
   --surface: #ffffff;
   --ink: #17222b;
   --muted: #53616c;
   --line: #d5dbe0;
-  /* Sampled from the logo. */
   --brand-red: #d7282b;
+  /* Sampled from the logo's "Car's". */
+  --brand-navy: #324b62;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,6 +20,7 @@
     --muted: #9aa7b1;
     --line: #2c3a44;
     --brand-red: #e8484a;
+    --brand-navy: #3f6485;
   }
 }
 
@@ -29,6 +31,7 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-brand-red: var(--brand-red);
+  --color-brand-navy: var(--brand-navy);
   --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -43,7 +46,7 @@ body {
 @layer base {
   h1 {
     font-size: 1.875rem;
-    font-weight: 800;
+    font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.01em;
   }
@@ -51,7 +54,7 @@ body {
   label,
   legend {
     display: block;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.9375rem;
     margin-bottom: 0.25rem;
   }
@@ -75,11 +78,11 @@ body {
   input[type="checkbox"] {
     width: 1.125rem;
     height: 1.125rem;
-    accent-color: var(--brand-red);
+    accent-color: var(--brand-navy);
   }
 
   a {
-    color: var(--brand-red);
+    color: var(--brand-navy);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
@@ -100,7 +103,7 @@ body {
     padding: 0.5rem 1.125rem;
     border: 1px solid transparent;
     border-radius: 0.5rem;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 0.9375rem;
     text-decoration: none;
     cursor: pointer;
@@ -111,7 +114,7 @@ body {
     cursor: progress;
   }
   .btn-primary {
-    background: var(--brand-red);
+    background: var(--brand-navy);
     color: #fff;
   }
   .btn-primary:hover {
@@ -134,12 +137,28 @@ body {
   .btn-link {
     padding: 0.25rem 0.5rem;
     min-height: 0;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.875rem;
     color: var(--muted);
   }
 
   /* An auth page: the heading, lede and form in one readable column. */
+  /*
+   * The auth pages sit on white in both colour schemes, so the tokens are
+   * pinned to their light values for everything inside them.
+   */
+  .auth-main {
+    flex: 1;
+    --paper: #f4f6f7;
+    --surface: #ffffff;
+    --ink: #17222b;
+    --muted: #53616c;
+    --line: #d5dbe0;
+    --brand-red: #d7282b;
+    --brand-navy: #324b62;
+    background: var(--surface);
+    color: var(--ink);
+  }
   .auth-panel {
     width: 100%;
     max-width: 28rem;
@@ -149,6 +168,53 @@ body {
   }
   .auth-panel > p:first-of-type {
     color: var(--muted);
+  }
+  /* Country and national number in one bordered control. */
+  .phone-field {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+  }
+  .phone-field:focus-within {
+    outline: 3px solid var(--brand-navy);
+    outline-offset: 2px;
+  }
+  .phone-field[data-invalid] {
+    border-color: var(--brand-red);
+  }
+  .phone-field-country {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0 0.5rem 0 0.75rem;
+    white-space: nowrap;
+  }
+  .phone-field-country::after {
+    content: "▾";
+    color: var(--muted);
+  }
+  /* The native picker, laid over the flag and calling code so only they show. */
+  .phone-field-country select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .phone-field input {
+    /* Takes the room left by the country, instead of the base rule's full width. */
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
   }
   .card {
     background: var(--surface);
@@ -181,14 +247,20 @@ body {
   .notice {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-left: 4px solid var(--brand-red);
+    border-left: 4px solid var(--brand-navy);
     border-radius: 0.5rem;
     padding: 1rem;
   }
 }
 
 :focus-visible {
-  outline: 3px solid var(--brand-red);
+  outline: 3px solid var(--brand-navy);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* One ring around the phone control, none around its parts. Unlayered, like the rule above,
+   so it is not overridden by it. */
+.phone-field :is(input, select):focus-visible {
+  outline: none;
 }

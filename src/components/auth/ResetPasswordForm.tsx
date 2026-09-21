@@ -14,6 +14,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   const [done, setDone] = useState(false);
   const form = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
+    // A field is checked once it has been visited, then on every submit.
     mode: "onTouched",
     defaultValues: { token, password: "", password_confirm: "" },
   });
