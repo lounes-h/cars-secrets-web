@@ -34,7 +34,7 @@ describe("robots", () => {
 
 describe("llms.txt", () => {
   it("starts with the site name and summary", () => {
-    expect(buildLlmsTxt().startsWith("# Car's Secrets\n\n> ")).toBe(true);
+    expect(buildLlmsTxt().startsWith("# CarBidWise\n\n> ")).toBe(true);
   });
 
   it("links only the routes flagged for llms.txt", () => {
@@ -45,7 +45,9 @@ describe("llms.txt", () => {
     expect(text).not.toContain("/terms");
   });
 
-  it("omits the key pages section while no page is flagged for it", () => {
-    expect(buildLlmsTxt()).not.toContain("## Key pages");
+  it("lists the home page as the site's key page", () => {
+    expect(buildLlmsTxt()).toContain(
+      "- [Everything You Need to Know Before Buying a Car at Auction](https://cars-secrets.test/)",
+    );
   });
 });

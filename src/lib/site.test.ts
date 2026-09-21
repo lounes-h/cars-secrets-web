@@ -3,8 +3,8 @@ import { absoluteUrl, resolveSiteUrl, site } from "@/lib/site";
 
 describe("resolveSiteUrl", () => {
   it("uses NEXT_PUBLIC_SITE_URL and strips the trailing slash and path", () => {
-    expect(resolveSiteUrl("https://carssecrets.com/")).toBe("https://carssecrets.com");
-    expect(resolveSiteUrl("https://carssecrets.com/some/path")).toBe("https://carssecrets.com");
+    expect(resolveSiteUrl("https://carbidwise.com/")).toBe("https://carbidwise.com");
+    expect(resolveSiteUrl("https://carbidwise.com/some/path")).toBe("https://carbidwise.com");
   });
 
   it("falls back to localhost when unset or blank", () => {
@@ -13,15 +13,15 @@ describe("resolveSiteUrl", () => {
   });
 
   it("rejects a value that is not an absolute URL", () => {
-    expect(() => resolveSiteUrl("carssecrets.com")).toThrow(TypeError);
+    expect(() => resolveSiteUrl("carbidwise.com")).toThrow(TypeError);
   });
 });
 
 describe("site", () => {
-  it("is branded Car's Secrets, with the other spellings as alternate names", () => {
-    expect(site.name).toBe("Car's Secrets");
-    expect(site.alternateNames).toContain("Cars Secrets");
-    expect(site.description.startsWith("Car's Secrets ")).toBe(true);
+  it("is branded CarBidWise, with the spaced spellings as alternate names", () => {
+    expect(site.name).toBe("CarBidWise");
+    expect(site.alternateNames).toContain("Car Bid Wise");
+    expect(site.description.startsWith("CarBidWise ")).toBe(true);
   });
 });
 

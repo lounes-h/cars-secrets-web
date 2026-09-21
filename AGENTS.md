@@ -1,4 +1,4 @@
-# Cars Secrets Web
+# CarBidWise Web
 A dealer-focused vehicle auction intelligence platform that aggregates active listings from Copart, IAA, Manheim, and other auction sources into one searchable interface. The platform helps dealers identify the best vehicles to buy by showing current auction data, estimated resale value, total acquisition cost, repair/transport estimates, projected profit, profit margin, and a suggested maximum bid. Users can search and filter inventory, view detailed vehicle analysis, save vehicles and searches, and receive alerts. Bidding is not handled by the platform; users are redirected to the original auction site to place bids.
 
 ## Project specification
@@ -64,15 +64,18 @@ See `docs/architecture.md` for details.
   mode follows: base styles for headings, labels, inputs, selects, checkboxes,
   links and alerts, plus a few classes (`btn`, `btn-primary`, `btn-dark`,
   `btn-outline`, `btn-ghost`, `btn-link`, `card`, `auth-panel`, `form-stack`,
-  `phone-field`, `divider`, `hint`, `notice`). The logo's navy
+  `phone-field`, `divider`, `hint`, `notice`). The wordmark's navy
   (`--brand-navy`) carries the interface — buttons, links, checkboxes, focus
-  rings — and `--brand-red` is left for errors alone. Buttons are pills:
+  rings — `--brand-teal`, the colour of its "Wise", is the accent, and
+  `--brand-red` is left for errors alone. Buttons are pills:
   `btn-primary` for the action that moves the dealer forward. Reuse them rather
   than adding one-off styles; a real design system will replace them.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page. Brand logos live in `public/brand/`: `logo-light.png`
-  and `logo-dark.png`, 333×144 16-colour palette PNGs of about 4 KB each, the
-  stacked navy-and-ink wordmark on transparent. They are served as-is because the Next image optimizer makes them larger. Its
+  and `logo-dark.png`, 1024×144 16-colour palette PNGs, the single-line
+  navy-and-teal wordmark on transparent (white and teal in the dark one). The
+  wordmark is seven times wider than tall, so the banner shows it at 24px
+  (32px from `sm`), leaving the account side room on a phone. They are served as-is because the Next image optimizer makes them larger. Its
   navigation (`src/components/AccountNav.tsx`) is a client component that asks
   `/auth/session` after each navigation and renders both the main menu and the
   account side: Auctions, VIN Lookup, Best Buys, then How It Works and Pricing
@@ -200,18 +203,21 @@ The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
 banner menu links to: `/auctions`, `/vin-lookup`, `/best-buys`,
 `/how-it-works`, `/pricing`, `/saved` and `/alerts` — blank white pages with
 metadata only, so they have no `h1` until there is something to put on them.
-Styling stays basic until a design system exists. `/` still returns 404. Add no other pages until the user asks.
+Styling stays basic until a design system exists. `/` is the home page: the
+centred title "Everything You Need to Know Before Buying a Car at Auction" and
+nothing else yet. Add no other pages until the user asks.
 
-The brand name is **Car's Secrets** (`site.name` in `src/lib/site.ts`). "Cars
-Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.
-The repository keeps its `cars-secrets-web` name.
+The brand name is **CarBidWise** (`site.name` in `src/lib/site.ts`), one word.
+"Car Bid Wise" and "CarBid Wise" are listed as `alternateName` in structured
+data. The repository and the API keep their `cars-secrets-*` names, and so does
+the `cars-secrets.test` origin the tests run against.
 
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
 (Work Sans, brand design tokens, Organization and WebSite JSON-LD, and the
 full-width top banner with the brand logo); the SEO builders (metadata,
 JSON-LD, sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; the
 branded Open Graph image; the favicon, Apple touch icon and manifest icons (the
-red "C" from the logo); security headers; and the deal calculation in
+navy "C" from the wordmark); security headers; and the deal calculation in
 `src/lib/deal.ts`.
 
 In place for accounts: registration (names, email, optional phone with every

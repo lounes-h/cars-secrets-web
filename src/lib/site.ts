@@ -16,17 +16,17 @@ export function resolveSiteUrl(value: string | undefined): string {
 }
 
 export const site = {
-  name: "Car's Secrets",
+  name: "CarBidWise",
   /** Other spellings people search for; listed in structured data. */
-  alternateNames: ["Cars Secrets", "Car’s Secrets"],
+  alternateNames: ["Car Bid Wise", "CarBid Wise"],
   url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   locale: "en_US",
   language: "en",
   tagline: "Auction intelligence for car dealers",
   description:
-    "Car's Secrets brings active Copart, IAA and Manheim listings into one search and shows, for every vehicle, the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid.",
+    "CarBidWise brings active Copart, IAA and Manheim listings into one search and shows, for every lot, the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid.",
   /** Brand colours, for places CSS variables can't reach (manifest, generated images). */
-  colors: { red: "#d7282b", ink: "#17222b", muted: "#53616c", white: "#ffffff", dark: "#18222a" },
+  colors: { teal: "#0e555b", red: "#d7282b", ink: "#17222b", muted: "#53616c", white: "#ffffff", dark: "#18222a" },
 } as const;
 
 /** Joins a site-relative path onto the site origin. */
