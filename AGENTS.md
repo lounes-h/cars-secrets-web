@@ -181,9 +181,9 @@ A code change is not considered complete until the relevant unit tests have been
 The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
 `/reset-password`, `/verify-email`, `/account`) and the empty placeholders the
 banner menu links to: `/auctions`, `/vin-lookup`, `/best-buys`,
-`/how-it-works`, `/pricing`, `/saved` and `/alerts` — a heading and a lede
-each, nothing behind them yet. Styling stays basic until a design system
-exists. `/` still returns 404. Add no other pages until the user asks.
+`/how-it-works`, `/pricing`, `/saved` and `/alerts` — blank white pages with
+metadata only, so they have no `h1` until there is something to put on them.
+Styling stays basic until a design system exists. `/` still returns 404. Add no other pages until the user asks.
 
 The brand name is **Car's Secrets** (`site.name` in `src/lib/site.ts`). "Cars
 Secrets" and "Car’s Secrets" are listed as `alternateName` in structured data.
