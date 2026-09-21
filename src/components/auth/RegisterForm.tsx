@@ -10,7 +10,7 @@ import { showServerErrors, useRememberedEmail } from "@/components/auth/form-hel
 import { PasswordField } from "@/components/auth/PasswordField";
 import { PhoneField } from "@/components/auth/PhoneField";
 import { Turnstile } from "@/components/auth/Turnstile";
-import { registerSchema, type RegisterInput } from "@/lib/auth-schemas";
+import { EMAIL_MAX, NAME_MAX, registerSchema, type RegisterInput } from "@/lib/auth-schemas";
 import { countryFromBrowser, type Country } from "@/lib/countries";
 
 type Props = { countries: Country[]; defaultCountry: string };
@@ -20,10 +20,8 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
-    // Errors appear on submit only: never when the cursor leaves a field, and not again
-    // while the visitor is correcting one.
-    mode: "onSubmit",
-    reValidateMode: "onSubmit",
+    // A field is checked once it has been visited, then on every submit.
+    mode: "onTouched",
     defaultValues: {
       first_name: "",
       last_name: "",
@@ -83,6 +81,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
           <input
             id="first_name"
             autoComplete="given-name"
+            maxLength={NAME_MAX}
             aria-invalid={errors.first_name ? true : undefined}
             aria-describedby={errors.first_name ? "first_name-error" : undefined}
             {...register("first_name")}
@@ -94,6 +93,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
           <input
             id="last_name"
             autoComplete="family-name"
+            maxLength={NAME_MAX}
             aria-invalid={errors.last_name ? true : undefined}
             aria-describedby={errors.last_name ? "last_name-error" : undefined}
             {...register("last_name")}
@@ -108,6 +108,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
           type="email"
           autoComplete="email"
           inputMode="email"
+          maxLength={EMAIL_MAX}
           aria-invalid={errors.email ? true : undefined}
           aria-describedby={errors.email ? "email-error" : undefined}
           {...register("email")}

@@ -115,8 +115,9 @@ visitor's address with the shared `API_INTERNAL_KEY` so the API rate-limits visi
 not this server.
 
 Forms use React Hook Form and the Zod schemas in `src/lib/auth-schemas.ts`. Errors show
-on submit only (`mode: "onSubmit"` with `reValidateMode: "onSubmit"`): never when a field
-loses focus, and not re-checked while the visitor corrects one — the next submit does that. The server action parses
+when a field loses focus (`mode: "onTouched"`) and on submit, before any request. Every
+input carries the same limit as its schema, so nothing over-long is typed in the first
+place. The server action parses
 the same schema again, calls the API and returns field errors, which `showServerErrors`
 puts on the matching inputs without clearing the form. The email typed in one auth form
 is remembered for the tab and prefilled in the others; sign in then focuses the password.
@@ -126,9 +127,13 @@ is remembered for the tab and prefilled in the others; sign in then focuses the 
   E.164), password, the terms checkbox and the Turnstile token. The country defaults to
   the region of the browser's first language (`countryFromLanguages`), and on mount the
   form replaces it with what the browser itself knows (`countryFromBrowser`: its time
-  zone first, its languages second). The country decides both the placeholder and the
-  lengths the number is checked against (`isValidNationalNumber`). The password field shows both rules live — length and one
-  special character — and warns about Caps Lock. On success the form shows where the email went and a "Go to
+  zone first, its languages second). The country's example number is the placeholder, the
+  shape the digits are formatted into as they are typed and the ceiling they stop at
+  (`formatNational`), and the lengths the number is checked against
+  (`isValidNationalNumber`). The password field
+  shows both rules live — 8 characters and one special character — and warns about Caps
+  Lock. The API's own minimum is still 10, so it refuses a shorter password until that
+  changes there. On success the form shows where the email went and a "Go to
   sign in" button.
 - **Confirm**: the email links to `/verify-email?token=…`. The page shows a button;
   confirming on page load would let mail scanners that open links use the token.

@@ -39,6 +39,22 @@ export function countries(locale = "en"): Country[] {
 }
 
 /**
+ * Digits typed so far, laid into the shape of the country's example: "2015550123" with the
+ * example "(201) 555-0123" gives "(201) 555-0123", and "20155" gives "(201) 55". The example
+ * is also the ceiling: digits past it are dropped, so a number never outgrows its placeholder.
+ */
+export function formatNational(example: string, typed: string): string {
+  const digits = typed.replace(/\D/g, "");
+  let formatted = "";
+  let next = 0;
+  for (const character of example) {
+    if (next >= digits.length) break;
+    formatted += /\d/.test(character) ? digits[next++] : character;
+  }
+  return formatted;
+}
+
+/**
  * Country code + national number typed by the user → "+<calling code><digits>", or null when
  * empty. A national trunk prefix ("06…" in France) is left in: the API normalizes to E.164.
  */

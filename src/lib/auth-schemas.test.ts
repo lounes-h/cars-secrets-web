@@ -38,6 +38,15 @@ describe("registerSchema", () => {
     });
   });
 
+  it("caps the names and the email", () => {
+    const long = "a".repeat(101);
+    const result = registerSchema.safeParse({ ...register, first_name: long, email: `${"a".repeat(250)}@b.co` });
+    expect(!result.success && fieldErrors(result.error)).toEqual({
+      first_name: "Use at most 100 characters.",
+      email: "Use at most 254 characters.",
+    });
+  });
+
   it("asks for a special character in the password", () => {
     const result = registerSchema.safeParse({ ...register, password: "abcdefghijkl" });
     expect(!result.success && fieldErrors(result.error)).toEqual({
@@ -60,7 +69,7 @@ describe("registerSchema", () => {
         first_name: "Enter your first name.",
         email: expect.stringMatching(/valid email/),
         phone_number: expect.stringMatching(/valid phone number/),
-        password: "Use at least 10 characters.",
+        password: "Use at least 8 characters.",
         accept_terms: expect.stringMatching(/Terms of Use/),
       });
     }

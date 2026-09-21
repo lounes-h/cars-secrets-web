@@ -7,8 +7,10 @@
 import { z } from "zod";
 import { PHONE_FORMATS } from "@/lib/phone-formats";
 
-export const PASSWORD_MIN = 10;
+export const PASSWORD_MIN = 8;
 export const PASSWORD_MAX = 128;
+export const NAME_MAX = 100;
+export const EMAIL_MAX = 254;
 
 /** Anything that is not a letter or a digit counts, spaces included. */
 export const SPECIAL_CHARACTER = /[^\p{L}\p{N}]/u;
@@ -33,6 +35,7 @@ const email = z
   .string()
   .trim()
   .min(1, { error: "Enter your email address." })
+  .max(EMAIL_MAX, { error: `Use at most ${EMAIL_MAX} characters.` })
   .pipe(z.email({ error: "Enter a valid email address, like name@example.com." }));
 
 const newPassword = z
@@ -46,7 +49,7 @@ const name = (label: string) =>
     .string()
     .trim()
     .min(1, { error: `Enter your ${label}.` })
-    .max(100, { error: `Use at most 100 characters.` });
+    .max(NAME_MAX, { error: `Use at most ${NAME_MAX} characters.` });
 
 const captchaToken = z.string().optional();
 

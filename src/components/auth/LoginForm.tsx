@@ -9,17 +9,15 @@ import { FieldError, FormError } from "@/components/auth/FieldError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Turnstile } from "@/components/auth/Turnstile";
-import { loginSchema, type LoginInput } from "@/lib/auth-schemas";
+import { EMAIL_MAX, loginSchema, type LoginInput } from "@/lib/auth-schemas";
 
 export function LoginForm() {
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    // Errors appear on submit only: never when the cursor leaves a field, and not again
-    // while the visitor is correcting one.
-    mode: "onSubmit",
-    reValidateMode: "onSubmit",
+    // A field is checked once it has been visited, then on every submit.
+    mode: "onTouched",
     defaultValues: { email: "", password: "", remember: false, captcha_token: "" },
   });
   const { register, handleSubmit, setValue, formState } = form;
@@ -63,6 +61,7 @@ export function LoginForm() {
           type="email"
           autoComplete="email"
           inputMode="email"
+          maxLength={EMAIL_MAX}
           aria-invalid={errors.email ? true : undefined}
           aria-describedby={errors.email ? "email-error" : undefined}
           {...register("email")}

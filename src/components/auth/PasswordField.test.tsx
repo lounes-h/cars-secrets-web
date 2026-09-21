@@ -33,11 +33,16 @@ describe("PasswordField", () => {
     const { rerender } = render(
       <PasswordField registration={registration} autoComplete="new-password" requirementFor="abcdefghijk" />,
     );
-    expect(screen.getByText(/✓ At least 10 characters \(11\/10\)/)).toBeTruthy();
+    expect(screen.getByText(/✓ At least 8 characters \(11\/8\)/)).toBeTruthy();
     expect(screen.getByText(/• At least one special character/)).toBeTruthy();
     expect(screen.queryByText(/data breach/)).toBeNull();
     rerender(<PasswordField registration={registration} autoComplete="new-password" requirementFor="abcdefghij!" />);
     expect(screen.getByText(/✓ At least one special character/)).toBeTruthy();
+  });
+
+  it("stops the password at the length the schema allows", () => {
+    render(<PasswordField registration={registration} autoComplete="new-password" />);
+    expect(screen.getByLabelText("Password").getAttribute("maxlength")).toBe("128");
   });
 
   it("links its error message to the input", () => {

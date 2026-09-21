@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { composePhone, countries, countryFromBrowser, countryFromLanguages, flagEmoji } from "@/lib/countries";
+import {
+  composePhone,
+  countries,
+  countryFromBrowser,
+  countryFromLanguages,
+  flagEmoji,
+  formatNational,
+} from "@/lib/countries";
 
 describe("countries", () => {
   it("lists every region with a flag, a name and its calling code, sorted by name", () => {
@@ -68,5 +75,20 @@ describe("countryFromBrowser", () => {
   it("answers null when the browser tells us nothing usable, so the server's guess stands", () => {
     expect(countryFromBrowser(undefined, ["en"])).toBe(null);
     expect(countryFromBrowser("UTC", [])).toBe(null);
+  });
+});
+
+describe("formatNational", () => {
+  it("lays the digits into the example's shape as they come", () => {
+    expect(formatNational("(201) 555-0123", "2")).toBe("(2");
+    expect(formatNational("(201) 555-0123", "20155")).toBe("(201) 55");
+    expect(formatNational("(201) 555-0123", "2015550123")).toBe("(201) 555-0123");
+    expect(formatNational("06 12 34 56 78", "0612345678")).toBe("06 12 34 56 78");
+  });
+
+  it("drops the separators the visitor typed, and anything past the example", () => {
+    expect(formatNational("(201) 555-0123", "(201) 555-0123")).toBe("(201) 555-0123");
+    expect(formatNational("(201) 555-0123", "20155501234567")).toBe("(201) 555-0123");
+    expect(formatNational("(201) 555-0123", "")).toBe("");
   });
 });

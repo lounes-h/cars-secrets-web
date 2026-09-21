@@ -70,36 +70,37 @@ describe("RegisterForm", () => {
   it("shows the live password requirement and the default country", () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     expect(screen.getByLabelText<HTMLSelectElement>("Country").value).toBe("US");
-    expect(screen.getByText(/At least 10 characters \(0\/10\)/)).toBeTruthy();
+    expect(screen.getByText(/At least 8 characters \(0\/8\)/)).toBeTruthy();
     type("Password", "abcdefghijk");
-    expect(screen.getByText(/✓ At least 10 characters \(11\/10\)/)).toBeTruthy();
+    expect(screen.getByText(/✓ At least 8 characters \(11\/8\)/)).toBeTruthy();
   });
 
-  it("keeps quiet until the form is submitted, not when a field is left", async () => {
+  it("checks a field once the cursor leaves it", async () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     const email = screen.getByLabelText("Email");
     fireEvent.input(email, { target: { value: "nope" } });
     fireEvent.blur(email);
-    await Promise.resolve();
-    expect(screen.queryByText(/valid email address/)).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText(/valid email address/)).toBeTruthy();
+    expect(actions.registerAction).not.toHaveBeenCalled();
   });
 
-  it("leaves a corrected field alone until the form is submitted again", async () => {
+  it("formats the number into the country's own shape as it is typed", () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
-    fillRegistration();
-    type("Email", "nope");
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
-    expect(await screen.findByText(/valid email address/)).toBeTruthy();
-    type("Email", "dana@example.com");
-    fireEvent.blur(screen.getByLabelText("Email"));
-    await Promise.resolve();
-    // No check runs between submits, so nothing new appears on the way.
-    expect(screen.getAllByText(/valid email address/).length).toBe(1);
-    actions.registerAction.mockResolvedValue({ ok: true });
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
-    await waitFor(() => expect(actions.registerAction).toHaveBeenCalled());
+    const number = screen.getByLabelText<HTMLInputElement>("Number");
+    type("Number", "20155");
+    expect(number.value).toBe("(201) 55");
+    type("Number", "2015550123");
+    expect(number.value).toBe("(201) 555-0123");
+    // The placeholder is the ceiling: nothing longer can be typed.
+    expect(number.getAttribute("maxlength")).toBe("14");
+    type("Number", "2015550123999");
+    expect(number.value).toBe("(201) 555-0123");
+  });
+
+  it("caps what can be typed in the name and email fields", () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    expect(screen.getByLabelText("First name").getAttribute("maxlength")).toBe("100");
+    expect(screen.getByLabelText("Email").getAttribute("maxlength")).toBe("254");
   });
 
   it("refuses a number that does not fit the chosen country", async () => {

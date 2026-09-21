@@ -207,9 +207,6 @@ body {
     opacity: 0;
     cursor: pointer;
   }
-  .phone-field-country select:focus-visible {
-    outline: none;
-  }
   .phone-field input {
     /* Takes the room left by the country, instead of the base rule's full width. */
     flex: 1;
@@ -218,9 +215,6 @@ body {
     border: 0;
     border-radius: 0;
     background: transparent;
-  }
-  .phone-field input:focus-visible {
-    outline: none;
   }
   .card {
     background: var(--surface);
@@ -263,4 +257,10 @@ body {
   outline: 3px solid var(--brand-navy);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* One ring around the phone control, none around its parts. Unlayered, like the rule above,
+   so it is not overridden by it. */
+.phone-field :is(input, select):focus-visible {
+  outline: none;
 }

@@ -8,7 +8,7 @@ import type { FormState } from "@/app/(auth)/actions";
 import { FieldError, FormError } from "@/components/auth/FieldError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { Turnstile } from "@/components/auth/Turnstile";
-import { emailSchema, type EmailInput } from "@/lib/auth-schemas";
+import { EMAIL_MAX, emailSchema, type EmailInput } from "@/lib/auth-schemas";
 
 type Props = {
   action: (input: EmailInput) => Promise<FormState>;
@@ -25,10 +25,8 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<EmailInput>({
     resolver: zodResolver(emailSchema),
-    // Errors appear on submit only: never when the cursor leaves a field, and not again
-    // while the visitor is correcting one.
-    mode: "onSubmit",
-    reValidateMode: "onSubmit",
+    // A field is checked once it has been visited, then on every submit.
+    mode: "onTouched",
     defaultValues: { email: "", captcha_token: "" },
   });
   const { register, handleSubmit, setValue, formState } = form;
@@ -70,6 +68,7 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
           type="email"
           autoComplete="email"
           inputMode="email"
+          maxLength={EMAIL_MAX}
           aria-invalid={errors.email ? true : undefined}
           aria-describedby={errors.email ? "email-error" : undefined}
           {...register("email")}

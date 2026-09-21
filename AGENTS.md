@@ -91,13 +91,18 @@ See `docs/architecture.md` for details.
   (`showServerErrors` in `src/components/auth/form-helpers.ts`). Actions take
   the form's values as an object, not `FormData`. Only the social buttons post
   a plain form (`socialLoginAction`).
-- Auth forms validate on submit only (`mode: "onSubmit"` and
-  `reValidateMode: "onSubmit"`), never when a field loses focus. The register
-  form picks the phone's country from the browser's time zone, falling back to
-  its languages (`countryFromBrowser`), over the server's Accept-Language guess. A new password needs at least 10 characters and one special
-  character (`hasSpecialCharacter`), and the phone field checks the number
-  against the lengths its country allows (`isValidNationalNumber`, from the
-  generated `src/lib/phone-formats.ts`, which also gives the placeholder).
+- Auth forms validate a field once the cursor has left it (`mode: "onTouched"`)
+  and again on submit. Every input carries the limit its schema enforces
+  (`NAME_MAX`, `EMAIL_MAX`, `PASSWORD_MAX`). A new password needs at least
+  `PASSWORD_MIN` (8) characters and one special character
+  (`hasSpecialCharacter`) — the API still asks for 10, so a shorter one is
+  refused there until it is lowered in `../cars-secrets-api`.
+- The register form picks the phone's country from the browser's time zone,
+  falling back to its languages (`countryFromBrowser`), over the server's
+  Accept-Language guess. The country's own example number (generated
+  `src/lib/phone-formats.ts`) is the placeholder, the shape the typed digits
+  are formatted into and the ceiling they stop at (`formatNational`), and the
+  lengths the number is checked against (`isValidNationalNumber`).
 - The email typed in any auth form is remembered for the tab
   (`src/lib/remembered-email.ts`, sessionStorage) and prefilled in the others
   through `useRememberedEmail`. Never put it in a URL.

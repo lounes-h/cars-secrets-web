@@ -1,6 +1,7 @@
+import type { ChangeEvent } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { FieldError } from "@/components/auth/FieldError";
-import type { Country } from "@/lib/countries";
+import { formatNational, type Country } from "@/lib/countries";
 
 type Props = {
   /** Built on the server, so names match between server and browser. */
@@ -20,6 +21,13 @@ type Props = {
  */
 export function PhoneField({ countries, country, number, defaultCountry, selected, error }: Props) {
   const current = countries.find((c) => c.code === (selected || defaultCountry)) ?? countries[0];
+
+  // ponytail: reformatting puts the caret at the end, which only shows when editing mid-number.
+  // A caret-preserving version is worth it the day anyone complains.
+  const format = (event: ChangeEvent<HTMLInputElement>) => {
+    event.target.value = formatNational(current.example, event.target.value);
+    return number.onChange(event);
+  };
 
   return (
     <div>
@@ -51,9 +59,11 @@ export function PhoneField({ countries, country, number, defaultCountry, selecte
           inputMode="tel"
           autoComplete="tel-national"
           placeholder={current.example}
+          maxLength={current.example.length}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "phone_number-error" : undefined}
           {...number}
+          onChange={format}
         />
       </div>
       <FieldError id="phone_number-error" message={error} />

@@ -3,7 +3,7 @@
 import { useId, useState, type KeyboardEvent } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { FieldError } from "@/components/auth/FieldError";
-import { hasSpecialCharacter, PASSWORD_MIN } from "@/lib/auth-schemas";
+import { hasSpecialCharacter, PASSWORD_MAX, PASSWORD_MIN } from "@/lib/auth-schemas";
 
 type Props = {
   registration: UseFormRegisterReturn;
@@ -38,7 +38,7 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
           id={id}
           type={visible ? "text" : "password"}
           autoComplete={autoComplete}
-          maxLength={128}
+          maxLength={PASSWORD_MAX}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className="pr-20"
