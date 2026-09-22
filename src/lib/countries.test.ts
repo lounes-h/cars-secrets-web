@@ -86,6 +86,19 @@ describe("formatNational", () => {
     expect(formatNational("06 12 34 56 78", "0612345678")).toBe("06 12 34 56 78");
   });
 
+  it("drops a pasted calling code instead of laying it into the national shape", () => {
+    expect(formatNational("(201) 555-0123", "+1 (551) 358-8130", 1)).toBe("(551) 358-8130");
+    expect(formatNational("(201) 555-0123", "001 551 358 8130", 1)).toBe("(551) 358-8130");
+    expect(formatNational("(201) 555-0123", "1-551-358-8130", 1)).toBe("(551) 358-8130");
+    expect(formatNational("06 12 34 56 78", "+33612345678", 33)).toBe("61 23 45 67 8");
+  });
+
+  it("keeps digits that only look like a calling code", () => {
+    // A national number that still fits the example is national, "1" or not.
+    expect(formatNational("(201) 555-0123", "1551358813", 1)).toBe("(155) 135-8813");
+    expect(formatNational("(201) 555-0123", "(201) 555-0123", 1)).toBe("(201) 555-0123");
+  });
+
   it("drops the separators the visitor typed, and anything past the example", () => {
     expect(formatNational("(201) 555-0123", "(201) 555-0123")).toBe("(201) 555-0123");
     expect(formatNational("(201) 555-0123", "20155501234567")).toBe("(201) 555-0123");

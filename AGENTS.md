@@ -105,7 +105,9 @@ See `docs/architecture.md` for details.
   Accept-Language guess. The country's own example number (generated
   `src/lib/phone-formats.ts`) is the placeholder, the shape the typed digits
   are formatted into and the ceiling they stop at (`formatNational`), and the
-  lengths the number is checked against (`isValidNationalNumber`).
+  lengths the number is checked against (`isValidNationalNumber`). A number
+  pasted in international form ("+1 (551) 358-8130") loses its calling code
+  instead of having it formatted into the national shape.
 - A complete email address typed in any auth form is remembered for the tab
   (`src/lib/remembered-email.ts`, sessionStorage; half-typed ones are not) and
   prefilled in the others. Registering or signing out forgets it (`forgetEmail`,

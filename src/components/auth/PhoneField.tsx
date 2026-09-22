@@ -25,7 +25,7 @@ export function PhoneField({ countries, country, number, defaultCountry, selecte
   // ponytail: reformatting puts the caret at the end, which only shows when editing mid-number.
   // A caret-preserving version is worth it the day anyone complains.
   const format = (event: ChangeEvent<HTMLInputElement>) => {
-    event.target.value = formatNational(current.example, event.target.value);
+    event.target.value = formatNational(current.example, event.target.value, current.dialCode);
     return number.onChange(event);
   };
 
@@ -59,7 +59,8 @@ export function PhoneField({ countries, country, number, defaultCountry, selecte
           inputMode="tel"
           autoComplete="tel-national"
           placeholder={current.example}
-          maxLength={current.example.length}
+          // Long enough for an international paste ("+1 (551) 358-8130"); format() is the real ceiling.
+          maxLength={`+${current.dialCode} ${current.example}`.length}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "phone_number-error" : undefined}
           {...number}

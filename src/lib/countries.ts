@@ -42,9 +42,18 @@ export function countries(locale = "en"): Country[] {
  * Digits typed so far, laid into the shape of the country's example: "2015550123" with the
  * example "(201) 555-0123" gives "(201) 555-0123", and "20155" gives "(201) 55". The example
  * is also the ceiling: digits past it are dropped, so a number never outgrows its placeholder.
+ * A pasted international number carries the country's calling code ("+1 (551) 358-8130", or
+ * "1 551 358 8130", which no longer fits the example): it is dropped rather than laid into
+ * the national shape, which would read "(155) 135-8813".
  */
-export function formatNational(example: string, typed: string): string {
-  const digits = typed.replace(/\D/g, "");
+export function formatNational(example: string, typed: string, dialCode?: number): string {
+  let digits = typed.replace(/\D/g, "");
+  const code = dialCode ? String(dialCode) : "";
+  const withoutCode = digits.replace(/^00/, "");
+  // ponytail: a national form with a trunk prefix (+33 6 12 34 56 78 → 06 12 34 56 78) loses it,
+  // so the digits sit one slot off; take the trunk from PHONE_FORMATS the day that is reported.
+  const international = typed.trimStart().startsWith("+") || digits.length > example.replace(/\D/g, "").length;
+  if (code && international && withoutCode.startsWith(code)) digits = withoutCode.slice(code.length);
   let formatted = "";
   let next = 0;
   for (const character of example) {
