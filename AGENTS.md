@@ -236,8 +236,8 @@ buttons. The API answers "not configured" for Google and Apple until their
 credentials are set. The Terms of Use and Privacy Policy do not exist yet; only
 the checkbox does.
 
-In place for lots: `/auctions` lists active lots, soonest sale first, 20 to a
-page (`?page=`), and `/auctions/[source]/[lotNumber]` shows one lot —
+In place for lots: `/auctions` lists active lots, the most recently listed
+first (the API's order), 20 to a page (`?page=`), and `/auctions/[source]/[lotNumber]` shows one lot —
 everything the auction publishes about it, its photo, and a button to the
 auction site, since bidding never happens here. Both read
 `src/lib/lots.ts` → `GET /api/lots[/{source}/{lot}]` on the API, which reads the

@@ -34,8 +34,8 @@ export default async function AuctionsPage({
     <main className="flex-1 bg-white px-4 py-10 sm:px-6 lg:px-10">
       <h1>Auction lots</h1>
       <p className="mt-3 max-w-[65ch] text-muted">
-        Every active lot from the auctions we track, soonest sale first: what the car is, what it
-        is worth, what it is bid up to and where it sells.
+        Every active lot from the auctions we track, the most recently listed first: what the car
+        is, what it is worth, what it is bid up to and where it sells.
       </p>
       {found ? (
         <Lots page={page} {...found} />
