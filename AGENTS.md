@@ -44,7 +44,10 @@ See `docs/architecture.md` for details.
 
 - Register every public page in `src/lib/routes.ts`. The sitemap and llms.txt
   are generated from that registry, and a test fails when a `page.tsx` under
-  `src/app` is missing from it.
+  `src/app` is missing from it. A dynamic route behind sign-in has no place in
+  the registry (there is no one path to register): it builds its metadata with
+  `buildMetadata({ noindex: true })` in `generateMetadata` instead, as
+  `/auctions/[source]/[lotNumber]` does.
 - Build page metadata with `metadataForRoute()` or `buildMetadata()` from
   `src/lib/seo/metadata.ts`. Never hand-write `title`, canonical or Open Graph
   metadata.
@@ -233,17 +236,22 @@ buttons. The API answers "not configured" for Google and Apple until their
 credentials are set. The Terms of Use and Privacy Policy do not exist yet; only
 the checkbox does.
 
-In place for lots: `/auctions` lists active lots, soonest sale first, 20 to a
-page (`?page=`), through `src/lib/lots.ts` → `GET /api/lots` on the API, which
-reads the ingest database (`../cars-secrets-data-ingest`); the web app never
-opens the database itself. The lots are for signed-in dealers only: the page
-keeps its `h1` and lede for everyone, so it stays indexable, and a visitor gets
-a "Sign in to see the lots" link instead of the table. Each lot number links to
-the auction site, since bidding never happens here.
+In place for lots: `/auctions` lists active lots, the most recently listed
+first (the API's order), 20 to a page (`?page=`), and `/auctions/[source]/[lotNumber]` shows one lot —
+everything the auction publishes about it, its photo, and a button to the
+auction site, since bidding never happens here. Both read
+`src/lib/lots.ts` → `GET /api/lots[/{source}/{lot}]` on the API, which reads the
+ingest database (`../cars-secrets-data-ingest`); the web app never opens the
+database itself. Both are for signed-in dealers only: they keep their `h1` for
+everyone, and a visitor gets a "Sign in" link instead of the lots. A lot the
+API no longer has is a 404. `lots.ts` also holds the formatters both pages
+share, so a dash for a missing value looks the same on each; `lots-fixture.ts`
+is the complete lot the tests build on. A lot's `image_url` is the auction's
+photo *listing* endpoint, not an image: only `thumbnail_url` goes in an `<img>`.
 
-There is no search or filtering on the listing yet, no lot detail page, no deal
-figures on it (`src/lib/deal.ts` has no inputs for fees, repairs or transport
-yet), and no saved lots or alerts.
+There is no search or filtering yet, no deal figures on the pages
+(`src/lib/deal.ts` has no inputs for fees, transport or a target profit yet, and
+nothing may be invented), and no saved lots or alerts.
 
 ## Branching
 

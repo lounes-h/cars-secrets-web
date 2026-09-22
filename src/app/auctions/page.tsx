@@ -1,33 +1,23 @@
 import Link from "next/link";
-import { listLots, pageCount, pageNumber, PAGE_SIZE, type Lot, type LotPage } from "@/lib/lots";
+import {
+  amount,
+  listLots,
+  lotPath,
+  odometer,
+  pageCount,
+  pageNumber,
+  PAGE_SIZE,
+  place,
+  saleTime,
+  vehicle,
+  type LotPage,
+} from "@/lib/lots";
 import { metadataForRoute } from "@/lib/seo/metadata";
 import { currentUser, sessionToken, visitorIp } from "@/lib/session";
 
 export const metadata = metadataForRoute("/auctions");
 
-const miles = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const count = new Intl.NumberFormat("en-US");
-/** Sale times are the auction's own; UTC keeps server and browser rendering the same string. */
-const when = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" });
-
-/** The lot's own currency, ignored unless it is a currency code Intl accepts. */
-function amount(value: number | null, currency: string | null): string {
-  if (value == null) return "—";
-  const code = currency && /^[A-Z]{3}$/.test(currency) ? currency : "USD";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: code,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function vehicle(lot: Lot): string {
-  return [lot.year, lot.make, lot.model].filter(Boolean).join(" ") || "—";
-}
-
-function place(lot: Lot): string {
-  return [lot.location_city, lot.location_state].filter(Boolean).join(", ") || "—";
-}
 
 export default async function AuctionsPage({
   searchParams,
@@ -44,21 +34,19 @@ export default async function AuctionsPage({
     <main className="flex-1 bg-white px-4 py-10 sm:px-6 lg:px-10">
       <h1>Auction lots</h1>
       <p className="mt-3 max-w-[65ch] text-muted">
-        Every active lot from the auctions we track, soonest sale first: what the car is, what it
-        is worth, what it is bid up to and where it sells.
+        Every active lot from the auctions we track, the most recently listed first: what the car
+        is, what it is worth, what it is bid up to and where it sells.
       </p>
-      {found ? <Lots page={page} {...found} /> : <SignInFirst />}
+      {found ? (
+        <Lots page={page} {...found} />
+      ) : (
+        <p className="mt-8">
+          <Link href="/login" className="btn btn-primary">
+            Sign in to see the lots
+          </Link>
+        </p>
+      )}
     </main>
-  );
-}
-
-function SignInFirst() {
-  return (
-    <p className="mt-8">
-      <Link href="/login" className="btn btn-primary">
-        Sign in to see the lots
-      </Link>
-    </p>
   );
 }
 
@@ -91,25 +79,17 @@ function Lots({ page, items, total }: { page: number } & LotPage) {
             {items.map((lot) => (
               <tr key={`${lot.source}-${lot.lot_number}`} className="border-b border-line align-top">
                 <td className="py-2 pr-4 whitespace-nowrap">
-                  {lot.listing_url ? (
-                    <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank">
-                      {lot.lot_number}
-                    </a>
-                  ) : (
-                    lot.lot_number
-                  )}
+                  <Link href={lotPath(lot)}>{lot.lot_number}</Link>
                 </td>
                 <td className="py-2 pr-4">{vehicle(lot)}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  {lot.odometer == null ? "—" : `${miles.format(lot.odometer)} mi`}
-                </td>
+                <td className="py-2 pr-4 whitespace-nowrap">{odometer(lot.odometer)}</td>
                 <td className="py-2 pr-4">{lot.damage_primary ?? "—"}</td>
                 <td className="py-2 pr-4">{lot.title_type ?? "—"}</td>
                 <td className="py-2 pr-4">{place(lot)}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  {lot.sale_at ? when.format(new Date(lot.sale_at)) : "—"}
+                <td className="py-2 pr-4 whitespace-nowrap">{saleTime(lot.sale_at)}</td>
+                <td className="py-2 pr-4 text-right whitespace-nowrap">
+                  {amount(lot.est_retail_value, lot.currency)}
                 </td>
-                <td className="py-2 pr-4 text-right whitespace-nowrap">{amount(lot.est_retail_value, lot.currency)}</td>
                 <td className="py-2 text-right whitespace-nowrap">{amount(lot.high_bid, lot.currency)}</td>
               </tr>
             ))}
@@ -132,15 +112,7 @@ function Lots({ page, items, total }: { page: number } & LotPage) {
   );
 }
 
-function PageLink({
-  page,
-  enabled,
-  children,
-}: {
-  page: number;
-  enabled: boolean;
-  children: string;
-}) {
+function PageLink({ page, enabled, children }: { page: number; enabled: boolean; children: string }) {
   if (!enabled) {
     return (
       <span aria-disabled="true" className="btn btn-outline opacity-50">

@@ -2,6 +2,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Lot } from "@/lib/lots";
+import { sampleLot } from "@/lib/lots-fixture";
 
 const currentUser = vi.fn();
 const listLots = vi.fn();
@@ -16,23 +17,7 @@ vi.mock("@/lib/lots", async (original) => ({ ...(await original<object>()), list
 const { default: AuctionsPage } = await import("@/app/auctions/page");
 const { PAGE_SIZE } = await import("@/lib/lots");
 
-const LOT: Lot = {
-  source: "copart",
-  lot_number: "41633106",
-  year: 2013,
-  make: "ACURA",
-  model: "TSX",
-  odometer: 120500,
-  damage_primary: "FRONT END",
-  title_type: "SC",
-  est_retail_value: 8119,
-  high_bid: 0,
-  currency: "USD",
-  sale_at: "2026-09-18T19:00:00Z",
-  location_city: "VALLEJO",
-  location_state: "CA",
-  listing_url: "https://www.copart.com/lot/41633106",
-};
+const LOT: Lot = sampleLot;
 
 function lots(n: number): Lot[] {
   return Array.from({ length: n }, (_, i) => ({ ...LOT, lot_number: `4163310${i}` }));
@@ -65,7 +50,9 @@ describe("auctions page", () => {
     await show();
     expect(listLots).toHaveBeenCalledWith(1, "token-abc", null);
     expect(screen.getAllByRole("row")).toHaveLength(PAGE_SIZE + 1);
-    expect(screen.getByRole("link", { name: "41633100" }).getAttribute("href")).toBe(LOT.listing_url);
+    expect(screen.getByRole("link", { name: "41633100" }).getAttribute("href")).toBe(
+      "/auctions/copart/41633100",
+    );
     const row = screen.getAllByRole("row")[1];
     expect(row.textContent).toContain("2013 ACURA TSX");
     expect(row.textContent).toContain("120,500 mi");
