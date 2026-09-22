@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { amount, getLot, odometer, place, saleTime, vehicle } from "@/lib/lots";
+import { amount, getLot, getLotImages, type Lot, type LotImage, odometer, place, saleTime, vehicle } from "@/lib/lots";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { currentUser, sessionToken, visitorIp } from "@/lib/session";
 
@@ -40,7 +40,11 @@ export default async function LotPage({ params }: { params: Params }) {
     );
   }
 
-  const lot = await getLot(source, lotNumber, token, await visitorIp());
+  const clientIp = await visitorIp();
+  const [lot, images] = await Promise.all([
+    getLot(source, lotNumber, token, clientIp),
+    getLotImages(source, lotNumber, token, clientIp),
+  ]);
   if (!lot) notFound();
 
   return (
@@ -56,17 +60,10 @@ export default async function LotPage({ params }: { params: Params }) {
           </a>
         )}
         <Link href="/auctions" className="btn btn-outline">
-          All lots
+          Active lots
         </Link>
       </div>
-      {lot.thumbnail_url && (
-        // eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it
-        <img
-          src={lot.thumbnail_url}
-          alt={`${vehicle(lot)}, lot ${lot.lot_number}`}
-          className="mt-8 w-full max-w-md rounded border border-line"
-        />
-      )}
+      <Photos lot={lot} images={images} />
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <Group title="The car">
           <Field label="VIN" value={lot.vin} />
@@ -98,6 +95,54 @@ export default async function LotPage({ params }: { params: Params }) {
         </Group>
       </div>
     </Shell>
+  );
+}
+
+/**
+ * The lot's photos as a gallery: one large photo at a time in a scroll-snapping strip, with a
+ * small column of thumbnails on its left jumping to each. Scrolling and the jumps are the
+ * browser's own, so the page stays a Server Component with no JavaScript of its own.
+ */
+function Photos({ lot, images }: { lot: Lot; images: LotImage[] }) {
+  const photos = images.filter((image) => image.full ?? image.thumb);
+  if (photos.length === 0) return null;
+  const photoId = (index: number) => `photo-${index + 1}`;
+  const describe = (index: number) => `${vehicle(lot)}, lot ${lot.lot_number}, photo ${index + 1} of ${photos.length}`;
+  const tall = "h-[min(50vh,28rem)]";
+  return (
+    <section aria-label={`Photos of lot ${lot.lot_number}`} className="mt-8 w-full lg:w-2/5">
+      <div className="flex gap-3">
+        {photos.length > 1 && (
+          <div className={`${tall} flex w-20 flex-none flex-col gap-2 overflow-y-auto sm:w-24`}>
+            {photos.map((photo, index) => (
+              <a key={photoId(index)} href={`#${photoId(index)}`} className="flex-none">
+                {/* eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it */}
+                <img
+                  src={photo.thumb ?? photo.full ?? ""}
+                  alt={`Show photo ${index + 1}`}
+                  loading="lazy"
+                  className="h-14 w-full rounded border border-line object-cover sm:h-16"
+                />
+              </a>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-1 snap-x snap-mandatory overflow-x-auto rounded border border-line bg-ink">
+          {photos.map((photo, index) => (
+            // eslint-disable-next-line @next/next/no-img-element -- as above
+            <img
+              key={photoId(index)}
+              id={photoId(index)}
+              src={photo.full ?? photo.thumb ?? ""}
+              alt={describe(index)}
+              loading={index === 0 ? undefined : "lazy"}
+              // scroll-mt keeps the heading in view when a thumbnail jumps the page to a photo.
+              className={`${tall} w-full flex-none scroll-mt-6 snap-center object-contain`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

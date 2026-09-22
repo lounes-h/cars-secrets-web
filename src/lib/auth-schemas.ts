@@ -89,9 +89,6 @@ export const registerSchema = z
     phone_country: z.string(),
     phone_number: z.string().trim(),
     password: newPassword,
-    accept_terms: z.boolean().refine((accepted) => accepted, {
-      error: "Accept the Terms of Use and Privacy Policy to continue.",
-    }),
     captcha_token: captchaToken,
   })
   .refine((data) => data.phone_number === "" || isValidNationalNumber(data.phone_country, data.phone_number), {

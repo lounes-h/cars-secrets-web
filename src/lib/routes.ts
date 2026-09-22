@@ -26,7 +26,7 @@ export const routes: readonly SiteRoute[] = [
   },
   {
     path: "/auctions",
-    title: "Auction lots",
+    title: "Active lots",
     description:
       "Search active lots from Copart, IAA, Manheim and other auctions, with resale value, total cost, profit and a suggested max bid.",
     changeFrequency: "daily",

@@ -43,6 +43,9 @@ export type Lot = {
 
 export type LotPage = { items: Lot[]; total: number };
 
+/** One photo of a lot, in the sizes the auction publishes for it. */
+export type LotImage = { thumb: string | null; full: string | null };
+
 /** Pages are 1-based; anything that is not a whole number above 1 is the first page. */
 export function pageNumber(value: unknown): number {
   const page = Number(value);
@@ -71,6 +74,25 @@ export async function getLot(
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
     throw error;
+  }
+}
+
+/**
+ * Every photo of a lot. The auction is asked by the API, which may fail to reach it, so an
+ * empty list means "no photos to show", never an error.
+ */
+export async function getLotImages(
+  source: string,
+  lotNumber: string,
+  token: string,
+  clientIp: string | null = null,
+): Promise<LotImage[]> {
+  const path = `/api/lots/${encodeURIComponent(source)}/${encodeURIComponent(lotNumber)}/images`;
+  try {
+    const { images } = await api<{ images: LotImage[] }>(path, { token, clientIp });
+    return images;
+  } catch {
+    return [];
   }
 }
 

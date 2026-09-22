@@ -5,6 +5,7 @@ import { sampleLot } from "@/lib/lots-fixture";
 
 const currentUser = vi.fn();
 const getLot = vi.fn();
+const getLotImages = vi.fn();
 const notFound = vi.fn(() => {
   throw new Error("NEXT_NOT_FOUND");
 });
@@ -14,7 +15,7 @@ vi.mock("@/lib/session", () => ({
   sessionToken: async () => "token-abc",
   visitorIp: async () => null,
 }));
-vi.mock("@/lib/lots", async (original) => ({ ...(await original<object>()), getLot }));
+vi.mock("@/lib/lots", async (original) => ({ ...(await original<object>()), getLot, getLotImages }));
 vi.mock("next/navigation", () => ({ notFound }));
 
 const { default: LotPage, generateMetadata } = await import("@/app/auctions/[source]/[lotNumber]/page");
@@ -28,6 +29,10 @@ async function show() {
 beforeEach(() => {
   currentUser.mockResolvedValue({ id: "u1", email: "dealer@example.com" });
   getLot.mockResolvedValue(sampleLot);
+  getLotImages.mockResolvedValue([
+    { thumb: "https://cs.copart.example/a_thb.jpg", full: "https://cs.copart.example/a_ful.jpg" },
+    { thumb: "https://cs.copart.example/b_thb.jpg", full: null },
+  ]);
 });
 
 afterEach(() => {
@@ -60,14 +65,40 @@ describe("lot page", () => {
     const bid = screen.getByRole("link", { name: "Bid on copart" });
     expect(bid.getAttribute("href")).toBe(sampleLot.listing_url);
     expect(bid.getAttribute("rel")).toContain("noopener");
-    expect(screen.getByRole("link", { name: "All lots" }).getAttribute("href")).toBe("/auctions");
+    expect(screen.getByRole("link", { name: "Active lots" }).getAttribute("href")).toBe("/auctions");
   });
 
-  it("shows the auction's photo, never its image listing endpoint", async () => {
+  it("shows every photo of the lot as a gallery, thumbnails jumping to each", async () => {
     await show();
-    const photo = screen.getByRole("img");
-    expect(photo.getAttribute("src")).toBe(sampleLot.thumbnail_url);
-    expect(photo.getAttribute("alt")).toContain("2013 ACURA TSX");
+    expect(getLotImages).toHaveBeenCalledWith("copart", "41633106", "token-abc", null);
+    // The large photos: the full-size file when the auction publishes one, its thumbnail when not.
+    const photos = screen.getAllByAltText(/photo \d of 2$/);
+    expect(photos.map((photo) => photo.getAttribute("src"))).toEqual([
+      "https://cs.copart.example/a_ful.jpg",
+      "https://cs.copart.example/b_thb.jpg",
+    ]);
+    expect(photos[0].getAttribute("alt")).toBe("2013 ACURA TSX, lot 41633106, photo 1 of 2");
+    expect(photos[0].getAttribute("loading")).toBeNull();
+    expect(photos[1].getAttribute("loading")).toBe("lazy");
+    // The strip below: a thumbnail per photo, each one jumping to it.
+    const jumps = screen.getAllByRole("link", { name: /Show photo/ });
+    expect(jumps.map((jump) => jump.getAttribute("href"))).toEqual(["#photo-1", "#photo-2"]);
+    expect(photos.map((photo) => photo.getAttribute("id"))).toEqual(["photo-1", "photo-2"]);
+    expect(screen.getByAltText("Show photo 1").getAttribute("src")).toBe("https://cs.copart.example/a_thb.jpg");
+  });
+
+  it("leaves out the thumbnail strip when there is one photo to see", async () => {
+    getLotImages.mockResolvedValue([{ thumb: null, full: "https://cs.copart.example/only_ful.jpg" }]);
+    await show();
+    expect(screen.queryAllByRole("link", { name: /Show photo/ })).toEqual([]);
+    expect(screen.getByAltText(/photo 1 of 1$/).getAttribute("src")).toBe("https://cs.copart.example/only_ful.jpg");
+  });
+
+  it("shows no gallery when the auction publishes no photo", async () => {
+    getLotImages.mockResolvedValue([]);
+    await show();
+    expect(screen.queryByRole("region", { name: /Photos of lot/ })).toBeNull();
+    expect(screen.queryAllByRole("img")).toEqual([]);
   });
 
   it("is a not found page once the auction drops the lot", async () => {

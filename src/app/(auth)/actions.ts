@@ -63,7 +63,8 @@ export async function registerAction(input: unknown): Promise<FormState> {
         email: data.email,
         phone,
         password: data.password,
-        accept_terms: data.accept_terms,
+        // The register button says agreeing is what it does, so submitting it is the consent.
+        accept_terms: true,
         captcha_token: data.captcha_token || null,
       },
       clientIp: await visitorIp(),

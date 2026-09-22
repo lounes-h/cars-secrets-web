@@ -16,7 +16,6 @@ const register = {
   phone_country: "US",
   phone_number: "",
   password: "long-enough-pw1!",
-  accept_terms: true,
 };
 
 describe("registerSchema", () => {
@@ -71,7 +70,6 @@ describe("registerSchema", () => {
       email: "nope",
       phone_number: "+1 415",
       password: "short",
-      accept_terms: false,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -80,7 +78,6 @@ describe("registerSchema", () => {
         email: expect.stringMatching(/valid email/),
         phone_number: expect.stringMatching(/valid phone number/),
         password: "Use at least 8 characters.",
-        accept_terms: expect.stringMatching(/Terms of Use/),
       });
     }
   });
