@@ -5,7 +5,7 @@ vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }
 
 const { ApiError } = await import("@/lib/api");
 
-const { getLot, listLots, pageCount, pageNumber, PAGE_SIZE } = await import("@/lib/lots");
+const { getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE } = await import("@/lib/lots");
 
 describe("pageNumber", () => {
   it("keeps a whole page number above one", () => {
@@ -37,6 +37,23 @@ describe("listLots", () => {
       token: "token-abc",
       clientIp: "203.0.113.4",
     });
+  });
+});
+
+describe("getLotImages", () => {
+  it("asks the API for the lot's photos, escaping what came from the URL", async () => {
+    const images = [{ thumb: "https://cs.copart.example/a_thb.jpg", full: null }];
+    api.mockResolvedValue({ images });
+    expect(await getLotImages("copart", "a/b 1", "token-abc")).toEqual(images);
+    expect(api).toHaveBeenCalledWith("/api/lots/copart/a%2Fb%201/images", {
+      token: "token-abc",
+      clientIp: null,
+    });
+  });
+
+  it("has no photos to show when the API cannot answer, rather than failing the page", async () => {
+    api.mockRejectedValue(new ApiError(0, "unavailable", "down"));
+    expect(await getLotImages("copart", "1", "token-abc")).toEqual([]);
   });
 });
 

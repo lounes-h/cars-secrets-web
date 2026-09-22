@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { amount, getLot, odometer, place, saleTime, vehicle } from "@/lib/lots";
+import { amount, getLot, getLotImages, type Lot, type LotImage, odometer, place, saleTime, vehicle } from "@/lib/lots";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { currentUser, sessionToken, visitorIp } from "@/lib/session";
 
@@ -40,7 +40,11 @@ export default async function LotPage({ params }: { params: Params }) {
     );
   }
 
-  const lot = await getLot(source, lotNumber, token, await visitorIp());
+  const clientIp = await visitorIp();
+  const [lot, images] = await Promise.all([
+    getLot(source, lotNumber, token, clientIp),
+    getLotImages(source, lotNumber, token, clientIp),
+  ]);
   if (!lot) notFound();
 
   return (
@@ -59,14 +63,7 @@ export default async function LotPage({ params }: { params: Params }) {
           All lots
         </Link>
       </div>
-      {lot.thumbnail_url && (
-        // eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it
-        <img
-          src={lot.thumbnail_url}
-          alt={`${vehicle(lot)}, lot ${lot.lot_number}`}
-          className="mt-8 w-full max-w-md rounded border border-line"
-        />
-      )}
+      <Photos lot={lot} images={images} />
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <Group title="The car">
           <Field label="VIN" value={lot.vin} />
@@ -98,6 +95,30 @@ export default async function LotPage({ params }: { params: Params }) {
         </Group>
       </div>
     </Shell>
+  );
+}
+
+/** Every photo the auction publishes, full size, each one linking to the file itself. */
+function Photos({ lot, images }: { lot: Lot; images: LotImage[] }) {
+  if (images.length === 0) return null;
+  return (
+    <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {images.map((image, index) => {
+        const src = image.full ?? image.thumb;
+        if (!src) return null;
+        return (
+          <a key={src} href={src} rel="noopener noreferrer nofollow" target="_blank">
+            {/* eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it */}
+            <img
+              src={src}
+              alt={`${vehicle(lot)}, lot ${lot.lot_number}, photo ${index + 1} of ${images.length}`}
+              loading={index === 0 ? undefined : "lazy"}
+              className="w-full rounded border border-line"
+            />
+          </a>
+        );
+      })}
+    </div>
   );
 }
 

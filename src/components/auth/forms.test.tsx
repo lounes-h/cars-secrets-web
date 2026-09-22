@@ -37,7 +37,6 @@ function fillRegistration() {
   type("Last name", "Lee");
   type("Email", "dana@example.com");
   type("Password", "long-enough-pw1");
-  fireEvent.click(screen.getByLabelText("I accept the Terms of Use and Privacy Policy"));
 }
 
 describe("RegisterForm", () => {
@@ -50,20 +49,24 @@ describe("RegisterForm", () => {
     });
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     fillRegistration();
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agree and register" }));
 
     expect(await screen.findByText("This password appears in a known data breach.")).toBeTruthy();
     expect(screen.getByLabelText<HTMLInputElement>("First name").value).toBe("Dana");
     expect(screen.getByLabelText<HTMLInputElement>("Email").value).toBe("dana@example.com");
     expect(screen.getByLabelText<HTMLInputElement>("Password").value).toBe("long-enough-pw1");
-    expect(screen.getByLabelText<HTMLInputElement>("I accept the Terms of Use and Privacy Policy").checked).toBe(true);
+  });
+
+  it("states the agreement on the button instead of asking for a checkbox", () => {
+    render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    expect(screen.getByText(/I agree to the Terms of Use and Privacy Policy/)).toBeTruthy();
+    expect(screen.queryByRole("checkbox")).toBeNull();
   });
 
   it("validates in the browser before calling the server", async () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agree and register" }));
     expect(await screen.findByText("Enter your first name.")).toBeTruthy();
-    expect(screen.getByText(/Accept the Terms of Use/)).toBeTruthy();
     expect(actions.registerAction).not.toHaveBeenCalled();
   });
 
@@ -83,7 +86,7 @@ describe("RegisterForm", () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     fillRegistration();
     type("Password", "long-enough-pw");
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agree and register" }));
     expect(await screen.findByText("Add at least one number.")).toBeTruthy();
     expect(actions.registerAction).not.toHaveBeenCalled();
   });
@@ -123,7 +126,7 @@ describe("RegisterForm", () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     fillRegistration();
     type("Number", "201555");
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agree and register" }));
     expect(await screen.findByText(/valid phone number/)).toBeTruthy();
     expect(actions.registerAction).not.toHaveBeenCalled();
   });
@@ -145,7 +148,7 @@ describe("RegisterForm", () => {
     render(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
     fillRegistration();
     expect(window.sessionStorage.getItem("cs_email")).toBe("dana@example.com");
-    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agree and register" }));
     expect(await screen.findByText("dana@example.com")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Go to sign in" }).getAttribute("href")).toBe("/login");
     expect(window.sessionStorage.getItem("cs_email")).toBe(null);

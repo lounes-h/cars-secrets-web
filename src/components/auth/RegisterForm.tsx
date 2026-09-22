@@ -31,7 +31,6 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
       phone_country: defaultCountry,
       phone_number: "",
       password: "",
-      accept_terms: false,
       captcha_token: "",
     },
   });
@@ -137,29 +136,17 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
           error={errors.password?.message}
           requirementFor={password}
         />
-        <div>
-          <div className="flex items-start gap-2">
-            <input
-              id="accept_terms"
-              type="checkbox"
-              className="mt-1"
-              aria-invalid={errors.accept_terms ? true : undefined}
-              aria-describedby={errors.accept_terms ? "accept_terms-error" : undefined}
-              {...register("accept_terms")}
-            />
-            <label htmlFor="accept_terms" className="font-normal">
-              I accept the Terms of Use and Privacy Policy
-            </label>
-          </div>
-          <FieldError id="accept_terms-error" message={errors.accept_terms?.message} />
-        </div>
         <Turnstile
           action="register"
           resetSignal={captchaReset}
           onToken={(token) => setValue("captcha_token", token ?? "")}
         />
+        <p className="hint">
+          By clicking on &ldquo;Agree and register&rdquo;, I agree to the Terms of Use and Privacy
+          Policy.
+        </p>
         <button type="submit" disabled={isSubmitting} className="btn btn-primary w-full">
-          {isSubmitting ? "Creating your account…" : "Create account"}
+          {isSubmitting ? "Creating your account…" : "Agree and register"}
         </button>
         <p className="hint text-center">
           Already registered? <Link href="/login">Sign in</Link>

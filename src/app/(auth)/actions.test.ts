@@ -36,7 +36,6 @@ const registration = {
   phone_country: "US",
   phone_number: "(415) 555-2671",
   password: "long-enough-pw1",
-  accept_terms: true,
   captcha_token: "cap",
 };
 
@@ -57,6 +56,7 @@ describe("registerAction", () => {
         email: "d@example.com",
         phone: "+14155552671",
         password: "long-enough-pw1",
+        // Submitting the form is the agreement, so the API is always told the terms are accepted.
         accept_terms: true,
         captcha_token: "cap",
       },
@@ -65,8 +65,8 @@ describe("registerAction", () => {
   });
 
   it("re-validates on the server and never calls the API with bad input", async () => {
-    const state = await registerAction({ ...registration, password: "short", accept_terms: false });
-    expect(state.errors).toMatchObject({ password: expect.any(String), accept_terms: expect.any(String) });
+    const state = await registerAction({ ...registration, password: "short" });
+    expect(state.errors).toMatchObject({ password: expect.any(String) });
     expect(apiMock).not.toHaveBeenCalled();
     expect((await registerAction("not an object")).code).toBe("validation");
   });

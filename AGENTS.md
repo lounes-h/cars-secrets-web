@@ -229,16 +229,18 @@ headers; and the deal calculation in `src/lib/deal.ts`. There is no logo,
 favicon, touch icon, web app manifest, share image or structured data.
 
 In place for accounts: registration (names, email, optional phone with every
-country's flag and calling code, password with show/hide, terms checkbox,
-Turnstile captcha), email confirmation, sign-in with remember me (captcha after
+country's flag and calling code, password with show/hide, Turnstile captcha),
+email confirmation, sign-in with remember me (captcha after
 repeated failures), sign-out, forgot and reset password, and Google and Apple
 buttons. The API answers "not configured" for Google and Apple until their
-credentials are set. The Terms of Use and Privacy Policy do not exist yet; only
-the checkbox does.
+credentials are set. There is no terms checkbox: the button reads "Agree and
+register" and a sentence above it says that clicking it is the agreement, so the
+action always tells the API the terms are accepted. The Terms of Use and Privacy
+Policy themselves do not exist yet.
 
 In place for lots: `/auctions` lists active lots, the most recently listed
 first (the API's order), 20 to a page (`?page=`), and `/auctions/[source]/[lotNumber]` shows one lot —
-everything the auction publishes about it, its photo, and a button to the
+everything the auction publishes about it, every photo of it, and a button to the
 auction site, since bidding never happens here. Both read
 `src/lib/lots.ts` → `GET /api/lots[/{source}/{lot}]` on the API, which reads the
 ingest database (`../cars-secrets-data-ingest`); the web app never opens the
@@ -246,8 +248,12 @@ database itself. Both are for signed-in dealers only: they keep their `h1` for
 everyone, and a visitor gets a "Sign in" link instead of the lots. A lot the
 API no longer has is a 404. `lots.ts` also holds the formatters both pages
 share, so a dash for a missing value looks the same on each; `lots-fixture.ts`
-is the complete lot the tests build on. A lot's `image_url` is the auction's
-photo *listing* endpoint, not an image: only `thumbnail_url` goes in an `<img>`.
+is the complete lot the tests build on. The lot's photos come from
+`GET /api/lots/{source}/{lot}/images` (`getLotImages`), which the API fills from
+the auction; each photo carries a `thumb` and a `full` URL, the detail page shows
+the full one and links to the file. The auction may be unreachable, so no photos
+is an empty list and never an error. A lot's own `image_url` is the auction's
+photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
 There is no search or filtering yet, no deal figures on the pages
 (`src/lib/deal.ts` has no inputs for fees, transport or a target profit yet, and

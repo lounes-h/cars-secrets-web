@@ -5,6 +5,7 @@ import { sampleLot } from "@/lib/lots-fixture";
 
 const currentUser = vi.fn();
 const getLot = vi.fn();
+const getLotImages = vi.fn();
 const notFound = vi.fn(() => {
   throw new Error("NEXT_NOT_FOUND");
 });
@@ -14,7 +15,7 @@ vi.mock("@/lib/session", () => ({
   sessionToken: async () => "token-abc",
   visitorIp: async () => null,
 }));
-vi.mock("@/lib/lots", async (original) => ({ ...(await original<object>()), getLot }));
+vi.mock("@/lib/lots", async (original) => ({ ...(await original<object>()), getLot, getLotImages }));
 vi.mock("next/navigation", () => ({ notFound }));
 
 const { default: LotPage, generateMetadata } = await import("@/app/auctions/[source]/[lotNumber]/page");
@@ -28,6 +29,10 @@ async function show() {
 beforeEach(() => {
   currentUser.mockResolvedValue({ id: "u1", email: "dealer@example.com" });
   getLot.mockResolvedValue(sampleLot);
+  getLotImages.mockResolvedValue([
+    { thumb: "https://cs.copart.example/a_thb.jpg", full: "https://cs.copart.example/a_ful.jpg" },
+    { thumb: "https://cs.copart.example/b_thb.jpg", full: null },
+  ]);
 });
 
 afterEach(() => {
@@ -63,11 +68,27 @@ describe("lot page", () => {
     expect(screen.getByRole("link", { name: "All lots" }).getAttribute("href")).toBe("/auctions");
   });
 
-  it("shows the auction's photo, never its image listing endpoint", async () => {
+  it("shows every photo of the lot, full size, each linking to the file", async () => {
     await show();
-    const photo = screen.getByRole("img");
-    expect(photo.getAttribute("src")).toBe(sampleLot.thumbnail_url);
-    expect(photo.getAttribute("alt")).toContain("2013 ACURA TSX");
+    expect(getLotImages).toHaveBeenCalledWith("copart", "41633106", "token-abc", null);
+    const photos = screen.getAllByRole("img");
+    // The full-size photo when the auction publishes one, its thumbnail when it does not.
+    expect(photos.map((photo) => photo.getAttribute("src"))).toEqual([
+      "https://cs.copart.example/a_ful.jpg",
+      "https://cs.copart.example/b_thb.jpg",
+    ]);
+    expect(photos[0].getAttribute("alt")).toBe("2013 ACURA TSX, lot 41633106, photo 1 of 2");
+    expect(photos[0].getAttribute("loading")).toBeNull();
+    expect(photos[1].getAttribute("loading")).toBe("lazy");
+    const link = screen.getByRole("link", { name: /photo 1 of 2/ });
+    expect(link.getAttribute("href")).toBe("https://cs.copart.example/a_ful.jpg");
+    expect(link.getAttribute("rel")).toContain("noopener");
+  });
+
+  it("shows no photo section when the auction publishes none", async () => {
+    getLotImages.mockResolvedValue([]);
+    await show();
+    expect(screen.queryAllByRole("img")).toEqual([]);
   });
 
   it("is a not found page once the auction drops the lot", async () => {
