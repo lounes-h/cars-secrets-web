@@ -5,7 +5,8 @@ vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }
 
 const { ApiError } = await import("@/lib/api");
 
-const { getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE } = await import("@/lib/lots");
+const { getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE, saleDate, saleTime } =
+  await import("@/lib/lots");
 
 describe("pageNumber", () => {
   it("keeps a whole page number above one", () => {
@@ -72,5 +73,30 @@ describe("getLot", () => {
   it("lets any other failure through, so the page does not claim the lot is gone", async () => {
     api.mockRejectedValue(new ApiError(0, "unavailable", "down"));
     await expect(getLot("copart", "1", "token-abc")).rejects.toThrow("down");
+  });
+});
+
+describe("saleTime", () => {
+  it("reads the auction's zoned timestamps in UTC", () => {
+    expect(saleTime("2026-09-18T19:00:00Z")).toBe("Sep 18, 2026, 7:00 PM");
+    expect(saleTime("2026-09-18T19:00:00+02:00")).toBe("Sep 18, 2026, 5:00 PM");
+  });
+
+  it("reads a timestamp without a zone as UTC, so server and browser agree", () => {
+    expect(saleTime("2026-09-17T09:12:00")).toBe("Sep 17, 2026, 9:12 AM");
+  });
+
+  it("is a dash when the auction published none", () => {
+    expect(saleTime(null)).toBe("—");
+  });
+});
+
+describe("saleDate", () => {
+  it("shows a date column as a day, with no time of its own", () => {
+    expect(saleDate("2026-10-01")).toBe("Oct 1, 2026");
+  });
+
+  it("is a dash when the auction published none", () => {
+    expect(saleDate(null)).toBe("—");
   });
 });

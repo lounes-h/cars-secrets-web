@@ -1,6 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { amount, getLot, getLotImages, type Lot, type LotImage, odometer, place, saleTime, vehicle } from "@/lib/lots";
+import {
+  amount,
+  getLot,
+  getLotImages,
+  type Lot,
+  type LotImage,
+  odometer,
+  place,
+  saleDate,
+  saleTime,
+  vehicle,
+} from "@/lib/lots";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { currentUser, sessionToken, visitorIp } from "@/lib/session";
 
@@ -67,10 +78,19 @@ export default async function LotPage({ params }: { params: Params }) {
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <Group title="The car">
           <Field label="VIN" value={lot.vin} />
-          <Field label="Model" value={lot.model_detail} />
+          <Field label="Year" value={lot.year} />
+          <Field label="Make" value={lot.make} />
+          <Field label="Model" value={lot.model} />
+          <Field label="Model detail" value={lot.model_detail} />
           <Field label="Trim" value={lot.trim} />
+          <Field label="Vehicle type" value={lot.vehicle_type} />
           <Field label="Body style" value={lot.body_style} />
           <Field label="Color" value={lot.color} />
+          <Field label="Engine" value={lot.engine} />
+          <Field label="Cylinders" value={lot.cylinders} />
+          <Field label="Fuel" value={lot.fuel_type} />
+          <Field label="Transmission" value={lot.transmission} />
+          <Field label="Drive" value={lot.drive} />
           <Field label="Odometer" value={odometer(lot.odometer)} />
           <Field label="Odometer brand" value={lot.odometer_brand} />
           <Field label="Runs and drives" value={lot.runs_drives} />
@@ -84,12 +104,23 @@ export default async function LotPage({ params }: { params: Params }) {
           <Field label="Repair estimate" value={amount(lot.repair_cost, lot.currency)} />
         </Group>
         <Group title="The sale">
+          <Field label="Auction" value={lot.source} />
+          <Field label="Lot number" value={lot.lot_number} />
+          <Field label="Sale status" value={lot.sale_status} />
+          <Field label="Sale date" value={saleDate(lot.sale_date)} />
           <Field label="Sale time" value={saleTime(lot.sale_at)} />
+          <Field label="Seller" value={lot.seller_name} />
           <Field label="Yard" value={lot.yard_name} />
+          <Field label="Yard code" value={lot.yard_code} />
           <Field label="Location" value={place(lot)} />
+          <Field label="ZIP code" value={lot.location_zip} />
+          <Field label="Country" value={lot.location_country} />
+          <Field label="Currency" value={lot.currency} />
           <Field label="Estimated retail value" value={amount(lot.est_retail_value, lot.currency)} />
           <Field label="High bid" value={amount(lot.high_bid, lot.currency)} />
           <Field label="Buy it now" value={amount(lot.buy_it_now_price, lot.currency)} />
+          <Field label="Listed by the auction" value={saleTime(lot.source_created_at)} />
+          <Field label="Updated by the auction" value={saleTime(lot.source_updated_at)} />
           <Field label="First seen" value={saleTime(lot.first_seen_at)} />
           <Field label="Last changed" value={saleTime(lot.last_changed_at)} />
         </Group>
@@ -164,7 +195,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-function Field({ label, value }: { label: string; value: string | null }) {
+function Field({ label, value }: { label: string; value: string | number | null }) {
   return (
     <>
       <dt className="text-muted">{label}</dt>

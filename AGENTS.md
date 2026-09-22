@@ -241,8 +241,12 @@ Policy themselves do not exist yet.
 In place for lots: `/auctions` ("Active lots" in the menu and as its `h1`; the
 path keeps the auctions name) lists active lots, the most recently listed
 first (the API's order), 20 to a page (`?page=`), and `/auctions/[source]/[lotNumber]` shows one lot —
-everything the auction publishes about it, every photo of it, and a button to the
-auction site, since bidding never happens here. Both read
+every column the ingest keeps for it (the car, its damage and title, and the sale),
+every photo of it, and a button to the
+auction site, since bidding never happens here. The ingest's own bookkeeping
+(`attributes`, `row_hash`, `last_seen_at`, `removed_at`, the file ids) is not in the
+API's `Lot` and so not on the page; a column the ingest adds belongs in `Lot`,
+`lots-fixture.ts` and one of the page's three groups. Both read
 `src/lib/lots.ts` → `GET /api/lots[/{source}/{lot}]` on the API, which reads the
 ingest database (`../cars-secrets-data-ingest`); the web app never opens the
 database itself. Both are for signed-in dealers only: they keep their `h1` for
