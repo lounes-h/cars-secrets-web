@@ -68,11 +68,11 @@ describe("lot page", () => {
     expect(screen.getByRole("link", { name: "All lots" }).getAttribute("href")).toBe("/auctions");
   });
 
-  it("shows every photo of the lot, full size, each linking to the file", async () => {
+  it("shows every photo of the lot as a gallery, thumbnails jumping to each", async () => {
     await show();
     expect(getLotImages).toHaveBeenCalledWith("copart", "41633106", "token-abc", null);
-    const photos = screen.getAllByRole("img");
-    // The full-size photo when the auction publishes one, its thumbnail when it does not.
+    // The large photos: the full-size file when the auction publishes one, its thumbnail when not.
+    const photos = screen.getAllByAltText(/photo \d of 2$/);
     expect(photos.map((photo) => photo.getAttribute("src"))).toEqual([
       "https://cs.copart.example/a_ful.jpg",
       "https://cs.copart.example/b_thb.jpg",
@@ -80,14 +80,24 @@ describe("lot page", () => {
     expect(photos[0].getAttribute("alt")).toBe("2013 ACURA TSX, lot 41633106, photo 1 of 2");
     expect(photos[0].getAttribute("loading")).toBeNull();
     expect(photos[1].getAttribute("loading")).toBe("lazy");
-    const link = screen.getByRole("link", { name: /photo 1 of 2/ });
-    expect(link.getAttribute("href")).toBe("https://cs.copart.example/a_ful.jpg");
-    expect(link.getAttribute("rel")).toContain("noopener");
+    // The strip below: a thumbnail per photo, each one jumping to it.
+    const jumps = screen.getAllByRole("link", { name: /Show photo/ });
+    expect(jumps.map((jump) => jump.getAttribute("href"))).toEqual(["#photo-1", "#photo-2"]);
+    expect(photos.map((photo) => photo.getAttribute("id"))).toEqual(["photo-1", "photo-2"]);
+    expect(screen.getByAltText("Show photo 1").getAttribute("src")).toBe("https://cs.copart.example/a_thb.jpg");
   });
 
-  it("shows no photo section when the auction publishes none", async () => {
+  it("leaves out the thumbnail strip when there is one photo to see", async () => {
+    getLotImages.mockResolvedValue([{ thumb: null, full: "https://cs.copart.example/only_ful.jpg" }]);
+    await show();
+    expect(screen.queryAllByRole("link", { name: /Show photo/ })).toEqual([]);
+    expect(screen.getByAltText(/photo 1 of 1$/).getAttribute("src")).toBe("https://cs.copart.example/only_ful.jpg");
+  });
+
+  it("shows no gallery when the auction publishes no photo", async () => {
     getLotImages.mockResolvedValue([]);
     await show();
+    expect(screen.queryByRole("region", { name: /Photos of lot/ })).toBeNull();
     expect(screen.queryAllByRole("img")).toEqual([]);
   });
 

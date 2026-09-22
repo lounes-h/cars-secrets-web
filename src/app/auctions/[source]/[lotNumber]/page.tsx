@@ -98,27 +98,51 @@ export default async function LotPage({ params }: { params: Params }) {
   );
 }
 
-/** Every photo the auction publishes, full size, each one linking to the file itself. */
+/**
+ * The lot's photos as a gallery: one large photo at a time in a scroll-snapping strip, with a
+ * small column of thumbnails on its left jumping to each. Scrolling and the jumps are the
+ * browser's own, so the page stays a Server Component with no JavaScript of its own.
+ */
 function Photos({ lot, images }: { lot: Lot; images: LotImage[] }) {
-  if (images.length === 0) return null;
+  const photos = images.filter((image) => image.full ?? image.thumb);
+  if (photos.length === 0) return null;
+  const photoId = (index: number) => `photo-${index + 1}`;
+  const describe = (index: number) => `${vehicle(lot)}, lot ${lot.lot_number}, photo ${index + 1} of ${photos.length}`;
+  const tall = "h-[min(50vh,28rem)]";
   return (
-    <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {images.map((image, index) => {
-        const src = image.full ?? image.thumb;
-        if (!src) return null;
-        return (
-          <a key={src} href={src} rel="noopener noreferrer nofollow" target="_blank">
-            {/* eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it */}
+    <section aria-label={`Photos of lot ${lot.lot_number}`} className="mt-8 w-full lg:w-2/5">
+      <div className="flex gap-3">
+        {photos.length > 1 && (
+          <div className={`${tall} flex w-20 flex-none flex-col gap-2 overflow-y-auto sm:w-24`}>
+            {photos.map((photo, index) => (
+              <a key={photoId(index)} href={`#${photoId(index)}`} className="flex-none">
+                {/* eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it */}
+                <img
+                  src={photo.thumb ?? photo.full ?? ""}
+                  alt={`Show photo ${index + 1}`}
+                  loading="lazy"
+                  className="h-14 w-full rounded border border-line object-cover sm:h-16"
+                />
+              </a>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-1 snap-x snap-mandatory overflow-x-auto rounded border border-line bg-ink">
+          {photos.map((photo, index) => (
+            // eslint-disable-next-line @next/next/no-img-element -- as above
             <img
-              src={src}
-              alt={`${vehicle(lot)}, lot ${lot.lot_number}, photo ${index + 1} of ${images.length}`}
+              key={photoId(index)}
+              id={photoId(index)}
+              src={photo.full ?? photo.thumb ?? ""}
+              alt={describe(index)}
               loading={index === 0 ? undefined : "lazy"}
-              className="w-full rounded border border-line"
+              // scroll-mt keeps the heading in view when a thumbnail jumps the page to a photo.
+              className={`${tall} w-full flex-none scroll-mt-6 snap-center object-contain`}
             />
-          </a>
-        );
-      })}
-    </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

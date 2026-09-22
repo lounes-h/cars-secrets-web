@@ -250,8 +250,11 @@ API no longer has is a 404. `lots.ts` also holds the formatters both pages
 share, so a dash for a missing value looks the same on each; `lots-fixture.ts`
 is the complete lot the tests build on. The lot's photos come from
 `GET /api/lots/{source}/{lot}/images` (`getLotImages`), which the API fills from
-the auction; each photo carries a `thumb` and a `full` URL, the detail page shows
-the full one and links to the file. The auction may be unreachable, so no photos
+the auction; each photo carries a `thumb` and a `full` URL. The detail page shows
+them as a gallery down the left two fifths of the page: one full-size photo at a
+time in a scroll-snapping strip, with a column of thumbnails beside it linking to
+`#photo-N`. Scrolling and the jumps are the browser's own, so the page stays a
+Server Component with no JavaScript of its own. The auction may be unreachable, so no photos
 is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
