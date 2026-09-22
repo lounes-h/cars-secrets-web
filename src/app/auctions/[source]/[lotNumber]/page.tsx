@@ -1,0 +1,129 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { amount, getLot, odometer, place, saleTime, vehicle } from "@/lib/lots";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { currentUser, sessionToken, visitorIp } from "@/lib/session";
+
+type Params = Promise<{ source: string; lotNumber: string }>;
+
+/**
+ * Titled from the URL rather than the lot: the page is behind sign-in and noindex, so the title
+ * is a tab label, and naming the car would cost a second call to the API.
+ */
+export async function generateMetadata({ params }: { params: Params }) {
+  const { source, lotNumber } = await params;
+  return buildMetadata({
+    title: `Lot ${lotNumber}`,
+    description:
+      "Everything the auction publishes about this lot: the car, its damage, title, odometer, where it sells and what it is bid up to.",
+    path: `/auctions/${source}/${lotNumber}`,
+    noindex: true,
+  });
+}
+
+export default async function LotPage({ params }: { params: Params }) {
+  const [user, token, { source, lotNumber }] = await Promise.all([
+    currentUser(),
+    sessionToken(),
+    params,
+  ]);
+
+  if (!user || !token) {
+    return (
+      <Shell heading={`Lot ${lotNumber}`}>
+        <p className="mt-8">
+          <Link href="/login" className="btn btn-primary">
+            Sign in to see this lot
+          </Link>
+        </p>
+      </Shell>
+    );
+  }
+
+  const lot = await getLot(source, lotNumber, token, await visitorIp());
+  if (!lot) notFound();
+
+  return (
+    <Shell heading={vehicle(lot)}>
+      <p className="mt-3 max-w-[65ch] text-muted">
+        Lot {lot.lot_number} at {lot.source}, {place(lot)}, selling {saleTime(lot.sale_at)}. Bidding
+        happens on the auction&apos;s own site.
+      </p>
+      <div className="mt-8 flex flex-wrap items-center gap-4">
+        {lot.listing_url && (
+          <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-primary">
+            Bid on {lot.source}
+          </a>
+        )}
+        <Link href="/auctions" className="btn btn-outline">
+          All lots
+        </Link>
+      </div>
+      {lot.thumbnail_url && (
+        // eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it
+        <img
+          src={lot.thumbnail_url}
+          alt={`${vehicle(lot)}, lot ${lot.lot_number}`}
+          className="mt-8 w-full max-w-md rounded border border-line"
+        />
+      )}
+      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+        <Group title="The car">
+          <Field label="VIN" value={lot.vin} />
+          <Field label="Model" value={lot.model_detail} />
+          <Field label="Trim" value={lot.trim} />
+          <Field label="Body style" value={lot.body_style} />
+          <Field label="Color" value={lot.color} />
+          <Field label="Odometer" value={odometer(lot.odometer)} />
+          <Field label="Odometer brand" value={lot.odometer_brand} />
+          <Field label="Runs and drives" value={lot.runs_drives} />
+          <Field label="Keys" value={lot.has_keys} />
+        </Group>
+        <Group title="Damage and title">
+          <Field label="Primary damage" value={lot.damage_primary} />
+          <Field label="Secondary damage" value={lot.damage_secondary} />
+          <Field label="Title type" value={lot.title_type} />
+          <Field label="Title state" value={lot.title_state} />
+          <Field label="Repair estimate" value={amount(lot.repair_cost, lot.currency)} />
+        </Group>
+        <Group title="The sale">
+          <Field label="Sale time" value={saleTime(lot.sale_at)} />
+          <Field label="Yard" value={lot.yard_name} />
+          <Field label="Location" value={place(lot)} />
+          <Field label="Estimated retail value" value={amount(lot.est_retail_value, lot.currency)} />
+          <Field label="High bid" value={amount(lot.high_bid, lot.currency)} />
+          <Field label="Buy it now" value={amount(lot.buy_it_now_price, lot.currency)} />
+          <Field label="First seen" value={saleTime(lot.first_seen_at)} />
+          <Field label="Last changed" value={saleTime(lot.last_changed_at)} />
+        </Group>
+      </div>
+    </Shell>
+  );
+}
+
+function Shell({ heading, children }: { heading: string; children: React.ReactNode }) {
+  return (
+    <main className="flex-1 bg-white px-4 py-10 sm:px-6 lg:px-10">
+      <h1>{heading}</h1>
+      {children}
+    </main>
+  );
+}
+
+function Group({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="card">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-[0.9375rem]">{children}</dl>
+    </section>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string | null }) {
+  return (
+    <>
+      <dt className="text-muted">{label}</dt>
+      <dd>{value || "—"}</dd>
+    </>
+  );
+}

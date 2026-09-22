@@ -1,0 +1,38 @@
+/** A complete lot for tests, so each one only spells out the fields it cares about. */
+
+import type { Lot } from "@/lib/lots";
+
+export const sampleLot: Lot = {
+  source: "copart",
+  lot_number: "41633106",
+  year: 2013,
+  make: "ACURA",
+  model: "TSX",
+  model_detail: "TSX",
+  trim: "TECH",
+  vin: "JH4CU2F65DC010051",
+  body_style: "SEDAN 4DR",
+  color: "CHARCOAL",
+  damage_primary: "FRONT END",
+  damage_secondary: "SIDE",
+  title_type: "SC",
+  title_state: "CA",
+  has_keys: "YES",
+  odometer: 120500,
+  odometer_brand: "N",
+  runs_drives: "Run & Drive Verified",
+  est_retail_value: 8119,
+  repair_cost: 2400,
+  high_bid: 0,
+  buy_it_now_price: 0,
+  currency: "USD",
+  sale_at: "2026-09-18T19:00:00Z",
+  yard_name: "CA - VALLEJO",
+  location_city: "VALLEJO",
+  location_state: "CA",
+  thumbnail_url: "https://cs.copart.example/thumb.jpg",
+  image_url: "https://inventory.copart.example/v1/lotImages/41633106",
+  listing_url: "https://www.copart.com/lot/41633106",
+  first_seen_at: "2026-09-18T01:31:02.294657Z",
+  last_changed_at: "2026-09-18T12:01:39.199928Z",
+};
