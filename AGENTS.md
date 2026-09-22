@@ -77,7 +77,7 @@ See `docs/architecture.md` for details.
   layout on every page and shows the site name as plain text. Its navigation
   (`src/components/AccountNav.tsx`) is a client component that asks
   `/auth/session` after each navigation and renders both the main menu and the
-  account side: Auctions, VIN Lookup, Best Buys, then How It Works and Pricing
+  account side: Active lots, VIN Lookup, Best Buys, then How It Works and Pricing
   with "Sign in" and the "7 days free trial" button for visitors, or Saved and
   Alerts with the dealer's avatar and "Sign out" once signed in. The menu is
   hidden below `lg`. Never read the session in the root layout: it would make
@@ -238,7 +238,8 @@ register" and a sentence above it says that clicking it is the agreement, so the
 action always tells the API the terms are accepted. The Terms of Use and Privacy
 Policy themselves do not exist yet.
 
-In place for lots: `/auctions` lists active lots, the most recently listed
+In place for lots: `/auctions` ("Active lots" in the menu and as its `h1`; the
+path keeps the auctions name) lists active lots, the most recently listed
 first (the API's order), 20 to a page (`?page=`), and `/auctions/[source]/[lotNumber]` shows one lot —
 everything the auction publishes about it, every photo of it, and a button to the
 auction site, since bidding never happens here. Both read

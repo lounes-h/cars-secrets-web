@@ -60,7 +60,7 @@ export default async function LotPage({ params }: { params: Params }) {
           </a>
         )}
         <Link href="/auctions" className="btn btn-outline">
-          All lots
+          Active lots
         </Link>
       </div>
       <Photos lot={lot} images={images} />

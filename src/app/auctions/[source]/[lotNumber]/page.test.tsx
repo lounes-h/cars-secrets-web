@@ -65,7 +65,7 @@ describe("lot page", () => {
     const bid = screen.getByRole("link", { name: "Bid on copart" });
     expect(bid.getAttribute("href")).toBe(sampleLot.listing_url);
     expect(bid.getAttribute("rel")).toContain("noopener");
-    expect(screen.getByRole("link", { name: "All lots" }).getAttribute("href")).toBe("/auctions");
+    expect(screen.getByRole("link", { name: "Active lots" }).getAttribute("href")).toBe("/auctions");
   });
 
   it("shows every photo of the lot as a gallery, thumbnails jumping to each", async () => {

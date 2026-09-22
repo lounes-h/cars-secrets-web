@@ -10,7 +10,7 @@ import type { SessionSummary } from "@/app/auth/session/route";
 type User = SessionSummary["user"];
 
 const GUEST_MENU = [
-  { href: "/auctions", label: "Auctions" },
+  { href: "/auctions", label: "Active lots" },
   { href: "/vin-lookup", label: "VIN Lookup" },
   { href: "/best-buys", label: "Best Buys" },
   { href: "/how-it-works", label: "How It Works" },
@@ -18,7 +18,7 @@ const GUEST_MENU = [
 ];
 
 const MEMBER_MENU = [
-  { href: "/auctions", label: "Auctions" },
+  { href: "/auctions", label: "Active lots" },
   { href: "/vin-lookup", label: "VIN Lookup" },
   { href: "/best-buys", label: "Best Buys" },
   { href: "/saved", label: "Saved" },
