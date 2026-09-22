@@ -7,6 +7,7 @@ import {
   type Lot,
   type LotImage,
   odometer,
+  odometerBrand,
   place,
   saleDate,
   saleTime,
@@ -92,7 +93,7 @@ export default async function LotPage({ params }: { params: Params }) {
           <Field label="Transmission" value={lot.transmission} />
           <Field label="Drive" value={lot.drive} />
           <Field label="Odometer" value={odometer(lot.odometer)} />
-          <Field label="Odometer brand" value={lot.odometer_brand} />
+          <Field label="Odometer brand" value={odometerBrand(lot.odometer_brand)} />
           <Field label="Runs and drives" value={lot.runs_drives} />
           <Field label="Keys" value={lot.has_keys} />
         </Group>

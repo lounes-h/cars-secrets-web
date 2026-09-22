@@ -252,7 +252,9 @@ ingest database (`../cars-secrets-data-ingest`); the web app never opens the
 database itself. Both are for signed-in dealers only: they keep their `h1` for
 everyone, and a visitor gets a "Sign in" link instead of the lots. A lot the
 API no longer has is a 404. `lots.ts` also holds the formatters both pages
-share, so a dash for a missing value looks the same on each; `lots-fixture.ts`
+share, so a dash for a missing value looks the same on each, and it spells
+Copart's odometer brand code out the way Copart's own site does (`A` is
+"ACTUAL", `N` "NOT ACTUAL", `E` "EXEMPT"; an unknown code is shown as it came); `lots-fixture.ts`
 is the complete lot the tests build on. The lot's photos come from
 `GET /api/lots/{source}/{lot}/images` (`getLotImages`), which the API fills from
 the auction; each photo carries a `thumb` and a `full` URL. The detail page shows

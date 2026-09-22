@@ -65,7 +65,8 @@ describe("lot page", () => {
     const page = screen.getByRole("main").textContent ?? "";
     for (const value of [
       "AUTOMOBILE", "2.4L 4", "GAS", "AUTOMATIC", "FRONT", "PURE SALE", "INSURANCE CO",
-      "CA - VALLEJO", "123", "94590", "USA", "SEDAN 4DR", "CHARCOAL", "SC", "N",
+      "CA - VALLEJO", "123", "94590", "USA", "SEDAN 4DR", "CHARCOAL", "SC",
+      "NOT ACTUAL",             // odometer_brand, "N" in Copart's export
       "Sep 18, 2026",           // sale_date, as a day
       "Sep 17, 2026, 9:12 AM",  // source_created_at, which carries no time zone
       "Sep 18, 2026, 6:44 AM",  // source_updated_at

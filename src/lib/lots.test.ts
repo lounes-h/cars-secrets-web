@@ -5,7 +5,7 @@ vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }
 
 const { ApiError } = await import("@/lib/api");
 
-const { getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE, saleDate, saleTime } =
+const { getLot, getLotImages, listLots, odometerBrand, pageCount, pageNumber, PAGE_SIZE, saleDate, saleTime } =
   await import("@/lib/lots");
 
 describe("pageNumber", () => {
@@ -98,5 +98,23 @@ describe("saleDate", () => {
 
   it("is a dash when the auction published none", () => {
     expect(saleDate(null)).toBe("—");
+  });
+});
+
+describe("odometerBrand", () => {
+  it("spells out Copart's one-letter codes the way Copart does", () => {
+    expect(odometerBrand("A")).toBe("ACTUAL");
+    expect(odometerBrand("N")).toBe("NOT ACTUAL");
+    expect(odometerBrand("E")).toBe("EXEMPT");
+    expect(odometerBrand(" a ")).toBe("ACTUAL");
+  });
+
+  it("shows a code it does not know as it came, rather than guessing", () => {
+    expect(odometerBrand("X")).toBe("X");
+    expect(odometerBrand("ACTUAL")).toBe("ACTUAL");
+  });
+
+  it("is a dash when the auction published none", () => {
+    expect(odometerBrand(null)).toBe("—");
   });
 });
