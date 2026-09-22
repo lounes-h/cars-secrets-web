@@ -202,10 +202,11 @@ A code change is not considered complete until the relevant unit tests have been
 ## Current state
 
 The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
-`/reset-password`, `/verify-email`, `/account`) and the empty placeholders the
-banner menu links to: `/auctions`, `/vin-lookup`, `/best-buys`,
-`/how-it-works`, `/pricing`, `/saved` and `/alerts` — blank white pages with
-metadata only, so they have no `h1` until there is something to put on them.
+`/reset-password`, `/verify-email`, `/account`), `/auctions` (the lot listing)
+and the empty placeholders the banner menu links to: `/vin-lookup`,
+`/best-buys`, `/how-it-works`, `/pricing`, `/saved` and `/alerts` — blank white
+pages with metadata only, so they have no `h1` until there is something to put
+on them.
 Styling stays basic until a design system exists. `/` is the home page: the
 centred title "Everything You Need to Know Before Buying a Car at Auction" and
 nothing else yet. Add no other pages until the user asks.
@@ -232,7 +233,17 @@ buttons. The API answers "not configured" for Google and Apple until their
 credentials are set. The Terms of Use and Privacy Policy do not exist yet; only
 the checkbox does.
 
-There is no auction data feed, search, saved lots or alerts yet.
+In place for lots: `/auctions` lists active lots, soonest sale first, 20 to a
+page (`?page=`), through `src/lib/lots.ts` → `GET /api/lots` on the API, which
+reads the ingest database (`../cars-secrets-data-ingest`); the web app never
+opens the database itself. The lots are for signed-in dealers only: the page
+keeps its `h1` and lede for everyone, so it stays indexable, and a visitor gets
+a "Sign in to see the lots" link instead of the table. Each lot number links to
+the auction site, since bidding never happens here.
+
+There is no search or filtering on the listing yet, no lot detail page, no deal
+figures on it (`src/lib/deal.ts` has no inputs for fees, repairs or transport
+yet), and no saved lots or alerts.
 
 ## Branching
 
