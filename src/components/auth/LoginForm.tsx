@@ -47,12 +47,6 @@ export function LoginForm() {
             <Link href="/verify-email">Send a new confirmation link</Link>
           </>
         )}
-        {serverError?.type === "invalid_credentials" && (
-          <>
-            {" "}
-            <Link href="/forgot-password">Reset your password</Link> if you do not remember it.
-          </>
-        )}
       </FormError>
       <div>
         <label htmlFor="email">Email</label>
