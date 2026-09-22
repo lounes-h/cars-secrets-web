@@ -170,7 +170,7 @@ describe("LoginForm", () => {
     expect(screen.getByRole("link", { name: "Forgot your password?" }).getAttribute("href")).toBe("/forgot-password");
   });
 
-  it("keeps the email, clears the wrong password and offers a reset", async () => {
+  it("keeps the email and clears the wrong password, without repeating the reset link", async () => {
     actions.loginAction.mockResolvedValue({ code: "invalid_credentials", message: "Incorrect email or password." });
     render(<LoginForm />);
     type("Email", "dana@example.com");
@@ -179,7 +179,8 @@ describe("LoginForm", () => {
     expect(await screen.findByText(/Incorrect email or password\./)).toBeTruthy();
     expect(screen.getByLabelText<HTMLInputElement>("Email").value).toBe("dana@example.com");
     expect(screen.getByLabelText<HTMLInputElement>("Password").value).toBe("");
-    expect(screen.getByRole("link", { name: "Reset your password" }).getAttribute("href")).toBe("/forgot-password");
+    // The form already carries "Forgot your password?"; the error does not repeat it.
+    expect(screen.queryByRole("link", { name: "Reset your password" })).toBeNull();
   });
 
   it("links to a new confirmation email when the address is unconfirmed", async () => {
