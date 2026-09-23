@@ -140,24 +140,6 @@ export function saleTime(value: string | null): string {
   return when.format(new Date(/(Z|[+-]\d\d:?\d\d)$/.test(value) ? value : `${value}Z`));
 }
 
-/**
- * Copart's odometer brand, spelled out as its own site spells it: the export carries the
- * one-letter code ("A", "N", "E"), which says nothing to a dealer. An unknown code is shown
- * as it came, rather than guessed at.
- * ponytail: one map, since Copart is the only source; key it by source when a second arrives.
- */
-const ODOMETER_BRANDS: Record<string, string> = {
-  A: "ACTUAL",
-  N: "NOT ACTUAL",
-  E: "EXEMPT",
-};
-
-export function odometerBrand(value: string | null): string {
-  if (!value) return "—";
-  const code = value.trim().toUpperCase();
-  return ODOMETER_BRANDS[code] ?? value;
-}
-
 /** A date column ("2026-10-01"), which carries no time to show. */
 export function saleDate(value: string | null): string {
   return value ? day.format(new Date(`${value}T00:00:00Z`)) : "—";

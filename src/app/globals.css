@@ -8,6 +8,14 @@
   --ink: #111111;
   --muted: #666666;
   --line: #d4d4d4;
+  /* The one exception to grey: the lot page's deal-breaker badges and sale countdown, where
+     colour speeds up reading. Each badge also carries an icon and words, never colour alone. */
+  --good: #166534;
+  --good-bg: #dcfce7;
+  --warn: #92400e;
+  --warn-bg: #fef3c7;
+  --bad: #991b1b;
+  --bad-bg: #fee2e2;
 }
 
 @theme inline {
@@ -224,6 +232,36 @@ body {
   .hint {
     color: var(--muted);
     font-size: 0.875rem;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--paper);
+  }
+  .badge[data-tone="good"] {
+    color: var(--good);
+    background: var(--good-bg);
+  }
+  .badge[data-tone="warn"] {
+    color: var(--warn);
+    background: var(--warn-bg);
+  }
+  .badge[data-tone="bad"] {
+    color: var(--bad);
+    background: var(--bad-bg);
+  }
+  [data-tone="warn"] {
+    color: var(--warn);
+  }
+  [data-tone="bad"] {
+    color: var(--bad);
   }
   .notice {
     background: var(--surface);
