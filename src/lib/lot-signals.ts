@@ -89,7 +89,8 @@ const INSURER = /\b(insurance|assurance|mutual|casualty|indemnity|geico|progress
 
 export function sellerType(lot: Lot): Entry {
   const name = sellerName(lot);
-  if (!name) return { label: "Seller not stated", tone: "neutral" };
+  // No seller named tells a buyer nothing, so it gets no badge.
+  if (!name) return { label: "Seller not stated", tone: "neutral", badge: false };
   return INSURER.test(name) ? { label: "Insurance seller", tone: "good" } : { label: "Not an insurance seller", tone: "neutral" };
 }
 

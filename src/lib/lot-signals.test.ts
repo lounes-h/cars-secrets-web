@@ -38,8 +38,7 @@ describe("badges", () => {
       "bad",
       "good",
       "good",
-      "good",
-      "neutral",
+      "good", // no seller named, so no seller badge
     ]);
   });
 
@@ -88,9 +87,11 @@ describe("sellerType", () => {
     }
   });
 
-  it("says so when the auction names no seller", () => {
-    expect(seller(null)).toEqual({ label: "Seller not stated", tone: "neutral" });
-    expect(seller("  ")).toEqual({ label: "Seller not stated", tone: "neutral" });
+  it("gives no badge when the auction names no seller", () => {
+    for (const seller_name of [null, "  "]) {
+      expect(sellerType(lot({ seller_name }))).toEqual({ label: "Seller not stated", tone: "neutral", badge: false });
+      expect(badges(lot({ seller_name })).map((badge) => badge.label)).not.toContain("Seller not stated");
+    }
   });
 });
 
