@@ -248,7 +248,7 @@ first (the API's order), 20 to a page (`?page=`), and `/active-lots/[source]/[lo
 every column the ingest keeps for it, every photo of it, and a "Place bid" button
 (plus "Buy now" when the auction offers it) to the auction site, since bidding never
 happens here. The page reads top to bottom as: a summary (title, lot number and VIN
-with copy buttons, the time left before the sale, a meta line and
+with copy buttons, the time left before the sale, a meta line (mileage, "#1" primary and "#2" secondary damage, location) and
 the deal-breaker badges, with no sentence repeating them, in a fixed order: run status, keys, title, then odometer and
 sale status only when they are not the normal case); the photos beside the all-in cost
 card, the one emphasised card, whose fee and shipping rows read "Not estimated yet" and
