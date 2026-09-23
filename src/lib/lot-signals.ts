@@ -1,6 +1,6 @@
 /**
  * What a lot's auction codes mean in plain words, and how much each one should worry a buyer.
- * The lot page reads its badges, its summary sentence and its labels from here, so a code is
+ * The lot page reads its badges and its labels from here, so a code is
  * translated in one place. An unknown code is shown as it came, neutral, rather than guessed at.
  * ponytail: Copart's codes only, since Copart is the only source; key by source when a second arrives.
  */
@@ -76,19 +76,6 @@ export function badges(lot: Lot): Signal[] {
     .map(({ label, tone }) => ({ label, tone }));
 }
 
-/** One plain sentence from the same signals: "Runs and drives, front end damage, salvage title." */
-export function summary(lot: Lot): string {
-  const odometer = odometerStatus(lot);
-  const parts = [
-    runStatus(lot).label,
-    lot.damage_primary && `${lot.damage_primary.toLowerCase()} damage`,
-    lot.has_keys?.trim().toUpperCase() === "NO" && "no keys",
-    odometer.badge !== false && odometer.label,
-  ].filter(Boolean) as string[];
-  const sentence = parts.map((part, i) => (i === 0 ? part : part.charAt(0).toLowerCase() + part.slice(1)));
-  // The title keeps the auction's own capitals: "Certificate Of Title".
-  return `${[...sentence, titleType(lot).label].join(", ")}.`;
-}
 
 /** Time left before the sale, and how urgent it is: amber under a day, red under an hour. */
 export function countdown(saleAt: string, now: Date): Signal | null {

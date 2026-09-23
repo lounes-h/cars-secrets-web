@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { badges, countdown, engineSpec, odometerStatus, summary, titleType } from "@/lib/lot-signals";
+import { badges, countdown, engineSpec, odometerStatus, titleType } from "@/lib/lot-signals";
 import { sampleLot } from "@/lib/lots-fixture";
 
 const lot = (fields: Partial<typeof sampleLot>) => ({ ...sampleLot, ...fields });
@@ -61,18 +61,6 @@ describe("titleType", () => {
   it("says so when the auction gives no title code", () => {
     expect(titleType(lot({ title_type: null }))).toEqual({ label: "Title not stated", tone: "neutral" });
     expect(titleType(lot({ title_type: "  " })).label).toBe("Title not stated");
-  });
-});
-
-describe("summary", () => {
-  it("says the deal breakers in one sentence", () => {
-    expect(summary(sampleLot)).toBe("Runs and drives, front end damage, mileage not real, Title SC.");
-  });
-
-  it("mentions missing keys and leaves out what the auction did not say", () => {
-    expect(summary(lot({ has_keys: "NO", damage_primary: null, odometer_brand: "A", title_type: "CT" }))).toBe(
-      "Runs and drives, no keys, Certificate Of Title.",
-    );
   });
 });
 

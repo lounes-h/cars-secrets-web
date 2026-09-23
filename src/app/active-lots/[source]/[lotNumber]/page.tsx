@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
-import { badges, countdown, engineSpec, odometerStatus, saleStatus, summary, titleType } from "@/lib/lot-signals";
+import { badges, countdown, engineSpec, odometerStatus, saleStatus, titleType } from "@/lib/lot-signals";
 import {
   amount,
   getLot,
@@ -99,7 +99,6 @@ export default async function LotPage({ params }: { params: Params }) {
           </div>
         </div>
         {meta.length > 0 && <p className="mt-3 text-sm text-muted">{meta.join(" · ")}</p>}
-        <p className="mt-2 max-w-[65ch]">{summary(lot)}</p>
         <ul aria-label="Deal breakers" className="mt-3 flex flex-wrap gap-2">
           {badges(lot).map((badge) => (
             <li key={badge.label} className="badge" data-tone={badge.tone}>
