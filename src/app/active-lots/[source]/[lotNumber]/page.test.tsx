@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sampleLot } from "@/lib/lots-fixture";
 
@@ -48,41 +48,87 @@ describe("lot page", () => {
     expect(getLot).not.toHaveBeenCalled();
   });
 
-  it("shows what the auction publishes about the lot", async () => {
+  it("opens with the car, the time left and the deal breakers", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-18T08:30:00Z"));
     await show();
+    vi.useRealTimers();
     expect(getLot).toHaveBeenCalledWith("copart", "41633106", "token-abc", null);
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("2013 ACURA TSX");
-    const page = screen.getByRole("main").textContent ?? "";
-    expect(page).toContain("JH4CU2F65DC010051");
-    expect(page).toContain("120,500 mi");
-    expect(page).toContain("Sep 18, 2026, 7:00 PM");
-    expect(page).toContain("$8,119");
-    expect(page).toContain("$2,400");
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("2013 ACURA TSX TECH");
+    const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
+    expect(header).toContain("Sells in 10h 30m");
+    expect(header).toContain("Fri, Sep 18, 7:00 PM");
+    expect(header).toContain("120,500 mi (mileage not real) · FRONT END · VALLEJO, CA");
+    expect(header).toContain("Runs and drives, front end damage, mileage not real, salvage certificate.");
+    const badges = within(screen.getByRole("list", { name: "Deal breakers" })).getAllByRole("listitem");
+    expect(badges.map((badge) => [badge.textContent, badge.dataset.tone])).toEqual([
+      ["✓Runs and drives", "good"],
+      ["✓Keys", "good"],
+      ["!Salvage certificate", "warn"],
+      ["✕Mileage not real", "bad"],
+    ]);
+    expect(screen.getByRole("button", { name: "Copy VIN" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Copy lot number" })).toBeTruthy();
   });
 
-  it("shows every column the auction's export fills, and none of the ingest's bookkeeping", async () => {
+  it("shows the sale day when the auction gives no sale time", async () => {
+    getLot.mockResolvedValue({ ...sampleLot, sale_at: null });
+    await show();
+    expect(screen.getByRole("main").textContent).toContain("Sep 18, 2026");
+    expect(screen.getByRole("main").textContent).not.toContain("Sells in");
+  });
+
+  it("keeps every column the auction's export fills, in plain words, and none of the ingest's bookkeeping", async () => {
     await show();
     const page = screen.getByRole("main").textContent ?? "";
     for (const value of [
-      "AUTOMOBILE", "2.4L 4", "GAS", "AUTOMATIC", "FRONT", "PURE SALE", "INSURANCE CO",
-      "CA - VALLEJO", "123", "94590", "USA", "SEDAN 4DR", "CHARCOAL", "SC",
-      "NOT ACTUAL",             // odometer_brand, "N" in Copart's export
-      "Sep 18, 2026",           // sale_date, as a day
+      "JH4CU2F65DC010051", "$8,119", "$2,400", "$0", "SIDE", "CA",
+      "AUTOMOBILE", "2.4L 4-cyl", "GAS", "AUTOMATIC", "FRONT", "Pure sale", "INSURANCE CO",
+      "CA - VALLEJO, yard 123", "VALLEJO, CA 94590 USA", "SEDAN 4DR", "CHARCOAL", "USD",
+      "Salvage certificate",    // title_type, "SC" in Copart's export
+      "Mileage not real",       // odometer_brand, "N" in Copart's export
       "Sep 17, 2026, 9:12 AM",  // source_created_at, which carries no time zone
       "Sep 18, 2026, 6:44 AM",  // source_updated_at
+      "Sep 18, 2026, 1:31 AM",  // first_seen_at
+      "Sep 18, 2026, 12:01 PM", // last_changed_at
     ]) {
       expect(page, value).toContain(value);
     }
+    expect(page).not.toContain("NOT ACTUAL");
     expect(page).not.toContain(sampleLot.image_url);
     expect(page).not.toContain(sampleLot.thumbnail_url);
   });
 
+  it("gives specs and sale info their own sections, never collapsed", async () => {
+    await show();
+    for (const name of ["Specs", "Sale info", "Condition", "Paperwork", "Pickup", "All-in cost"]) {
+      expect(screen.getByRole("heading", { level: 2, name })).toBeTruthy();
+    }
+    expect(document.querySelector("details")).toBeNull();
+  });
+
+  it("adds up only what it knows, and says what is not estimated", async () => {
+    await show();
+    const cost = screen.getByRole("region", { name: "All-in cost" }).textContent ?? "";
+    expect(cost).toContain("Current bid$0");
+    expect(cost).toContain("Buyer and gate fees (est.)Not estimated yet");
+    expect(cost).toContain("Shipping to you (est.)Not estimated yet");
+    expect(cost).toContain("Retail value (ACV) $8,119");
+  });
+
   it("sends the dealer to the auction to bid, and back to the listing", async () => {
     await show();
-    const bid = screen.getByRole("link", { name: "Bid on copart" });
+    const bid = screen.getByRole("link", { name: "Place bid" });
     expect(bid.getAttribute("href")).toBe(sampleLot.listing_url);
     expect(bid.getAttribute("rel")).toContain("noopener");
+    expect(screen.queryByRole("link", { name: /Buy now/ })).toBeNull();
     expect(screen.getByRole("link", { name: "Active lots" }).getAttribute("href")).toBe("/active-lots");
+  });
+
+  it("offers buy now when the auction does", async () => {
+    getLot.mockResolvedValue({ ...sampleLot, buy_it_now_price: 5200 });
+    await show();
+    expect(screen.getByRole("link", { name: "Buy now $5,200" }).getAttribute("href")).toBe(sampleLot.listing_url);
   });
 
   it("shows every photo of the lot as a gallery, thumbnails jumping to each", async () => {
@@ -116,6 +162,7 @@ describe("lot page", () => {
     await show();
     expect(screen.queryByRole("region", { name: /Photos of lot/ })).toBeNull();
     expect(screen.queryAllByRole("img")).toEqual([]);
+    expect(screen.getByText("The auction has published no photos of this lot.")).toBeTruthy();
   });
 
   it("is a not found page once the auction drops the lot", async () => {

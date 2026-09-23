@@ -64,7 +64,9 @@ with the word "Home". The interface uses
 black, grey and white only, through the tokens in `src/app/globals.css`
 (`--ink`, `--muted`, `--line`, `--paper`, `--surface`), the system font stack,
 and no dark mode. Buttons, links, checkboxes and focus rings are all `--ink`;
-errors read as bold text rather than a colour. Add branding once a name and a
+errors read as bold text rather than a colour. The lot page's deal-breaker
+badges and sale countdown are the one exception: green, amber and red
+(`--good`, `--warn`, `--bad`), always with an icon and words as well. Add branding once a name and a
 design are settled.
 
 ## Route registry

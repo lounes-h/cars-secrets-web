@@ -67,11 +67,14 @@ See `docs/architecture.md` for details.
   mode. The interface uses black, grey and white only: `--ink`, `--muted`,
   `--line`, `--paper` and `--surface` in `src/app/globals.css`. `--ink` carries
   buttons, links, checkboxes and focus rings; errors read as bold text rather
-  than a colour, since there is no error colour. Basic styling lives on those
+  than a colour, since there is no error colour. The one exception is the lot
+  page's deal-breaker badges and sale countdown: `--good`, `--warn` and `--bad`
+  (with `-bg` variants) colour them green, amber and red, and every badge also
+  carries an icon and words, never colour alone. Basic styling lives on those
   tokens: base styles for headings, labels, inputs, selects, checkboxes, links
   and alerts, plus a few classes (`btn`, `btn-primary`, `btn-outline`,
   `btn-ghost`, `btn-link`, `card`, `auth-main`, `auth-panel`, `form-stack`,
-  `phone-field`, `divider`, `hint`, `notice`). Reuse them rather than adding
+  `phone-field`, `divider`, `hint`, `notice`, `badge`). Reuse them rather than adding
   one-off styles, and add no branding until the name and a design exist.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page and shows the site name as plain text. Its navigation
@@ -242,27 +245,38 @@ Policy themselves do not exist yet.
 In place for lots: `/active-lots` ("Active lots" in the menu and as its `h1`; the
 path was `/auctions`, which redirects here permanently) lists active lots, the most recently listed
 first (the API's order), 20 to a page (`?page=`), and `/active-lots/[source]/[lotNumber]` shows one lot —
-every column the ingest keeps for it (the car, its damage and title, and the sale),
-every photo of it, and a button to the
-auction site, since bidding never happens here. The ingest's own bookkeeping
+every column the ingest keeps for it, every photo of it, and a "Place bid" button
+(plus "Buy now" when the auction offers it) to the auction site, since bidding never
+happens here. The page reads top to bottom as: a summary (title, lot number and VIN
+with copy buttons, the time left before the sale, a meta line, one plain sentence and
+the deal-breaker badges in a fixed order: run status, keys, title, then odometer and
+sale status only when they are not the normal case); the photos beside the all-in cost
+card, the one emphasised card, whose fee and shipping rows read "Not estimated yet" and
+whose total stays a dash until those estimates exist; condition, paperwork and pickup;
+then specs as tiles and sale info as one light row, both always visible. Auction codes
+are translated into plain words in one lookup table, `SIGNALS` in
+`src/lib/lot-signals.ts`, which also sets each badge's colour; the page shows no raw
+code except one the table does not know yet, which appears as it came, neutral. The
+auction publishes no airbag, seller type, condition report, seller notes, pickup
+deadline, storage fee or buyer eligibility, and the site has no dealer location, so
+those have no place on the page yet. The ingest's own bookkeeping
 (`attributes`, `row_hash`, `last_seen_at`, `removed_at`, the file ids) is not in the
 API's `Lot` and so not on the page; a column the ingest adds belongs in `Lot`,
-`lots-fixture.ts` and one of the page's three groups. Both read
+`lots-fixture.ts` and one of the page's sections. Both read
 `src/lib/lots.ts` → `GET /api/lots[/{source}/{lot}]` on the API, which reads the
 ingest database (`../cars-secrets-data-ingest`); the web app never opens the
 database itself. Both are for signed-in dealers only: they keep their `h1` for
 everyone, and a visitor gets a "Sign in" link instead of the lots. A lot the
 API no longer has is a 404. `lots.ts` also holds the formatters both pages
-share, so a dash for a missing value looks the same on each, and it spells
-Copart's odometer brand code out the way Copart's own site does (`A` is
-"ACTUAL", `N` "NOT ACTUAL", `E` "EXEMPT"; an unknown code is shown as it came); `lots-fixture.ts`
+share, so a dash for a missing value looks the same on each; `lots-fixture.ts`
 is the complete lot the tests build on. The lot's photos come from
 `GET /api/lots/{source}/{lot}/images` (`getLotImages`), which the API fills from
 the auction; each photo carries a `thumb` and a `full` URL. The detail page shows
-them as a gallery down the left two fifths of the page: one full-size photo at a
+them as a gallery in the left column beside the cost card: one full-size photo at a
 time in a scroll-snapping strip, with a column of thumbnails beside it linking to
 `#photo-N`. Scrolling and the jumps are the browser's own, so the page stays a
-Server Component with no JavaScript of its own. The auction may be unreachable, so no photos
+Server Component; its only JavaScript is the copy buttons (`src/components/CopyButton.tsx`).
+The photos are not tagged by the auction, so there are no Damage/Exterior/Interior filters yet. The auction may be unreachable, so no photos
 is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
