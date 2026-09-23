@@ -5,7 +5,7 @@ vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }
 
 const { ApiError } = await import("@/lib/api");
 
-const { getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE, saleDate, saleTime } =
+const { auctionName, getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE, saleDate, saleTime } =
   await import("@/lib/lots");
 
 describe("pageNumber", () => {
@@ -98,5 +98,18 @@ describe("saleDate", () => {
 
   it("is a dash when the auction published none", () => {
     expect(saleDate(null)).toBe("—");
+  });
+});
+
+describe("auctionName", () => {
+  it("names the auction as it names itself", () => {
+    expect(auctionName("copart")).toBe("Copart");
+    expect(auctionName("iaa")).toBe("IAA");
+    expect(auctionName("IAA")).toBe("IAA");
+    expect(auctionName("manheim")).toBe("Manheim");
+  });
+
+  it("shows an auction it does not know as it came", () => {
+    expect(auctionName("acv")).toBe("acv");
   });
 });

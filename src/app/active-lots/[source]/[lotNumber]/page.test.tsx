@@ -58,7 +58,7 @@ describe("lot page", () => {
     const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
     expect(header).toContain("Sells in 10h 30m");
     expect(header).toContain("Fri, Sep 18, 7:00 PM");
-    expect(header).toContain("120,500 mi (mileage not real) · #1 FRONT END · #2 SIDE · VALLEJO, CA");
+    expect(header).toContain("120,500 mi (mileage not real) · FWD · #1 FRONT END · #2 SIDE · VALLEJO, CA");
     expect(header).not.toContain("Runs and drives, front end damage"); // no sentence repeating the badges
     const badges = within(screen.getByRole("list", { name: "Deal breakers" })).getAllByRole("listitem");
     expect(badges.map((badge) => [badge.textContent, badge.dataset.tone])).toEqual([
@@ -66,6 +66,7 @@ describe("lot page", () => {
       ["✓Keys", "good"],
       ["!CA - Salvage Certificate", "warn"],
       ["✕Mileage not real", "bad"],
+      ["✓Pure sale", "good"],
     ]);
     expect(screen.getByRole("button", { name: "Copy VIN" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Copy lot number" })).toBeTruthy();
@@ -75,7 +76,7 @@ describe("lot page", () => {
     getLot.mockResolvedValue({ ...sampleLot, damage_secondary: null });
     await show();
     const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
-    expect(header).toContain("120,500 mi (mileage not real) · #1 FRONT END · VALLEJO, CA");
+    expect(header).toContain("120,500 mi (mileage not real) · FWD · #1 FRONT END · VALLEJO, CA");
     expect(header).not.toContain("#2");
   });
 
@@ -86,12 +87,27 @@ describe("lot page", () => {
     expect(screen.getByRole("main").textContent).not.toContain("Sells in");
   });
 
+  it("calls a lot with no sale day yet a future sale", async () => {
+    getLot.mockResolvedValue({ ...sampleLot, sale_at: null, sale_date: null });
+    await show();
+    const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
+    expect(header).toContain("Future sale");
+    expect(header).not.toContain("—");
+  });
+
+  it("leaves the drive out of the meta line when the auction does not know it", async () => {
+    getLot.mockResolvedValue({ ...sampleLot, drive: "UNKNOWN" });
+    await show();
+    const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
+    expect(header).toContain("120,500 mi (mileage not real) · #1 FRONT END");
+  });
+
   it("keeps every column the auction's export fills, in plain words, and none of the ingest's bookkeeping", async () => {
     await show();
     const page = screen.getByRole("main").textContent ?? "";
     for (const value of [
       "JH4CU2F65DC010051", "$8,119", "$2,400", "$0", "SIDE", "CA",
-      "AUTOMOBILE", "2.4L 4-cyl", "GAS", "AUTOMATIC", "FRONT", "Pure sale", "INSURANCE CO",
+      "AUTOMOBILE", "2.4L 4-cyl", "GAS", "AUTOMATIC", "FWD", "Pure sale", "INSURANCE CO",
       "CA - VALLEJO, yard 123", "VALLEJO, CA 94590 USA", "SEDAN 4DR", "CHARCOAL", "USD",
       "CA - Salvage Certificate", // title_state and title_type, "CA" and "SC" in Copart's export
       "Mileage not real",       // odometer_brand, "N" in Copart's export
@@ -103,6 +119,8 @@ describe("lot page", () => {
       expect(page, value).toContain(value);
     }
     expect(page).not.toContain("NOT ACTUAL");
+    expect(page).not.toContain("Sale status"); // a badge in the header, not a row in sale info
+    expect(page).not.toContain("Drive"); // "FWD" in the header, not a spec tile
     expect(page).not.toContain("Title state"); // the state is part of the title, as on copart.com
     expect(page).not.toContain(sampleLot.image_url);
     expect(page).not.toContain(sampleLot.thumbnail_url);
@@ -125,13 +143,30 @@ describe("lot page", () => {
     expect(cost).toContain("Retail value (ACV) $8,119");
   });
 
-  it("sends the dealer to the auction to bid, and back to the listing", async () => {
+  it("sends the dealer to the auction to bid", async () => {
     await show();
     const bid = screen.getByRole("link", { name: "Place bid" });
     expect(bid.getAttribute("href")).toBe(sampleLot.listing_url);
     expect(bid.getAttribute("rel")).toContain("noopener");
     expect(screen.queryByRole("link", { name: /Buy now/ })).toBeNull();
-    expect(screen.getByRole("link", { name: "Active lots" }).getAttribute("href")).toBe("/active-lots");
+    expect(screen.queryByRole("link", { name: "Active lots" })).toBeNull();
+    expect(screen.getByText("Bidding happens on Copart's own site.")).toBeTruthy();
+  });
+
+  it("opens the lot on the auction's site from the top of the page", async () => {
+    await show();
+    const header = screen.getByRole("banner", { hidden: true });
+    const auction = within(header).getByRole("link", { name: "View on Copart" });
+    expect(auction.getAttribute("href")).toBe(sampleLot.listing_url);
+    expect(auction.getAttribute("target")).toBe("_blank");
+    expect(auction.getAttribute("rel")).toContain("noopener");
+  });
+
+  it("has no auction link when the lot has no listing", async () => {
+    getLot.mockResolvedValue({ ...sampleLot, listing_url: null });
+    await show();
+    expect(screen.queryByRole("link", { name: /View on/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Place bid" })).toBeNull();
   });
 
   it("offers buy now when the auction does", async () => {

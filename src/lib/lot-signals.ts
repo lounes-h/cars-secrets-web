@@ -38,10 +38,10 @@ export const SIGNALS: Record<"run" | "keys" | "odometer" | "sale", Record<string
     "": { label: "Mileage status not stated", tone: "neutral", badge: false },
   },
   sale: {
-    "PURE SALE": { label: "Pure sale", tone: "good", badge: false },
+    "PURE SALE": { label: "Pure sale", tone: "good" },
     "ON MINIMUM BID": { label: "Minimum bid", tone: "warn" },
     "ON APPROVAL": { label: "Seller must approve", tone: "warn" },
-    "": { label: "Sale status not stated", tone: "neutral", badge: false },
+    "": { label: "Sale status not stated", tone: "neutral" },
   },
 };
 
@@ -96,6 +96,20 @@ export function countdown(saleAt: string, now: Date): Signal | null {
   const [d, h, m] = [Math.floor(minutes / 1440), Math.floor(minutes / 60) % 24, minutes % 60];
   const label = d > 0 ? `Sells in ${d}d ${h}h` : `Sells in ${h}h ${m}m`;
   return { label, tone: left < 3_600_000 ? "bad" : left < 86_400_000 ? "warn" : "neutral" };
+}
+
+/**
+ * Drive as a dealer says it: "FRONT WHEEL DRIVE" reads "FWD", "4X4 W/REAR WHEEL DRV" and
+ * "FOUR BY FOUR" read "4WD". Anything else shows as it came; "UNKNOWN" and "NONE" say nothing.
+ */
+export function driveType(lot: Lot): string | null {
+  const drive = lot.drive?.trim() ?? "";
+  if (/^(|unknown|none)$/i.test(drive)) return null;
+  if (/^(4x4|four by four)/i.test(drive)) return "4WD";
+  if (/^all/i.test(drive)) return "AWD";
+  if (/^front/i.test(drive)) return "FWD";
+  if (/^rear/i.test(drive)) return "RWD";
+  return drive;
 }
 
 /** Engine and cylinders as one spec: "2.4L 4" with 4 cylinders reads "2.4L 4-cyl". */
