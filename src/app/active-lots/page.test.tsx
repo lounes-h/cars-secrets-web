@@ -57,6 +57,9 @@ describe("active lots page", () => {
     expect(row.textContent).toContain("2013 ACURA TSX");
     expect(row.textContent).toContain("120,500 mi");
     expect(row.textContent).toContain("$8,119");
+    // The sale in the reader's zone (UTC in tests), which the browser rewrites before painting.
+    expect(row.querySelector("time")?.getAttribute("datetime")).toBe("2026-09-18T19:00:00Z");
+    expect(row.textContent).toContain("Sep 18, 2026, 7:00 PM UTC");
   });
 
   it("asks for the requested page and offers the neighbouring ones", async () => {

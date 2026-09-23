@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LocalTime } from "@/components/LocalTime";
 import {
   amount,
   listLots,
@@ -8,7 +9,6 @@ import {
   pageNumber,
   PAGE_SIZE,
   place,
-  saleTime,
   vehicle,
   type LotPage,
 } from "@/lib/lots";
@@ -86,7 +86,7 @@ function Lots({ page, items, total }: { page: number } & LotPage) {
                 <td className="py-2 pr-4">{lot.damage_primary ?? "—"}</td>
                 <td className="py-2 pr-4">{lot.title_type ?? "—"}</td>
                 <td className="py-2 pr-4">{place(lot)}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">{saleTime(lot.sale_at)}</td>
+                <td className="py-2 pr-4 whitespace-nowrap"><LocalTime value={lot.sale_at} /></td>
                 <td className="py-2 pr-4 text-right whitespace-nowrap">
                   {amount(lot.est_retail_value, lot.currency)}
                 </td>

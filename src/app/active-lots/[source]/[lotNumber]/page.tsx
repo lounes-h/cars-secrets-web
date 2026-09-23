@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
+import { LocalTime } from "@/components/LocalTime";
 import { badges, countdown, driveType, engineSpec, odometerStatus, titleType, vehicleType } from "@/lib/lot-signals";
 import {
   amount,
@@ -12,7 +13,6 @@ import {
   odometer,
   place,
   saleDate,
-  saleTime,
   sellerName,
   vehicle,
 } from "@/lib/lots";
@@ -102,7 +102,7 @@ export default async function LotPage({ params }: { params: Params }) {
             )}
             {/* No sale day yet is what Copart calls a future sale. */}
             <p className="text-sm text-muted">
-              {lot.sale_at ? saleMoment(lot.sale_at) : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
+              {lot.sale_at ? <LocalTime value={lot.sale_at} format="sale" /> : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
             </p>
             {lot.listing_url && (
               <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline mt-2">
@@ -197,15 +197,14 @@ export default async function LotPage({ params }: { params: Params }) {
       <section aria-labelledby="sale" className="mt-8">
         <h2 id="sale" className="text-sm font-semibold text-muted">Sale info</h2>
         <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted [&>div]:flex [&>div]:gap-1.5 [&_dd]:text-ink">
-          {[
+          {([
             ["Auction", auction],
             ["Seller", sellerName(lot)],
             ["Currency", lot.currency],
-            ["Listed by the auction", saleTime(lot.source_created_at)],
-            ["Last updated", saleTime(lot.source_updated_at)],
-            ["First seen", saleTime(lot.first_seen_at)],
-            ["Last changed", saleTime(lot.last_changed_at)],
-          ].map(([label, value]) => (
+            [`Updated on ${auction}`, <LocalTime key="updated" value={lot.source_updated_at} />],
+            ["Added to this site", <LocalTime key="added" value={lot.first_seen_at} />],
+            ["Last change seen", <LocalTime key="changed" value={lot.last_changed_at} />],
+          ] satisfies [string, React.ReactNode][]).map(([label, value]) => (
             <div key={label}>
               <dt>{label}</dt>
               <dd>{value || "—"}</dd>
@@ -294,17 +293,6 @@ function Field({ label, value }: { label: string; value: string | number | null 
 }
 
 const TONE_ICONS = { good: "✓", warn: "!", bad: "✕", neutral: "•" } as const;
-
-/** Sale times are the auction's own, in UTC like every other time on the site: "Thu, Sep 24, 10:00 AM". */
-const moment = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "UTC",
-});
-const saleMoment = (value: string) => moment.format(new Date(value));
 
 const ICONS = {
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,

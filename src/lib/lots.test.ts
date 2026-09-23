@@ -5,7 +5,7 @@ vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }
 
 const { ApiError } = await import("@/lib/api");
 
-const { auctionName, getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE, saleDate, saleTime, sellerName } =
+const { auctionName, getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE, saleDate, sellerName } =
   await import("@/lib/lots");
 const { sampleLot } = await import("@/lib/lots-fixture");
 
@@ -77,24 +77,16 @@ describe("getLot", () => {
   });
 });
 
-describe("saleTime", () => {
-  it("reads the auction's zoned timestamps in UTC", () => {
-    expect(saleTime("2026-09-18T19:00:00Z")).toBe("Sep 18, 2026, 7:00 PM");
-    expect(saleTime("2026-09-18T19:00:00+02:00")).toBe("Sep 18, 2026, 5:00 PM");
-  });
-
-  it("reads a timestamp without a zone as UTC, so server and browser agree", () => {
-    expect(saleTime("2026-09-17T09:12:00")).toBe("Sep 17, 2026, 9:12 AM");
-  });
-
-  it("is a dash when the auction published none", () => {
-    expect(saleTime(null)).toBe("—");
-  });
-});
-
 describe("saleDate", () => {
   it("shows a date column as a day, with no time of its own", () => {
     expect(saleDate("2026-10-01")).toBe("Oct 1, 2026");
+  });
+
+  it("keeps the auction's day in a zone behind UTC", () => {
+    const zone = process.env.TZ;
+    process.env.TZ = "America/Los_Angeles";
+    expect(saleDate("2026-10-01")).toBe("Oct 1, 2026");
+    process.env.TZ = zone;
   });
 
   it("is a dash when the auction published none", () => {

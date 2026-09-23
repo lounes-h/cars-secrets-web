@@ -149,7 +149,8 @@ This repository has no database. Accounts are stored and migrated by the API.
 Tests sit next to the code as `*.test.ts(x)` under `src/`. They run in the node
 environment by default. Component tests opt into jsdom with
 `// @vitest-environment jsdom`. `vitest.config.mts` sets
-`NEXT_PUBLIC_SITE_URL=https://cars-secrets.test` so that URLs are deterministic.
+`NEXT_PUBLIC_SITE_URL=https://cars-secrets.test` so that URLs are deterministic,
+and `TZ=UTC` so that times are.
 
 ## Unit Test Requirements
 
@@ -258,7 +259,17 @@ the seller: "Insurance seller" (green), "Not an insurance seller" or "Seller not
 card, the one emphasised card, whose fee and shipping rows read "Not estimated yet",
 whose total stays a dash until those estimates exist, and which carries a "Buy now" button
 only when the auction offers it; condition, paperwork and pickup;
-then specs as tiles and sale info as one light row, both always visible. Auction codes
+then specs as tiles and sale info as one light row, both always visible. Sale info's times
+are Copart's last update of the lot ("Updated on Copart", `source_updated_at`), when the
+ingest first saw it ("Added to this site", `first_seen_at`) and when it last saw it change
+("Last change seen", `last_changed_at`). Copart's "Create Date/Time" (`source_created_at`)
+is the moment the export was made, the same on every row and without a zone, so it is not a
+lot date and is not shown. Every time on the site — the sale on both pages and those three —
+is shown in the reader's own time zone, which is named ("12:00 PM EDT"), through
+`src/components/LocalTime.tsx`: the server cannot know the zone, so an inline script rewrites
+the server's text in the browser before the first paint (Next's "Preventing flash before
+hydration" guide). A sale day without a time (`sale_date`) is a calendar day and stays as
+the auction gives it (`saleDate`). Auction codes
 are translated into plain words in one lookup table, `SIGNALS` in
 `src/lib/lot-signals.ts`, which also sets each badge's colour; the page shows no raw
 code except one the table does not know yet, which appears as it came, neutral. The
@@ -294,7 +305,8 @@ the auction; each photo carries a `thumb` and a `full` URL. The detail page show
 them as a gallery in the left column beside the cost card: one full-size photo at a
 time in a scroll-snapping strip, with a column of thumbnails beside it linking to
 `#photo-N`. Scrolling and the jumps are the browser's own, so the page stays a
-Server Component; its only JavaScript is the copy buttons (`src/components/CopyButton.tsx`).
+Server Component; its only JavaScript is the copy buttons (`src/components/CopyButton.tsx`)
+and `LocalTime`.
 The photos are not tagged by the auction, so there are no Damage/Exterior/Interior filters yet. The auction may be unreachable, so no photos
 is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.

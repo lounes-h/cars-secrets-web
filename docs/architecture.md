@@ -20,6 +20,7 @@ src/
                        sign in / free trial, or the member menu with the user
     auth/              Auth forms (React Hook Form), PasswordField, PhoneField, Turnstile, SocialButtons,
                        form-helpers (server errors on fields, remembered email)
+    LocalTime.tsx      A time in the reader's own time zone: server text, rewritten before paint
   lib/
     site.ts            Site identity (URL, language, description) and URL resolution
     routes.ts          Registry of every public page
