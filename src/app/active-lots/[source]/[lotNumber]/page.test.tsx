@@ -67,6 +67,7 @@ describe("lot page", () => {
       ["!CA - Salvage Certificate", "warn"],
       ["✕Mileage not real", "bad"],
       ["✓Pure sale", "good"],
+      ["✓Insurance seller", "good"],
     ]);
     expect(screen.getByRole("button", { name: "Copy VIN" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Copy lot number" })).toBeTruthy();
@@ -107,7 +108,8 @@ describe("lot page", () => {
     const page = screen.getByRole("main").textContent ?? "";
     for (const value of [
       "JH4CU2F65DC010051", "$8,119", "$2,400", "$0", "SIDE", "CA",
-      "AUTOMOBILE", "2.4L 4-cyl", "GAS", "AUTOMATIC", "FWD", "Pure sale", "INSURANCE CO",
+      "Automobile", // vehicle_type, "V" in Copart's export
+      "2.4L 4-cyl", "GAS", "AUTOMATIC", "FWD", "Pure sale", "State Farm Insurance",
       "CA - VALLEJO, yard 123", "VALLEJO, CA 94590 USA", "SEDAN 4DR", "CHARCOAL", "USD",
       "CA - Salvage Certificate", // title_state and title_type, "CA" and "SC" in Copart's export
       "Mileage not real",       // odometer_brand, "N" in Copart's export

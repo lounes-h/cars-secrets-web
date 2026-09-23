@@ -7,7 +7,7 @@
  */
 
 import COPART_TITLES from "@/lib/copart-titles.json";
-import type { Lot } from "@/lib/lots";
+import { type Lot, sellerName } from "@/lib/lots";
 
 export type Tone = "good" | "warn" | "bad" | "neutral";
 export type Signal = { label: string; tone: Tone };
@@ -79,9 +79,23 @@ export function titleType(lot: Lot): Entry {
 export const odometerStatus = (lot: Lot) => lookup("odometer", lot.odometer_brand);
 export const saleStatus = (lot: Lot) => lookup("sale", lot.sale_status);
 
+/**
+ * Whether an insurer sells the lot, read from the seller's name: neither the export nor copart.com
+ * has a seller type. An insurer sells because of a claim, which makes swapped or missing parts and
+ * a rolled-back odometer rarer. The export names the seller for about a third of lots.
+ * ponytail: a name pattern; an insurer named without one of these words reads as not one, so add it here.
+ */
+const INSURER = /\b(insurance|assurance|mutual|casualty|indemnity|geico|progressive|usaa|csaa|allstate|esurance|safeco|travelers|amica)\b|\bins\./i;
+
+export function sellerType(lot: Lot): Entry {
+  const name = sellerName(lot);
+  if (!name) return { label: "Seller not stated", tone: "neutral" };
+  return INSURER.test(name) ? { label: "Insurance seller", tone: "good" } : { label: "Not an insurance seller", tone: "neutral" };
+}
+
 /** The deal breakers, always in this order so a returning buyer knows where to look. */
 export function badges(lot: Lot): Signal[] {
-  return [runStatus(lot), keys(lot), titleType(lot), odometerStatus(lot), saleStatus(lot)]
+  return [runStatus(lot), keys(lot), titleType(lot), odometerStatus(lot), saleStatus(lot), sellerType(lot)]
     .filter((entry) => entry.badge !== false)
     .map(({ label, tone }) => ({ label, tone }));
 }
@@ -110,6 +124,33 @@ export function driveType(lot: Lot): string | null {
   if (/^front/i.test(drive)) return "FWD";
   if (/^rear/i.test(drive)) return "RWD";
   return drive;
+}
+
+/** Copart's vehicle type codes in copart.com's words, made singular: its lot details call "K" "MEDIUM DUTY/BOX TRUCKS". */
+const VEHICLE_TYPES: Record<string, string> = {
+  V: "Automobile",
+  K: "Medium duty / box truck",
+  U: "Heavy duty truck",
+  B: "Bus",
+  R: "Recreational vehicle (RV)",
+  L: "Trailer",
+  C: "Motorcycle",
+  D: "Dirt bike",
+  A: "ATV",
+  S: "Snowmobile",
+  M: "Boat",
+  J: "Jet ski",
+  E: "Industrial equipment",
+  N: "Construction equipment",
+  F: "Agriculture and farm equipment",
+  H: "Other goods",
+  I: "Inspection",
+};
+
+/** The lot's vehicle type in words; a code the table does not know shows as it came. */
+export function vehicleType(lot: Lot): string | null {
+  const code = lot.vehicle_type?.trim();
+  return (code && VEHICLE_TYPES[code.toUpperCase()]) || code || null;
 }
 
 /** Engine and cylinders as one spec: "2.4L 4" with 4 cylinders reads "2.4L 4-cyl". */
