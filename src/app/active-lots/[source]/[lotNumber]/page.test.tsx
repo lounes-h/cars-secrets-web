@@ -58,17 +58,25 @@ describe("lot page", () => {
     const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
     expect(header).toContain("Sells in 10h 30m");
     expect(header).toContain("Fri, Sep 18, 7:00 PM");
-    expect(header).toContain("120,500 mi (mileage not real) · FRONT END · VALLEJO, CA");
-    expect(header).toContain("Runs and drives, front end damage, mileage not real, salvage certificate.");
+    expect(header).toContain("120,500 mi (mileage not real) · #1 FRONT END · #2 SIDE · VALLEJO, CA");
+    expect(header).not.toContain("Runs and drives, front end damage"); // no sentence repeating the badges
     const badges = within(screen.getByRole("list", { name: "Deal breakers" })).getAllByRole("listitem");
     expect(badges.map((badge) => [badge.textContent, badge.dataset.tone])).toEqual([
       ["✓Runs and drives", "good"],
       ["✓Keys", "good"],
-      ["!Salvage certificate", "warn"],
+      ["!CA - Salvage Certificate", "warn"],
       ["✕Mileage not real", "bad"],
     ]);
     expect(screen.getByRole("button", { name: "Copy VIN" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Copy lot number" })).toBeTruthy();
+  });
+
+  it("leaves the second damage out of the meta line when the auction gives none", async () => {
+    getLot.mockResolvedValue({ ...sampleLot, damage_secondary: null });
+    await show();
+    const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
+    expect(header).toContain("120,500 mi (mileage not real) · #1 FRONT END · VALLEJO, CA");
+    expect(header).not.toContain("#2");
   });
 
   it("shows the sale day when the auction gives no sale time", async () => {
@@ -85,7 +93,7 @@ describe("lot page", () => {
       "JH4CU2F65DC010051", "$8,119", "$2,400", "$0", "SIDE", "CA",
       "AUTOMOBILE", "2.4L 4-cyl", "GAS", "AUTOMATIC", "FRONT", "Pure sale", "INSURANCE CO",
       "CA - VALLEJO, yard 123", "VALLEJO, CA 94590 USA", "SEDAN 4DR", "CHARCOAL", "USD",
-      "Salvage certificate",    // title_type, "SC" in Copart's export
+      "CA - Salvage Certificate", // title_state and title_type, "CA" and "SC" in Copart's export
       "Mileage not real",       // odometer_brand, "N" in Copart's export
       "Sep 17, 2026, 9:12 AM",  // source_created_at, which carries no time zone
       "Sep 18, 2026, 6:44 AM",  // source_updated_at
@@ -95,6 +103,7 @@ describe("lot page", () => {
       expect(page, value).toContain(value);
     }
     expect(page).not.toContain("NOT ACTUAL");
+    expect(page).not.toContain("Title state"); // the state is part of the title, as on copart.com
     expect(page).not.toContain(sampleLot.image_url);
     expect(page).not.toContain(sampleLot.thumbnail_url);
   });

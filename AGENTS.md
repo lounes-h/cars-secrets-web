@@ -248,8 +248,8 @@ first (the API's order), 20 to a page (`?page=`), and `/active-lots/[source]/[lo
 every column the ingest keeps for it, every photo of it, and a "Place bid" button
 (plus "Buy now" when the auction offers it) to the auction site, since bidding never
 happens here. The page reads top to bottom as: a summary (title, lot number and VIN
-with copy buttons, the time left before the sale, a meta line, one plain sentence and
-the deal-breaker badges in a fixed order: run status, keys, title, then odometer and
+with copy buttons, the time left before the sale, a meta line (mileage, "#1" primary and "#2" secondary damage, location) and
+the deal-breaker badges, with no sentence repeating them, in a fixed order: run status, keys, title, then odometer and
 sale status only when they are not the normal case); the photos beside the all-in cost
 card, the one emphasised card, whose fee and shipping rows read "Not estimated yet" and
 whose total stays a dash until those estimates exist; condition, paperwork and pickup;
@@ -257,6 +257,12 @@ then specs as tiles and sale info as one light row, both always visible. Auction
 are translated into plain words in one lookup table, `SIGNALS` in
 `src/lib/lot-signals.ts`, which also sets each badge's colour; the page shows no raw
 code except one the table does not know yet, which appears as it came, neutral. The
+title is the exception, because Copart words and groups the same code differently by
+state and the export carries only the state and the code: it reads as copart.com shows it
+("OR - Lien Papers Salvage"), with the wording and the colour (Copart's clean, salvage
+or non-repairable group) from `src/lib/copart-titles.json`, keyed "STATE CODE" and read
+off copart.com by `scripts/copart-titles.js`. A pair the file does not hold yet shows as
+the code ("OR - LS"), neutral; rerun the script to add it. The
 auction publishes no airbag, seller type, condition report, seller notes, pickup
 deadline, storage fee or buyer eligibility, and the site has no dealer location, so
 those have no place on the page yet. The ingest's own bookkeeping

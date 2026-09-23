@@ -1,10 +1,12 @@
 /**
  * What a lot's auction codes mean in plain words, and how much each one should worry a buyer.
- * The lot page reads its badges, its summary sentence and its labels from here, so a code is
+ * The lot page reads its badges and its labels from here, so a code is
  * translated in one place. An unknown code is shown as it came, neutral, rather than guessed at.
+ * Titles are Copart's own words, not ours: see `titleType`.
  * ponytail: Copart's codes only, since Copart is the only source; key by source when a second arrives.
  */
 
+import COPART_TITLES from "@/lib/copart-titles.json";
 import type { Lot } from "@/lib/lots";
 
 export type Tone = "good" | "warn" | "bad" | "neutral";
@@ -14,7 +16,7 @@ export type Signal = { label: string; tone: Tone };
 type Entry = Signal & { badge?: false };
 
 /** Keyed by the auction's code, trimmed and upper-cased. */
-export const SIGNALS: Record<"run" | "keys" | "title" | "odometer" | "sale", Record<string, Entry>> = {
+export const SIGNALS: Record<"run" | "keys" | "odometer" | "sale", Record<string, Entry>> = {
   run: {
     "RUN & DRIVE VERIFIED": { label: "Runs and drives", tone: "good" },
     "VEHICLE STARTS": { label: "Engine starts only", tone: "warn" },
@@ -27,16 +29,6 @@ export const SIGNALS: Record<"run" | "keys" | "title" | "odometer" | "sale", Rec
     NO: { label: "No keys", tone: "warn" },
     EXM: { label: "Keys exempt", tone: "neutral" },
     "": { label: "Keys not stated", tone: "neutral" },
-  },
-  title: {
-    CT: { label: "Clean title", tone: "good" },
-    SC: { label: "Salvage certificate", tone: "warn" },
-    ST: { label: "Salvage title", tone: "warn" },
-    SV: { label: "Salvage title", tone: "warn" },
-    RB: { label: "Rebuilt title", tone: "warn" },
-    NR: { label: "Non-repairable", tone: "bad" },
-    CD: { label: "Certificate of destruction", tone: "bad" },
-    "": { label: "Title not stated", tone: "neutral" },
   },
   odometer: {
     A: { label: "Actual mileage", tone: "good", badge: false },
@@ -60,7 +52,30 @@ function lookup(kind: keyof typeof SIGNALS, value: string | null): Entry {
 
 export const runStatus = (lot: Lot) => lookup("run", lot.runs_drives);
 export const keys = (lot: Lot) => lookup("keys", lot.has_keys);
-export const titleType = (lot: Lot) => lookup("title", lot.title_type);
+/** Copart's title groups, which decide the badge's colour: clean, salvage, non-repairable. */
+const TITLE_GROUP_TONES: Record<string, Tone> = { C: "good", S: "warn", J: "bad" };
+
+/**
+ * Copart's capitals: each space-separated word's first letter upper case, even after a bracket, and
+ * the rest lower case: "Dis/dlr/exp Lien Papers-salv", "Wrecker's Notice (Parts Only)".
+ */
+export const copartCase = (text: string) =>
+  text.toLowerCase().replace(/(^|\s)([^\sa-z]*)([a-z])/g, (_, space: string, lead: string, first: string) => space + lead + first.toUpperCase());
+
+/**
+ * The title as copart.com shows it: "OR - Lien Papers Salvage". The export carries only the state and
+ * a code, and Copart words and groups the same code differently by state, so the wording and group
+ * come from `copart-titles.json`, keyed "STATE CODE" and read off copart.com. A pair it does not hold
+ * yet shows as the code ("OR - LS"), neutral, since its colour depends on the state.
+ */
+export function titleType(lot: Lot): Entry {
+  const code = lot.title_type?.trim().toUpperCase();
+  if (!code) return { label: "Title not stated", tone: "neutral" };
+  const state = lot.title_state?.trim().toUpperCase();
+  const known: string[] | undefined = (COPART_TITLES as Record<string, string[]>)[`${state} ${code}`];
+  const words = known ? copartCase(known[0]) : code;
+  return { label: state ? `${state} - ${words}` : words, tone: (known && TITLE_GROUP_TONES[known[1]]) || "neutral" };
+}
 export const odometerStatus = (lot: Lot) => lookup("odometer", lot.odometer_brand);
 export const saleStatus = (lot: Lot) => lookup("sale", lot.sale_status);
 
@@ -71,19 +86,6 @@ export function badges(lot: Lot): Signal[] {
     .map(({ label, tone }) => ({ label, tone }));
 }
 
-/** One plain sentence from the same signals: "Runs and drives, front end damage, salvage title." */
-export function summary(lot: Lot): string {
-  const odometer = odometerStatus(lot);
-  const parts = [
-    runStatus(lot).label,
-    lot.damage_primary && `${lot.damage_primary.toLowerCase()} damage`,
-    lot.has_keys?.trim().toUpperCase() === "NO" && "no keys",
-    odometer.badge !== false && odometer.label,
-    titleType(lot).label,
-  ].filter(Boolean) as string[];
-  const sentence = parts.map((part, i) => (i === 0 ? part : part.charAt(0).toLowerCase() + part.slice(1))).join(", ");
-  return `${sentence}.`;
-}
 
 /** Time left before the sale, and how urgent it is: amber under a day, red under an hour. */
 export function countdown(saleAt: string, now: Date): Signal | null {
