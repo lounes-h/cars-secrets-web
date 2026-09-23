@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  codeDigits,
   fieldErrors,
   hasSpecialCharacter,
   isValidNationalNumber,
@@ -102,6 +103,16 @@ describe("resetPasswordSchema", () => {
   it("puts a mismatch on the confirmation field", () => {
     const result = resetPasswordSchema.safeParse({ token: "t", password: "abcdefghij1!", password_confirm: "other" });
     expect(!result.success && fieldErrors(result.error)).toEqual({ password_confirm: "The two passwords differ." });
+  });
+});
+
+describe("codeDigits", () => {
+  it("keeps the ASCII digits of a typed or pasted code, at most six", () => {
+    expect(codeDigits("123 456")).toBe("123456");
+    expect(codeDigits("123-456")).toBe("123456");
+    expect(codeDigits("Your code: 042917. It expires in 10 minutes.")).toBe("042917");
+    expect(codeDigits("12")).toBe("12");
+    expect(codeDigits("١٢٣abc")).toBe("");
   });
 });
 

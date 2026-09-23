@@ -113,7 +113,7 @@ See `docs/architecture.md` for details.
   instead of having it formatted into the national shape.
 - A complete email address typed in any auth form is remembered for the tab
   (`src/lib/remembered-email.ts`, sessionStorage; half-typed ones are not) and
-  prefilled in the others. Registering or signing out forgets it (`forgetEmail`,
+  prefilled in the others. Entering a confirmation code or signing out forgets it (`forgetEmail`,
   called from the browser, since a server action cannot reach its storage)
   through `useRememberedEmail`. Never put it in a URL.
 - The session is the API's token in the httpOnly `cs_session` cookie, set and
@@ -230,7 +230,8 @@ favicon, touch icon, web app manifest, share image or structured data.
 
 In place for accounts: registration (names, email, optional phone with every
 country's flag and calling code, password with show/hide, Turnstile captcha),
-email confirmation, sign-in with remember me (captcha after
+email confirmation by a six-digit emailed code that also signs the dealer in (one numeric
+field that takes pastes and one-time-code autofill, a new code after 60 seconds), sign-in with remember me (captcha after
 repeated failures), sign-out, forgot and reset password, and Google and Apple
 buttons. The API answers "not configured" for Google and Apple until their
 credentials are set. There is no terms checkbox: the button reads "Agree and

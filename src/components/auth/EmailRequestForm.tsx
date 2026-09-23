@@ -15,11 +15,13 @@ type Props = {
   submitLabel: string;
   pendingLabel: string;
   /** Shown whatever the address: the API never says whether an account exists. */
-  success: (email: string) => ReactNode;
+  success?: (email: string) => ReactNode;
+  /** Replaces the whole sent state instead; `retry` goes back to the email field. */
+  next?: (email: string, retry: () => void) => ReactNode;
 };
 
-/** One email field + captcha: used by "forgot password" and "resend confirmation". */
-export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLabel, success }: Props) {
+/** One email field + captcha: used by "forgot password" and "confirm your email". */
+export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLabel, success, next }: Props) {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<EmailInput>({
@@ -42,10 +44,11 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
     setCaptchaReset((n) => n + 1);
   });
 
+  if (sentTo && next) return next(sentTo, () => setSentTo(null));
   if (sentTo) {
     return (
       <div role="status" className="form-stack">
-        <p className="notice">{success(sentTo)}</p>
+        <p className="notice">{success?.(sentTo)}</p>
         <p className="hint text-center">
           Wrong address?{" "}
           <button type="button" className="btn btn-link inline p-0 underline" onClick={() => setSentTo(null)}>

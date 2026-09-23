@@ -109,7 +109,7 @@ place. The server action parses
 the same schema again, calls the API and returns field errors, which `showServerErrors`
 puts on the matching inputs without clearing the form. The email typed in one auth form
 is remembered for the tab once it is a complete address, and prefilled in the others;
-sign in then focuses the password. Registering or signing out forgets it.
+sign in then focuses the password. Entering a confirmation code or signing out forgets it.
 
 - **Register**: the form posts names, email, the phone (one control holding the country
   picker and the number, joined into `+<calling code><digits>`; the API normalizes to
@@ -125,15 +125,22 @@ sign in then focuses the password. Registering or signing out forgets it.
   ticks off `PASSWORD_RULES` live — 8 characters, a letter, a number and a special
   character — from the first focus on the input onwards, and warns about Caps Lock. The
   same list is what the schema validates, and the API applies it too. The form also renders the Google and Apple
-  buttons, so the confirmation that replaces it on success — where the email went and a
-  "Go to sign in" button — replaces them too.
-- **Confirm**: the email links to `/verify-email?token=…`. The page shows a button;
-  confirming on page load would let mail scanners that open links use the token.
+  buttons, so the code step that replaces it on success replaces them too; "Use a
+  different email" goes back to the form with its values.
+- **Confirm**: the API mails a six-digit code (valid 10 minutes). `VerifyEmailForm` asks
+  for it in one field (`autocomplete="one-time-code"`, numeric keyboard), keeps only the
+  digits of whatever is typed or pasted (`codeDigits`) and submits on the sixth. A right
+  code signs the dealer in: `verifyEmailAction` sets the session and redirects to
+  `/account`. A wrong one clears the field and says so on it. "Send a new code" appears
+  after 60 seconds, the API's own minimum between codes. The step follows registration,
+  a sign-in on an unconfirmed address, and `/verify-email`, which asks for the address
+  first (prefilled from the tab's remembered one).
 - **Sign in**: on success the API returns a token, which becomes the `cs_session`
   cookie (30 days with "remember me", browser session otherwise), and the visitor lands
   on `/account`. When the API answers `captcha_required`, the form shows the Turnstile
-  widget. A wrong password clears the password (not the email) and offers a reset link;
-  an unconfirmed email offers a new confirmation link.
+  widget. A wrong password clears the password (not the email) and offers a reset link.
+  A right password on an unconfirmed address makes the API mail a code, and the form
+  turns into the code step, keeping "remember me" for the session it opens.
 - **Forgot / reset**: `/forgot-password` asks for the email; the emailed link opens
   `/reset-password?token=…`, which sets the new password. The API then signs out every
   session of that user.

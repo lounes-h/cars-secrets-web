@@ -110,7 +110,7 @@ export const routes: readonly SiteRoute[] = [
   {
     path: "/verify-email",
     title: "Confirm your email",
-    description: "Confirm the email address of your account, or request a new confirmation email.",
+    description: "Confirm the email address of your account with the 6-digit code we emailed you.",
     changeFrequency: "yearly",
     priority: 0.1,
     noindex: true,
