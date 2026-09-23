@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
-import { badges, countdown, engineSpec, odometerStatus, saleStatus, titleType } from "@/lib/lot-signals";
+import { badges, countdown, driveType, engineSpec, odometerStatus, titleType } from "@/lib/lot-signals";
 import {
   amount,
+  auctionName,
   getLot,
   getLotImages,
   type Lot,
@@ -64,15 +65,17 @@ export default async function LotPage({ params }: { params: Params }) {
   const odometerLabel = odometerStatus(lot).label;
   const meta = [
     lot.odometer != null && `${odometer(lot.odometer)} (${odometerLabel.toLowerCase()})`,
+    driveType(lot),
     lot.damage_primary && `#1 ${lot.damage_primary}`,
     lot.damage_secondary && `#2 ${lot.damage_secondary}`,
     place(lot) !== "—" && place(lot),
   ].filter(Boolean);
   const left = lot.sale_at ? countdown(lot.sale_at, new Date()) : null;
   const buyNow = lot.buy_it_now_price ? amount(lot.buy_it_now_price, lot.currency) : null;
+  const auction = auctionName(lot.source);
 
   return (
-    <main className="flex-1 bg-white px-4 py-8 sm:px-6 lg:px-10">
+    <main className="flex-1 bg-white px-4 pt-8 pb-24 sm:px-6 lg:px-10">
       {/* 1. Summary */}
       <header>
         <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
@@ -96,7 +99,16 @@ export default async function LotPage({ params }: { params: Params }) {
                 {left.label}
               </p>
             )}
-            <p className="text-sm text-muted">{lot.sale_at ? saleMoment(lot.sale_at) : saleDate(lot.sale_date)}</p>
+            {/* No sale day yet is what Copart calls a future sale. */}
+            <p className="text-sm text-muted">
+              {lot.sale_at ? saleMoment(lot.sale_at) : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
+            </p>
+            {lot.listing_url && (
+              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline mt-2">
+                View on {auction}
+              </a>
+            )}
+            <p className="hint mt-1">Bidding happens on {auction}&apos;s own site.</p>
           </div>
         </div>
         {meta.length > 0 && <p className="mt-3 text-sm text-muted">{meta.join(" · ")}</p>}
@@ -128,21 +140,11 @@ export default async function LotPage({ params }: { params: Params }) {
           <p className="mt-3 text-sm text-muted">
             Retail value (ACV) {amount(lot.est_retail_value, lot.currency)}
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {lot.listing_url && (
-              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-primary">
-                Place bid
-              </a>
-            )}
-            {lot.listing_url && buyNow && (
-              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline">
-                Buy now {buyNow}
-              </a>
-            )}
-          </div>
-          <p className="hint mt-3">
-            Bidding happens on {lot.source}&apos;s own site. <Link href="/active-lots">Active lots</Link>
-          </p>
+          {lot.listing_url && buyNow && (
+            <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline mt-4">
+              Buy now {buyNow}
+            </a>
+          )}
         </section>
       </div>
 
@@ -173,7 +175,6 @@ export default async function LotPage({ params }: { params: Params }) {
           {[
             ["engine", "Engine", engineSpec(lot)],
             ["transmission", "Transmission", lot.transmission],
-            ["drive", "Drive", lot.drive],
             ["fuel", "Fuel", lot.fuel_type],
             ["color", "Color", lot.color],
             ["body", "Body style", lot.body_style],
@@ -196,9 +197,8 @@ export default async function LotPage({ params }: { params: Params }) {
         <h2 id="sale" className="text-sm font-semibold text-muted">Sale info</h2>
         <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted [&>div]:flex [&>div]:gap-1.5 [&_dd]:text-ink">
           {[
-            ["Auction", lot.source],
+            ["Auction", auction],
             ["Seller", lot.seller_name],
-            ["Sale status", saleStatus(lot).label],
             ["Currency", lot.currency],
             ["Listed by the auction", saleTime(lot.source_created_at)],
             ["Last updated", saleTime(lot.source_updated_at)],
@@ -309,7 +309,6 @@ const ICONS = {
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   engine: <><circle cx="12" cy="12" r="3" /><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" /></>,
   transmission: <path d="M6 4v16M12 4v16M18 4v8M6 12h12" />,
-  drive: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="2" /></>,
   fuel: <path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z" />,
   color: <><circle cx="12" cy="12" r="9" /><path d="M12 3v18" /></>,
   body: <path d="M3 16v-3l2-5h14l2 5v3zM7 16v2M17 16v2" />,

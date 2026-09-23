@@ -145,6 +145,10 @@ export function saleDate(value: string | null): string {
   return value ? day.format(new Date(`${value}T00:00:00Z`)) : "—";
 }
 
+/** The auction's own name for its slug in the URL: "copart" is "Copart", "iaa" is "IAA". */
+const AUCTIONS: Record<string, string> = { copart: "Copart", iaa: "IAA", manheim: "Manheim" };
+export const auctionName = (source: string) => AUCTIONS[source.toLowerCase()] ?? source;
+
 export function vehicle(lot: Lot): string {
   return [lot.year, lot.make, lot.model].filter(Boolean).join(" ") || "—";
 }

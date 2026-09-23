@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { badges, copartCase, countdown, engineSpec, odometerStatus, titleType } from "@/lib/lot-signals";
+import { badges, copartCase, countdown, driveType, engineSpec, odometerStatus, titleType } from "@/lib/lot-signals";
 import { sampleLot } from "@/lib/lots-fixture";
 
 const lot = (fields: Partial<typeof sampleLot>) => ({ ...sampleLot, ...fields });
@@ -11,16 +11,16 @@ describe("badges", () => {
       { label: "Keys", tone: "good" },
       { label: "CA - Salvage Certificate", tone: "warn" },
       { label: "Mileage not real", tone: "bad" },
+      { label: "Pure sale", tone: "good" },
     ]);
   });
 
-  it("adds sale status only when it is not a pure sale", () => {
-    expect(badges(lot({ sale_status: "On Minimum Bid", odometer_brand: "A" })).map((b) => b.label)).toEqual([
-      "Runs and drives",
-      "Keys",
-      "CA - Salvage Certificate",
-      "Minimum bid",
-    ]);
+  it("always ends with the sale status, a pure sale included", () => {
+    const last = (sale_status: string | null) => badges(lot({ sale_status })).at(-1);
+    expect(last("On Minimum Bid")).toEqual({ label: "Minimum bid", tone: "warn" });
+    expect(last("On Approval")).toEqual({ label: "Seller must approve", tone: "warn" });
+    expect(last("Pure Sale")).toEqual({ label: "Pure sale", tone: "good" });
+    expect(last(null)).toEqual({ label: "Sale status not stated", tone: "neutral" });
   });
 
   it("colours each code by how much it should worry a buyer", () => {
@@ -30,9 +30,11 @@ describe("badges", () => {
       "warn",
       "bad",
       "warn",
+      "good",
     ]);
     expect(tones({ runs_drives: "DEFAULT", has_keys: "YES", title_type: "CT", title_state: "AL", odometer_brand: "A" })).toEqual([
       "bad",
+      "good",
       "good",
       "good",
     ]);
@@ -104,5 +106,28 @@ describe("engineSpec", () => {
     expect(engineSpec(lot({ cylinders: null }))).toBe("2.4L 4");
     expect(engineSpec(lot({ engine: null }))).toBe("4-cyl");
     expect(engineSpec(lot({ engine: null, cylinders: null }))).toBe("—");
+  });
+});
+
+describe("driveType", () => {
+  it("shortens the auction's words the way a dealer says them", () => {
+    const drive = (value: string | null) => driveType(lot({ drive: value }));
+    expect(drive("FRONT WHEEL DRIVE")).toBe("FWD");
+    expect(drive("Front-wheel Drive")).toBe("FWD");
+    expect(drive("REAR WHEEL DRIVE")).toBe("RWD");
+    expect(drive("Rear-wheel drive")).toBe("RWD");
+    expect(drive("ALL WHEEL DRIVE")).toBe("AWD");
+    expect(drive("4X4 W/REAR WHEEL DRV")).toBe("4WD");
+    expect(drive("4x4 w/Front Whl Drv")).toBe("4WD");
+    expect(drive("FOUR BY FOUR")).toBe("4WD");
+  });
+
+  it("shows a drive it does not know as it came, and nothing for none", () => {
+    const drive = (value: string | null) => driveType(lot({ drive: value }));
+    expect(drive(" 4X2 ")).toBe("4X2");
+    expect(drive("UNKNOWN")).toBeNull();
+    expect(drive("NONE")).toBeNull();
+    expect(drive("  ")).toBeNull();
+    expect(drive(null)).toBeNull();
   });
 });
