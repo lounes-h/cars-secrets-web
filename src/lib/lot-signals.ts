@@ -28,14 +28,8 @@ export const SIGNALS: Record<"run" | "keys" | "title" | "odometer" | "sale", Rec
     EXM: { label: "Keys exempt", tone: "neutral" },
     "": { label: "Keys not stated", tone: "neutral" },
   },
+  // Title codes are shown as the auction gives them until their meaning is confirmed.
   title: {
-    CT: { label: "Clean title", tone: "good" },
-    SC: { label: "Salvage certificate", tone: "warn" },
-    ST: { label: "Salvage title", tone: "warn" },
-    SV: { label: "Salvage title", tone: "warn" },
-    RB: { label: "Rebuilt title", tone: "warn" },
-    NR: { label: "Non-repairable", tone: "bad" },
-    CD: { label: "Certificate of destruction", tone: "bad" },
     "": { label: "Title not stated", tone: "neutral" },
   },
   odometer: {
@@ -60,7 +54,10 @@ function lookup(kind: keyof typeof SIGNALS, value: string | null): Entry {
 
 export const runStatus = (lot: Lot) => lookup("run", lot.runs_drives);
 export const keys = (lot: Lot) => lookup("keys", lot.has_keys);
-export const titleType = (lot: Lot) => lookup("title", lot.title_type);
+export const titleType = (lot: Lot): Entry => {
+  const code = lot.title_type?.trim();
+  return code ? { label: `Title ${code}`, tone: "neutral" } : SIGNALS.title[""];
+};
 export const odometerStatus = (lot: Lot) => lookup("odometer", lot.odometer_brand);
 export const saleStatus = (lot: Lot) => lookup("sale", lot.sale_status);
 

@@ -9,7 +9,7 @@ describe("badges", () => {
     expect(badges(sampleLot)).toEqual([
       { label: "Runs and drives", tone: "good" },
       { label: "Keys", tone: "good" },
-      { label: "Salvage certificate", tone: "warn" },
+      { label: "Title SC", tone: "neutral" },
       { label: "Mileage not real", tone: "bad" },
     ]);
   });
@@ -18,7 +18,7 @@ describe("badges", () => {
     expect(badges(lot({ sale_status: "On Minimum Bid", odometer_brand: "A" })).map((b) => b.label)).toEqual([
       "Runs and drives",
       "Keys",
-      "Salvage certificate",
+      "Title SC",
       "Minimum bid",
     ]);
   });
@@ -28,30 +28,42 @@ describe("badges", () => {
     expect(tones({ runs_drives: "Vehicle Starts", has_keys: "NO", title_type: "CD", odometer_brand: "E" })).toEqual([
       "warn",
       "warn",
-      "bad",
+      "neutral",
       "warn",
     ]);
     expect(tones({ runs_drives: "DEFAULT", has_keys: "YES", title_type: "CT", odometer_brand: "A" })).toEqual([
       "bad",
       "good",
-      "good",
+      "neutral",
     ]);
   });
 
   it("shows an unknown code as it came, neutral, rather than guessing", () => {
-    expect(titleType(lot({ title_type: " ZZ " }))).toEqual({ label: "ZZ", tone: "neutral" });
+    expect(odometerStatus(lot({ odometer_brand: " ZZ " }))).toEqual({ label: "ZZ", tone: "neutral" });
     expect(odometerStatus(lot({ odometer_brand: null })).label).toBe("Mileage status not stated");
+  });
+});
+
+describe("titleType", () => {
+  it("shows the auction's title code as it came, neutral, since its meaning is not confirmed", () => {
+    expect(titleType(lot({ title_type: " CT " }))).toEqual({ label: "Title CT", tone: "neutral" });
+    expect(titleType(lot({ title_type: "SC" }))).toEqual({ label: "Title SC", tone: "neutral" });
+  });
+
+  it("says so when the auction gives no title code", () => {
+    expect(titleType(lot({ title_type: null }))).toEqual({ label: "Title not stated", tone: "neutral" });
+    expect(titleType(lot({ title_type: "  " })).label).toBe("Title not stated");
   });
 });
 
 describe("summary", () => {
   it("says the deal breakers in one sentence", () => {
-    expect(summary(sampleLot)).toBe("Runs and drives, front end damage, mileage not real, salvage certificate.");
+    expect(summary(sampleLot)).toBe("Runs and drives, front end damage, mileage not real, title SC.");
   });
 
   it("mentions missing keys and leaves out what the auction did not say", () => {
     expect(summary(lot({ has_keys: "NO", damage_primary: null, odometer_brand: "A", title_type: "CT" }))).toBe(
-      "Runs and drives, no keys, clean title.",
+      "Runs and drives, no keys, title CT.",
     );
   });
 });

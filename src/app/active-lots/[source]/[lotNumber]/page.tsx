@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
-import { badges, countdown, engineSpec, odometerStatus, saleStatus, summary, titleType } from "@/lib/lot-signals";
+import { badges, countdown, engineSpec, odometerStatus, saleStatus, summary } from "@/lib/lot-signals";
 import {
   amount,
   getLot,
@@ -155,7 +155,7 @@ export default async function LotPage({ params }: { params: Params }) {
         </Details>
         {/* 5. Paperwork */}
         <Details title="Paperwork">
-          <Field label="Title" value={titleType(lot).label} />
+          <Field label="Title" value={lot.title_type} />
           <Field label="Title state" value={lot.title_state} />
           <Field label="Odometer" value={odometer(lot.odometer)} />
           <Field label="Odometer status" value={odometerLabel} />
