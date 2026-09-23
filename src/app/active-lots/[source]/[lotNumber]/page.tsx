@@ -75,7 +75,7 @@ export default async function LotPage({ params }: { params: Params }) {
   const auction = auctionName(lot.source);
 
   return (
-    <main className="flex-1 bg-white px-4 py-8 sm:px-6 lg:px-10">
+    <main className="flex-1 bg-white px-4 pt-8 pb-24 sm:px-6 lg:px-10">
       {/* 1. Summary */}
       <header>
         <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
