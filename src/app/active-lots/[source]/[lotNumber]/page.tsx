@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Params }) {
     title: `Lot ${lotNumber}`,
     description:
       "Everything the auction publishes about this lot: the car, its damage, title, odometer, where it sells and what it is bid up to.",
-    path: `/auctions/${source}/${lotNumber}`,
+    path: `/active-lots/${source}/${lotNumber}`,
     noindex: true,
   });
 }
@@ -71,7 +71,7 @@ export default async function LotPage({ params }: { params: Params }) {
             Bid on {lot.source}
           </a>
         )}
-        <Link href="/auctions" className="btn btn-outline">
+        <Link href="/active-lots" className="btn btn-outline">
           Active lots
         </Link>
       </div>

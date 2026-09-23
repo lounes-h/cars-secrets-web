@@ -14,7 +14,7 @@ vi.mock("@/lib/session", () => ({
 }));
 vi.mock("@/lib/lots", async (original) => ({ ...(await original<object>()), listLots }));
 
-const { default: AuctionsPage } = await import("@/app/auctions/page");
+const { default: AuctionsPage } = await import("@/app/active-lots/page");
 const { PAGE_SIZE } = await import("@/lib/lots");
 
 const LOT: Lot = sampleLot;
@@ -37,7 +37,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("auctions page", () => {
+describe("active lots page", () => {
   it("asks a visitor to sign in instead of listing lots", async () => {
     currentUser.mockResolvedValue(null);
     await show();
@@ -51,7 +51,7 @@ describe("auctions page", () => {
     expect(listLots).toHaveBeenCalledWith(1, "token-abc", null);
     expect(screen.getAllByRole("row")).toHaveLength(PAGE_SIZE + 1);
     expect(screen.getByRole("link", { name: "41633100" }).getAttribute("href")).toBe(
-      "/auctions/copart/41633100",
+      "/active-lots/copart/41633100",
     );
     const row = screen.getAllByRole("row")[1];
     expect(row.textContent).toContain("2013 ACURA TSX");
@@ -65,8 +65,8 @@ describe("auctions page", () => {
     expect(listLots).toHaveBeenCalledWith(3, "token-abc", null);
     const pagination = screen.getByRole("navigation", { name: "Pagination" });
     expect(pagination.textContent).toContain("41–60 of 145, page 3 of 8");
-    expect(screen.getByRole("link", { name: "Previous" }).getAttribute("href")).toBe("/auctions?page=2");
-    expect(screen.getByRole("link", { name: "Next" }).getAttribute("href")).toBe("/auctions?page=4");
+    expect(screen.getByRole("link", { name: "Previous" }).getAttribute("href")).toBe("/active-lots?page=2");
+    expect(screen.getByRole("link", { name: "Next" }).getAttribute("href")).toBe("/active-lots?page=4");
   });
 
   it("disables previous on the first page and next on the last", async () => {
