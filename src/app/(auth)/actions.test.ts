@@ -25,9 +25,8 @@ vi.mock("next/headers", () => ({
   headers: async () => new Headers(),
 }));
 
-const { loginAction, registerAction, resetPasswordAction, socialLoginAction, forgotPasswordAction } = await import(
-  "./actions"
-);
+const { loginAction, registerAction, resetPasswordAction, socialLoginAction, forgotPasswordAction, verifyEmailAction } =
+  await import("./actions");
 
 const registration = {
   first_name: " Dana ",
@@ -92,6 +91,33 @@ describe("loginAction", () => {
     const state = await loginAction({ email: "d@example.com", password: "pw", remember: false });
     expect(state).toMatchObject({ captchaRequired: true, message: "Too many attempts." });
     expect(setSession).not.toHaveBeenCalled();
+  });
+});
+
+describe("verifyEmailAction", () => {
+  const input = { email: " d@example.com ", code: "042917", remember: true };
+
+  it("confirms with the code, stores the session and redirects to the account page", async () => {
+    apiMock.mockResolvedValue({ token: "tok", expires_at: "2026-10-22T00:00:00Z" });
+    await expect(verifyEmailAction(input)).rejects.toThrow("REDIRECT /account");
+    expect(apiMock).toHaveBeenCalledWith("/api/auth/verify-email", {
+      body: { email: "d@example.com", code: "042917", remember: true },
+      clientIp: "9.9.9.9",
+    });
+    expect(setSession).toHaveBeenCalledWith("tok", true);
+  });
+
+  it.each(["12345", "1234567", "12a456", "١٢٣٤٥٦", ""])("never sends a malformed code (%j) to the API", async (code) => {
+    const state = await verifyEmailAction({ ...input, code });
+    expect(state.errors).toMatchObject({ code: "Enter the 6-digit code from the email." });
+    expect(apiMock).not.toHaveBeenCalled();
+  });
+
+  it("passes a wrong code back to the form without signing in", async () => {
+    apiMock.mockRejectedValue(new ApiError(400, "invalid_code", "That code is incorrect or has expired."));
+    expect(await verifyEmailAction(input)).toMatchObject({ code: "invalid_code" });
+    expect(setSession).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
   });
 });
 

@@ -189,6 +189,14 @@ body {
     border-radius: 0;
     background: transparent;
   }
+  /* The emailed confirmation code: six spaced digits, easy to check against the email. */
+  .code-input {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5em;
+    text-align: center;
+  }
   .card {
     background: var(--surface);
     border: 1px solid var(--line);

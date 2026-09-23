@@ -9,9 +9,11 @@ import { FieldError, FormError } from "@/components/auth/FieldError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Turnstile } from "@/components/auth/Turnstile";
+import { VerifyEmailForm } from "@/components/auth/VerifyEmailForm";
 import { EMAIL_MAX, loginSchema, type LoginInput } from "@/lib/auth-schemas";
 
 export function LoginForm() {
+  const [unconfirmed, setUnconfirmed] = useState<{ email: string; remember: boolean } | null>(null);
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<LoginInput>({
@@ -28,6 +30,11 @@ export function LoginForm() {
     // On success the action redirects to /account and does not return.
     const state = await loginAction(values);
     if (!state) return;
+    if (state.code === "email_unverified") {
+      // The password was right, and the API has mailed a code: confirming it signs the dealer in.
+      setUnconfirmed({ email: values.email, remember: values.remember });
+      return;
+    }
     if (state.captchaRequired) setCaptchaRequired(true);
     if (state.code === "invalid_credentials") {
       setValue("password", "");
@@ -37,17 +44,22 @@ export function LoginForm() {
     setCaptchaReset((n) => n + 1);
   });
 
-  const serverError = errors.root?.server;
+  if (unconfirmed) {
+    return (
+      <div className="form-stack">
+        <p className="notice">Confirm your email address to finish signing in.</p>
+        <VerifyEmailForm
+          email={unconfirmed.email}
+          remember={unconfirmed.remember}
+          onChangeEmail={() => setUnconfirmed(null)}
+        />
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} noValidate className="form-stack">
-      <FormError message={serverError?.message}>
-        {serverError?.type === "email_unverified" && (
-          <>
-            {" "}
-            <Link href="/verify-email">Send a new confirmation link</Link>
-          </>
-        )}
-      </FormError>
+      <FormError message={errors.root?.server?.message} />
       <div>
         <label htmlFor="email">Email</label>
         <input

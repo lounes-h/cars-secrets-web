@@ -10,7 +10,7 @@ import {
   loginSchema,
   registerSchema,
   resetPasswordSchema,
-  tokenSchema,
+  verifyEmailSchema,
 } from "@/lib/auth-schemas";
 import { composePhone } from "@/lib/countries";
 import {
@@ -147,15 +147,22 @@ export async function resetPasswordAction(input: unknown): Promise<FormState> {
   return { ok: true };
 }
 
+/** The emailed code confirms the address and signs the dealer in. */
 export async function verifyEmailAction(input: unknown): Promise<FormState> {
-  const parsed = parse(tokenSchema, input);
+  const parsed = parse(verifyEmailSchema, input);
   if ("state" in parsed) return parsed.state;
+  const { data } = parsed;
+  let token: string;
   try {
-    await api("/api/auth/verify-email", { body: { token: parsed.data.token } });
+    ({ token } = await api<{ token: string }>("/api/auth/verify-email", {
+      body: { email: data.email, code: data.code, remember: data.remember },
+      clientIp: await visitorIp(),
+    }));
   } catch (error) {
     return failure(error);
   }
-  return { ok: true };
+  await setSession(token, data.remember);
+  redirect("/account");
 }
 
 /** "Continue with Google / Apple": asks the API for the provider's URL and goes there. */

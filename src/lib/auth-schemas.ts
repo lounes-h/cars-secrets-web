@@ -11,6 +11,7 @@ export const PASSWORD_MIN = 8;
 export const PASSWORD_MAX = 128;
 export const NAME_MAX = 100;
 export const EMAIL_MAX = 254;
+export const CODE_LENGTH = 6;
 
 /** Anything that is not a letter or a digit counts, spaces included. */
 export const SPECIAL_CHARACTER = /[^\p{L}\p{N}]/u;
@@ -18,6 +19,14 @@ export const SPECIAL_CHARACTER = /[^\p{L}\p{N}]/u;
 /** Whether a value is a complete address, for the places that act only on real ones. */
 export function isEmailAddress(value: string): boolean {
   return z.email().safeParse(value.trim()).success;
+}
+
+/**
+ * The ASCII digits of whatever was typed or pasted, at most six: "123 456", "123-456" and a
+ * pasted "Your code: 123456" all become "123456".
+ */
+export function codeDigits(value: string): string {
+  return value.replace(/[^0-9]/g, "").slice(0, CODE_LENGTH);
 }
 
 export function hasSpecialCharacter(value: string): boolean {
@@ -116,13 +125,17 @@ export const resetPasswordSchema = z
     error: "The two passwords differ.",
   });
 
-export const tokenSchema = z.object({ token: z.string().min(1) });
+export const verifyEmailSchema = z.object({
+  email,
+  code: z.string().regex(/^[0-9]{6}$/, { error: `Enter the ${CODE_LENGTH}-digit code from the email.` }),
+  remember: z.boolean(),
+});
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type EmailInput = z.infer<typeof emailSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
-export type TokenInput = z.infer<typeof tokenSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 
 /** First message per field, e.g. `{ email: "Enter a valid email address…" }`. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {

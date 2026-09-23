@@ -31,10 +31,16 @@ hashing, throttling, captcha and token rules.
   `Cache-Control: private, no-store`, for the banner.
 - The email typed in an auth form is kept in sessionStorage for the tab, never
   in a URL, so it does not reach server logs or referrers.
-- Token links (`/verify-email`, `/reset-password`) need a click to use the token,
-  so link scanners cannot consume it. Those pages are `noindex`.
+- The reset link (`/reset-password`) needs a click to use its token, so link
+  scanners cannot consume it. Email confirmation has no link at all: the API mails
+  a six-digit code, typed into `/verify-email` or the step that replaces the
+  register and sign-in forms. The code and the address never go in a URL, and
+  `verifyEmailAction` accepts only six ASCII digits before calling the API. How
+  guesses are limited (per code, per address, per client) is the API's business;
+  see its `docs/security.md`. Those pages are `noindex`.
 - Register, forgot-password and resend-confirmation show the same message
-  whether or not the email has an account.
+  whether or not the email has an account, and a wrong code reads the same
+  whether or not the address exists.
 
 ## HTTP headers
 

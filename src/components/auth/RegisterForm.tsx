@@ -12,8 +12,8 @@ import { PhoneField } from "@/components/auth/PhoneField";
 import { SocialButtons } from "@/components/auth/SocialButtons";
 import { Turnstile } from "@/components/auth/Turnstile";
 import { EMAIL_MAX, NAME_MAX, registerSchema, type RegisterInput } from "@/lib/auth-schemas";
+import { VerifyEmailForm } from "@/components/auth/VerifyEmailForm";
 import { countryFromBrowser, type Country } from "@/lib/countries";
-import { forgetEmail } from "@/lib/remembered-email";
 
 type Props = { countries: Country[]; defaultCountry: string };
 
@@ -50,8 +50,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   const onSubmit = handleSubmit(async (values) => {
     const state = await registerAction(values);
     if (state?.ok) {
-      // The account exists now, so the tab has no reason to keep offering the address.
-      forgetEmail();
+      // The address stays remembered: /verify-email needs it until the code is entered.
       setSentTo(values.email);
       return;
     }
@@ -59,23 +58,10 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
     setCaptchaReset((n) => n + 1);
   });
 
-  if (sentTo) {
-    return (
-      <div role="status" className="form-stack">
-        <p className="notice">
-          We sent a confirmation link to <strong>{sentTo}</strong>. Open it to confirm your address, then sign in.
-        </p>
-        <Link href="/login" className="btn btn-primary w-full">
-          Go to sign in
-        </Link>
-        <p className="hint text-center">
-          No email after a few minutes? Check your spam folder or <Link href="/verify-email">send a new link</Link>.
-        </p>
-      </div>
-    );
-  }
+  // The form's values survive the detour, so correcting the address is not a new form.
+  if (sentTo) return <VerifyEmailForm email={sentTo} onChangeEmail={() => setSentTo(null)} />;
 
-  // The social buttons sit here, not on the page, so the confirmation replaces them too.
+  // The social buttons sit here, not on the page, so the code step replaces them too.
   return (
     <>
       <SocialButtons intent="Register" />
