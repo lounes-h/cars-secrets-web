@@ -73,6 +73,20 @@ describe("lot page", () => {
     expect(screen.getByRole("button", { name: "Copy lot number" })).toBeTruthy();
   });
 
+  it("says when the lot is offsite and where it is picked up", async () => {
+    getLot.mockResolvedValue({ ...sampleLot, offsite_address: "645 W UNION ST", offsite_city: "ALLENTOWN", offsite_state: "PA", offsite_zip: "18101" });
+    await show();
+    const badges = within(screen.getByRole("list", { name: "Deal breakers" })).getAllByRole("listitem");
+    expect([badges.at(-1)?.textContent, badges.at(-1)?.dataset.tone]).toEqual(["!Offsite", "warn"]);
+    const pickup = screen.getByRole("heading", { name: "Pickup" }).parentElement?.textContent ?? "";
+    expect(pickup).toContain("Offsite address645 W UNION ST, ALLENTOWN, PA 18101");
+  });
+
+  it("says nothing about offsite for a lot at the yard", async () => {
+    await show();
+    expect(screen.getByRole("main").textContent).not.toMatch(/offsite/i);
+  });
+
   it("says the secondary damage is N/A when the auction gives none", async () => {
     getLot.mockResolvedValue({ ...sampleLot, damage_secondary: null });
     await show();

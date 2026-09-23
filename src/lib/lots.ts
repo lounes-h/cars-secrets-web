@@ -46,6 +46,11 @@ export type Lot = {
   location_state: string | null;
   location_zip: string | null;
   location_country: string | null;
+  /** Where the lot is held when it is not at the yard; all null for most lots. */
+  offsite_address: string | null;
+  offsite_city: string | null;
+  offsite_state: string | null;
+  offsite_zip: string | null;
   thumbnail_url: string | null;
   /** The auction's photo listing endpoint, not an image: never use it as an <img> source. */
   image_url: string | null;
@@ -146,6 +151,12 @@ export function vehicle(lot: Lot): string {
 
 export function place(lot: Lot): string {
   return [lot.location_city, lot.location_state].filter(Boolean).join(", ") || "—";
+}
+
+/** Where a lot held away from the auction's yard is picked up: "645 W UNION ST, ALLENTOWN, PA 18101". Null at the yard. */
+export function offsiteAddress(lot: Lot): string | null {
+  const town = [[lot.offsite_city, lot.offsite_state].filter(Boolean).join(", "), lot.offsite_zip].filter(Boolean).join(" ");
+  return [lot.offsite_address, town].filter(Boolean).join(", ") || null;
 }
 
 /** Copart names some sellers by their logo's file: "ENTERPRISE-LOGO.jpeg" is "ENTERPRISE". */

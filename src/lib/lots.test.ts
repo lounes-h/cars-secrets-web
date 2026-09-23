@@ -122,6 +122,16 @@ describe("sellerName", () => {
   });
 });
 
+describe("offsiteAddress", () => {
+  it("is where a lot held away from the yard is picked up, and null at the yard", async () => {
+    const { offsiteAddress } = await import("@/lib/lots");
+    expect(offsiteAddress({ ...sampleLot, offsite_address: "645 W UNION ST", offsite_city: "ALLENTOWN", offsite_state: "PA", offsite_zip: "18101" })).toBe("645 W UNION ST, ALLENTOWN, PA 18101");
+    expect(offsiteAddress({ ...sampleLot, offsite_address: "645 W UNION ST" })).toBe("645 W UNION ST");
+    expect(offsiteAddress({ ...sampleLot, offsite_state: "PA", offsite_zip: "18101" })).toBe("PA 18101");
+    expect(offsiteAddress(sampleLot)).toBeNull();
+  });
+});
+
 describe("vehicle and place", () => {
   it("are a dash when the auction names neither", async () => {
     const { vehicle, place } = await import("@/lib/lots");

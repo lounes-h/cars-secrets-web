@@ -5,6 +5,7 @@ import {
   listLots,
   lotPath,
   odometer,
+  offsiteAddress,
   pageCount,
   pageNumber,
   PAGE_SIZE,
@@ -85,7 +86,7 @@ function Lots({ page, items, total }: { page: number } & LotPage) {
                 <td className="py-2 pr-4 whitespace-nowrap">{odometer(lot.odometer)}</td>
                 <td className="py-2 pr-4">{lot.damage_primary ?? "—"}</td>
                 <td className="py-2 pr-4">{lot.title_type ?? "—"}</td>
-                <td className="py-2 pr-4">{place(lot)}</td>
+                <td className="py-2 pr-4">{place(lot)}{offsiteAddress(lot) && " · Offsite"}</td>
                 <td className="py-2 pr-4 whitespace-nowrap"><LocalTime value={lot.sale_at} /></td>
                 <td className="py-2 pr-4 text-right whitespace-nowrap">
                   {amount(lot.est_retail_value, lot.currency)}
