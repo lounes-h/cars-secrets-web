@@ -106,3 +106,18 @@ describe("amounts", () => {
     expect(missing.textContent).toContain("—");
   });
 });
+
+describe("active lots with little data", () => {
+  it("links the second page back to the plain listing and shows dashes for missing columns", async () => {
+    listLots.mockResolvedValue({ items: [{ ...LOT, damage_primary: null, title_type: null }], total: 145 });
+    await show("2");
+    expect(screen.getByRole("link", { name: "Previous" }).getAttribute("href")).toBe("/active-lots");
+    expect(screen.getAllByRole("row")[1].textContent).toContain("—");
+  });
+
+  it("counts no lots when there are none", async () => {
+    listLots.mockResolvedValue({ items: [], total: 0 });
+    await show();
+    expect(screen.getByText("No lots on this page.")).toBeTruthy();
+  });
+});

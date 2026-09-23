@@ -13,7 +13,7 @@ read `docs/project-specification.md`
   system font stack.
 - Yarn 4 through Corepack (`packageManager` in `package.json`), with the
   `node-modules` linker.
-- Vitest with Testing Library for unit tests.
+- Vitest with Testing Library for unit tests, V8 coverage with a 95 % minimum.
 - Accounts and data come from the Python API (`../cars-secrets-api`). Server
   actions and route handlers call it from the server through `src/lib/api.ts`;
   the browser never talks to the API.
@@ -31,10 +31,11 @@ yarn dev             # http://localhost:3000 (auth pages need the API: API_URL i
 yarn lint
 yarn typecheck       # next typegen && tsc --noEmit
 yarn test            # vitest run
+yarn test:coverage   # the same, failing below 95 % coverage
 yarn build && yarn start
 ```
 
-Run `yarn lint && yarn typecheck && yarn test && yarn build` before committing.
+Run `yarn lint && yarn typecheck && yarn test:coverage && yarn build` before committing.
 GitHub Actions runs the same four checks on every pull request and on pushes
 to `main` (`.github/workflows/ci.yml`).
 
@@ -151,6 +152,12 @@ environment by default. Component tests opt into jsdom with
 `// @vitest-environment jsdom`. `vitest.config.mts` sets
 `NEXT_PUBLIC_SITE_URL=https://cars-secrets.test` so that URLs are deterministic,
 and `TZ=UTC` so that times are.
+
+**Minimum test coverage is 95 %** of statements, branches, functions and lines
+across `src/`. `yarn test:coverage` fails below it (thresholds in
+`vitest.config.mts`), and CI runs that command, so a pull request that drops
+coverage under 95 % fails. Cover new code in the same change; never lower the
+thresholds or exclude files to get a change through.
 
 ## Unit Test Requirements
 

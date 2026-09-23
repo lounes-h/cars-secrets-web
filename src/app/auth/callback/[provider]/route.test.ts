@@ -67,3 +67,10 @@ describe("OAuth callback", () => {
     expect(response.headers.get("location")).toBe("https://web.test/account");
   });
 });
+
+describe("OAuth callback failures", () => {
+  it("lets a failure that is not the API's through", async () => {
+    apiMock.mockRejectedValue(new TypeError("fetch failed"));
+    await expect(GET(get("code=c&state=real", "real"), params)).rejects.toThrow("fetch failed");
+  });
+});

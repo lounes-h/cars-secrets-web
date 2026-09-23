@@ -75,3 +75,17 @@ describe("AccountNav", () => {
     expect(await screen.findByRole("link", { name: "Sign in" })).toBeTruthy();
   });
 });
+
+describe("AccountNav fallbacks", () => {
+  it("treats a failed session answer as signed out", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("", { status: 502 })));
+    render(<AccountNav />);
+    expect(await screen.findByRole("link", { name: "Sign in" })).toBeTruthy();
+  });
+
+  it("names a dealer without a first name by their email", async () => {
+    session({ first_name: "", email: "dealer@example.com" });
+    render(<AccountNav />);
+    expect(await screen.findByText("dealer@example.com")).toBeTruthy();
+  });
+});
