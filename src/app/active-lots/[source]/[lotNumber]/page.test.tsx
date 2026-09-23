@@ -59,7 +59,7 @@ describe("lot page", () => {
     expect(header).toContain("Sells in 10h 30m");
     expect(header).toContain("Fri, Sep 18, 7:00 PM");
     expect(header).toContain("120,500 mi (mileage not real) · FRONT END · VALLEJO, CA");
-    expect(header).toContain("Runs and drives, front end damage, mileage not real, title SC.");
+    expect(header).toContain("Runs and drives, front end damage, mileage not real, Title SC.");
     const badges = within(screen.getByRole("list", { name: "Deal breakers" })).getAllByRole("listitem");
     expect(badges.map((badge) => [badge.textContent, badge.dataset.tone])).toEqual([
       ["✓Runs and drives", "good"],

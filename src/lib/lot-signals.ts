@@ -28,8 +28,10 @@ export const SIGNALS: Record<"run" | "keys" | "title" | "odometer" | "sale", Rec
     EXM: { label: "Keys exempt", tone: "neutral" },
     "": { label: "Keys not stated", tone: "neutral" },
   },
-  // Title codes are shown as the auction gives them until their meaning is confirmed.
+  // Copart's own wording, word for word, and only what has been checked on copart.com;
+  // any other code is shown as it came ("Title SC").
   title: {
+    CT: { label: "Certificate Of Title", tone: "neutral" },
     "": { label: "Title not stated", tone: "neutral" },
   },
   odometer: {
@@ -55,8 +57,8 @@ function lookup(kind: keyof typeof SIGNALS, value: string | null): Entry {
 export const runStatus = (lot: Lot) => lookup("run", lot.runs_drives);
 export const keys = (lot: Lot) => lookup("keys", lot.has_keys);
 export const titleType = (lot: Lot): Entry => {
-  const code = lot.title_type?.trim();
-  return code ? { label: `Title ${code}`, tone: "neutral" } : SIGNALS.title[""];
+  const code = (lot.title_type ?? "").trim().toUpperCase();
+  return SIGNALS.title[code] ?? { label: `Title ${lot.title_type!.trim()}`, tone: "neutral" };
 };
 export const odometerStatus = (lot: Lot) => lookup("odometer", lot.odometer_brand);
 export const saleStatus = (lot: Lot) => lookup("sale", lot.sale_status);
@@ -76,10 +78,10 @@ export function summary(lot: Lot): string {
     lot.damage_primary && `${lot.damage_primary.toLowerCase()} damage`,
     lot.has_keys?.trim().toUpperCase() === "NO" && "no keys",
     odometer.badge !== false && odometer.label,
-    titleType(lot).label,
   ].filter(Boolean) as string[];
-  const sentence = parts.map((part, i) => (i === 0 ? part : part.charAt(0).toLowerCase() + part.slice(1))).join(", ");
-  return `${sentence}.`;
+  const sentence = parts.map((part, i) => (i === 0 ? part : part.charAt(0).toLowerCase() + part.slice(1)));
+  // The title keeps the auction's own capitals: "Certificate Of Title".
+  return `${[...sentence, titleType(lot).label].join(", ")}.`;
 }
 
 /** Time left before the sale, and how urgent it is: amber under a day, red under an hour. */

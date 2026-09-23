@@ -45,9 +45,12 @@ describe("badges", () => {
 });
 
 describe("titleType", () => {
-  it("shows the auction's title code as it came, neutral, since its meaning is not confirmed", () => {
-    expect(titleType(lot({ title_type: " CT " }))).toEqual({ label: "Title CT", tone: "neutral" });
-    expect(titleType(lot({ title_type: "SC" }))).toEqual({ label: "Title SC", tone: "neutral" });
+  it("spells out a code in Copart's own words, neutral", () => {
+    expect(titleType(lot({ title_type: " ct " }))).toEqual({ label: "Certificate Of Title", tone: "neutral" });
+  });
+
+  it("shows a code whose wording is not confirmed as it came", () => {
+    expect(titleType(lot({ title_type: " SC " }))).toEqual({ label: "Title SC", tone: "neutral" });
   });
 
   it("says so when the auction gives no title code", () => {
@@ -58,12 +61,12 @@ describe("titleType", () => {
 
 describe("summary", () => {
   it("says the deal breakers in one sentence", () => {
-    expect(summary(sampleLot)).toBe("Runs and drives, front end damage, mileage not real, title SC.");
+    expect(summary(sampleLot)).toBe("Runs and drives, front end damage, mileage not real, Title SC.");
   });
 
   it("mentions missing keys and leaves out what the auction did not say", () => {
     expect(summary(lot({ has_keys: "NO", damage_primary: null, odometer_brand: "A", title_type: "CT" }))).toBe(
-      "Runs and drives, no keys, title CT.",
+      "Runs and drives, no keys, Certificate Of Title.",
     );
   });
 });
