@@ -92,4 +92,17 @@ describe("toApiError", () => {
     expect(toApiError(404, { detail: "Not Found" }).code).toBe("unavailable");
     expect(toApiError(400, { detail: { message: "no code" } }).code).toBe("unavailable");
   });
+
+  it("skips field errors it cannot place, and words a coded error without a message", () => {
+    expect(toApiError(422, { detail: [{ loc: ["body"] }, { msg: "no location" }] }).fields).toEqual({});
+    expect(toApiError(409, { detail: { code: "conflict" } }).message).toBe("Something went wrong. Please try again.");
+  });
+});
+
+describe("apiUrl", () => {
+  it("defaults to the API on this machine", async () => {
+    vi.stubEnv("API_URL", undefined);
+    const { apiUrl } = await import("@/lib/api");
+    expect(apiUrl()).toBe("http://localhost:8000");
+  });
 });

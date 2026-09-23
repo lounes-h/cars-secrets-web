@@ -25,8 +25,17 @@ vi.mock("next/headers", () => ({
   headers: async () => new Headers(),
 }));
 
-const { loginAction, registerAction, resetPasswordAction, socialLoginAction, forgotPasswordAction, verifyEmailAction } =
-  await import("./actions");
+const {
+  loginAction,
+  logoutAction,
+  registerAction,
+  resendVerificationAction,
+  resetPasswordAction,
+  socialLoginAction,
+  forgotPasswordAction,
+  verifyEmailAction,
+} = await import("./actions");
+const session = await import("@/lib/session");
 
 const registration = {
   first_name: " Dana ",
@@ -157,5 +166,89 @@ describe("socialLoginAction", () => {
     await expect(socialLoginAction(form({ provider: "apple" }))).rejects.toThrow(
       "REDIRECT /login?error=provider_not_configured",
     );
+  });
+});
+
+describe("failures other than the API's", () => {
+  it("are not turned into form messages", async () => {
+    apiMock.mockRejectedValue(new TypeError("fetch failed"));
+    await expect(forgotPasswordAction({ email: "d@example.com" })).rejects.toThrow("fetch failed");
+    await expect(socialLoginAction(new FormData())).rejects.toThrow(
+      "REDIRECT /login?error=invalid_state",
+    );
+    const google = new FormData();
+    google.set("provider", "google");
+    await expect(socialLoginAction(google)).rejects.toThrow("fetch failed");
+  });
+});
+
+describe("registerAction phone", () => {
+  it("asks for the country when the number cannot be composed without it", async () => {
+    const state = await registerAction({ ...registration, phone_country: "", phone_number: "4155552671" });
+    expect(state.errors).toEqual({ phone_number: "Choose the country of your phone number." });
+    expect(apiMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("email actions", () => {
+  it.each([
+    ["forgot password", forgotPasswordAction, "/api/auth/forgot-password"],
+    ["resend verification", resendVerificationAction, "/api/auth/resend-verification"],
+  ] as const)("%s validates, posts, and passes the API's errors back", async (_name, action, path) => {
+    expect((await action({ email: "nope" })).code).toBe("validation");
+    apiMock.mockResolvedValue({ ok: true });
+    expect(await action({ email: "d@example.com", captcha_token: "cap" })).toEqual({ ok: true });
+    expect(apiMock).toHaveBeenLastCalledWith(path, {
+      body: { email: "d@example.com", captcha_token: "cap" },
+      clientIp: "9.9.9.9",
+    });
+    apiMock.mockRejectedValue(new ApiError(400, "captcha_failed", "Captcha failed."));
+    expect(await action({ email: "d@example.com" })).toMatchObject({ code: "captcha_failed" });
+  });
+});
+
+describe("resetPasswordAction with the API", () => {
+  const input = { token: "t", password: "abcdefghij1!", password_confirm: "abcdefghij1!" };
+
+  it("changes the password", async () => {
+    apiMock.mockResolvedValue({ ok: true });
+    expect(await resetPasswordAction(input)).toEqual({ ok: true });
+    expect(apiMock).toHaveBeenCalledWith("/api/auth/reset-password", {
+      body: { token: "t", password: "abcdefghij1!" },
+      clientIp: "9.9.9.9",
+    });
+  });
+
+  it("reports an expired link", async () => {
+    apiMock.mockRejectedValue(new ApiError(400, "invalid_token", "This link has expired."));
+    expect(await resetPasswordAction(input)).toMatchObject({ code: "invalid_token" });
+  });
+});
+
+describe("loginAction validation", () => {
+  it("never calls the API with a malformed email", async () => {
+    expect((await loginAction({ email: "x", password: "pw", remember: false })).code).toBe("validation");
+    expect(apiMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("verifyEmailAction failure", () => {
+  it("keeps the validation of the schema", async () => {
+    expect((await verifyEmailAction({})).code).toBe("validation");
+  });
+});
+
+describe("logoutAction", () => {
+  it("revokes the session, clears the cookie and goes to sign in, even if the API fails", async () => {
+    apiMock.mockRejectedValue(new Error("down"));
+    await expect(logoutAction()).rejects.toThrow("REDIRECT /login");
+    expect(apiMock).toHaveBeenCalledWith("/api/auth/logout", { method: "POST", body: {}, token: "sess" });
+    expect(session.clearSession).toHaveBeenCalled();
+  });
+
+  it("only clears the cookie when there is no session", async () => {
+    vi.mocked(session.sessionToken).mockResolvedValueOnce(undefined);
+    await expect(logoutAction()).rejects.toThrow("REDIRECT /login");
+    expect(apiMock).not.toHaveBeenCalled();
   });
 });

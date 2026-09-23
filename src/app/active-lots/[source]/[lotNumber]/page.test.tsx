@@ -225,3 +225,23 @@ describe("lot page", () => {
     expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/active-lots/copart/41633106");
   });
 });
+
+describe("lot page with little data", () => {
+  it("shows dashes where the auction gave nothing, and any photo size it has", async () => {
+    getLot.mockResolvedValue({
+      ...sampleLot, year: null, make: null, model: null, trim: null, currency: null, color: null,
+    });
+    getLotImages.mockResolvedValue([
+      { thumb: null, full: "https://cs.copart.example/a_ful.jpg" },
+      { thumb: null, full: null },
+      { thumb: "https://cs.copart.example/c_thb.jpg", full: null },
+    ]);
+    await show();
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toContain("—");
+    // A photo with no file at all is left out; the strip uses the full size when there is no thumbnail.
+    expect(screen.getByAltText("Show photo 1").getAttribute("src")).toBe("https://cs.copart.example/a_ful.jpg");
+    expect(screen.getAllByAltText(/photo \d of 2$/)).toHaveLength(2);
+    const sale = screen.getByRole("region", { name: "Sale info" });
+    expect(within(sale).getByText("Currency").nextElementSibling?.textContent).toBe("—");
+  });
+});

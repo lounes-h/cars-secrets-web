@@ -121,3 +121,12 @@ describe("sellerName", () => {
     expect(name(null)).toBeNull();
   });
 });
+
+describe("vehicle and place", () => {
+  it("are a dash when the auction names neither", async () => {
+    const { vehicle, place } = await import("@/lib/lots");
+    const bare = { ...sampleLot, year: null, make: null, model: null, location_city: null, location_state: null };
+    expect(vehicle(bare)).toBe("—");
+    expect(place(bare)).toBe("—");
+  });
+});

@@ -349,3 +349,34 @@ describe("ResendVerificationForm", () => {
     expect(screen.getByLabelText<HTMLInputElement>("Email").value).toBe("dana@example.com");
   });
 });
+
+describe("form error paths", () => {
+  it("reset password shows the API's answer, e.g. an expired link", async () => {
+    actions.resetPasswordAction.mockResolvedValue({ code: "invalid_token", message: "This link has expired." });
+    render(<ResetPasswordForm token="old-tok" />);
+    type("New password", "brand-new-password1");
+    type("Confirm new password", "brand-new-password1");
+    fireEvent.click(screen.getByRole("button", { name: "Change password" }));
+    expect(await screen.findByText("This link has expired.")).toBeTruthy();
+  });
+
+  it("forgot password marks a malformed address without calling the server", async () => {
+    render(<ForgotPasswordForm />);
+    type("Email", "not-an-email");
+    fireEvent.click(screen.getByRole("button", { name: "Send reset link" }));
+    await waitFor(() => expect(screen.getByLabelText("Email").getAttribute("aria-invalid")).toBe("true"));
+    expect(screen.getByLabelText("Email").getAttribute("aria-describedby")).toBe("email-error");
+    expect(actions.forgotPasswordAction).not.toHaveBeenCalled();
+  });
+
+  it("sign in goes back to the form from the code step to fix the address", async () => {
+    actions.loginAction.mockResolvedValue({ code: "email_unverified", message: "Confirm your email first." });
+    render(<LoginForm />);
+    type("Email", "dana@example.com");
+    type("Password", "whatever-password");
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    await screen.findByText("Confirm your email address to finish signing in.");
+    fireEvent.click(screen.getByRole("button", { name: "Use a different email" }));
+    expect(await screen.findByRole("button", { name: "Sign in" })).toBeTruthy();
+  });
+});
