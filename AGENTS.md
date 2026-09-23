@@ -256,11 +256,13 @@ whose total stays a dash until those estimates exist; condition, paperwork and p
 then specs as tiles and sale info as one light row, both always visible. Auction codes
 are translated into plain words in one lookup table, `SIGNALS` in
 `src/lib/lot-signals.ts`, which also sets each badge's colour; the page shows no raw
-code except one the table does not know yet, which appears as it came, neutral. Title
-codes are the exception: the title reads as copart.com shows it, the state then Copart's
-own wording ("WV - Salvage Certificate"), and a code is spelled out only once its wording
-is checked there (`CT` "Certificate Of Title", `SC` "Salvage Certificate"); any other
-shows as the code ("TX - NR"). The table still colours the known ones. The
+code except one the table does not know yet, which appears as it came, neutral. The
+title is the exception, because Copart words and groups the same code differently by
+state and the export carries only the state and the code: it reads as copart.com shows it
+("OR - Lien Papers Salvage"), with the wording and the colour (Copart's clean, salvage
+or non-repairable group) from `src/lib/copart-titles.json`, keyed "STATE CODE" and read
+off copart.com by `scripts/copart-titles.js`. A pair the file does not hold yet shows as
+the code ("OR - LS"), neutral; rerun the script to add it. The
 auction publishes no airbag, seller type, condition report, seller notes, pickup
 deadline, storage fee or buyer eligibility, and the site has no dealer location, so
 those have no place on the page yet. The ingest's own bookkeeping

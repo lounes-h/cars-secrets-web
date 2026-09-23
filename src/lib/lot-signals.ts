@@ -2,9 +2,11 @@
  * What a lot's auction codes mean in plain words, and how much each one should worry a buyer.
  * The lot page reads its badges and its labels from here, so a code is
  * translated in one place. An unknown code is shown as it came, neutral, rather than guessed at.
+ * Titles are Copart's own words, not ours: see `titleType`.
  * ponytail: Copart's codes only, since Copart is the only source; key by source when a second arrives.
  */
 
+import COPART_TITLES from "@/lib/copart-titles.json";
 import type { Lot } from "@/lib/lots";
 
 export type Tone = "good" | "warn" | "bad" | "neutral";
@@ -14,7 +16,7 @@ export type Signal = { label: string; tone: Tone };
 type Entry = Signal & { badge?: false };
 
 /** Keyed by the auction's code, trimmed and upper-cased. */
-export const SIGNALS: Record<"run" | "keys" | "title" | "odometer" | "sale", Record<string, Entry>> = {
+export const SIGNALS: Record<"run" | "keys" | "odometer" | "sale", Record<string, Entry>> = {
   run: {
     "RUN & DRIVE VERIFIED": { label: "Runs and drives", tone: "good" },
     "VEHICLE STARTS": { label: "Engine starts only", tone: "warn" },
@@ -27,19 +29,6 @@ export const SIGNALS: Record<"run" | "keys" | "title" | "odometer" | "sale", Rec
     NO: { label: "No keys", tone: "warn" },
     EXM: { label: "Keys exempt", tone: "neutral" },
     "": { label: "Keys not stated", tone: "neutral" },
-  },
-  // As copart.com shows it after the state ("WV - Salvage Certificate"), word for word, and only
-  // what has been checked there. A code without checked wording shows as the code, keeping its colour.
-  // ponytail: one wording per code for every state; key by state if Copart's differs by state.
-  title: {
-    CT: { label: "Certificate Of Title", tone: "good" },
-    SC: { label: "Salvage Certificate", tone: "warn" },
-    ST: { label: "ST", tone: "warn" },
-    SV: { label: "SV", tone: "warn" },
-    RB: { label: "RB", tone: "warn" },
-    NR: { label: "NR", tone: "bad" },
-    CD: { label: "CD", tone: "bad" },
-    "": { label: "Title not stated", tone: "neutral" },
   },
   odometer: {
     A: { label: "Actual mileage", tone: "good", badge: false },
@@ -63,12 +52,30 @@ function lookup(kind: keyof typeof SIGNALS, value: string | null): Entry {
 
 export const runStatus = (lot: Lot) => lookup("run", lot.runs_drives);
 export const keys = (lot: Lot) => lookup("keys", lot.has_keys);
-/** The title as copart.com shows it: "WV - Salvage Certificate", or "WV - S1" for a code it has no wording for. */
-export const titleType = (lot: Lot): Entry => {
-  const { label, tone } = lookup("title", lot.title_type);
-  if (!lot.title_type?.trim()) return { label, tone };
-  return { label: [lot.title_state?.trim(), label].filter(Boolean).join(" - "), tone };
-};
+/** Copart's title groups, which decide the badge's colour: clean, salvage, non-repairable. */
+const TITLE_GROUP_TONES: Record<string, Tone> = { C: "good", S: "warn", J: "bad" };
+
+/**
+ * Copart's capitals: each space-separated word's first letter upper case, even after a bracket, and
+ * the rest lower case: "Dis/dlr/exp Lien Papers-salv", "Wrecker's Notice (Parts Only)".
+ */
+export const copartCase = (text: string) =>
+  text.toLowerCase().replace(/(^|\s)([^\sa-z]*)([a-z])/g, (_, space: string, lead: string, first: string) => space + lead + first.toUpperCase());
+
+/**
+ * The title as copart.com shows it: "OR - Lien Papers Salvage". The export carries only the state and
+ * a code, and Copart words and groups the same code differently by state, so the wording and group
+ * come from `copart-titles.json`, keyed "STATE CODE" and read off copart.com. A pair it does not hold
+ * yet shows as the code ("OR - LS"), neutral, since its colour depends on the state.
+ */
+export function titleType(lot: Lot): Entry {
+  const code = lot.title_type?.trim().toUpperCase();
+  if (!code) return { label: "Title not stated", tone: "neutral" };
+  const state = lot.title_state?.trim().toUpperCase();
+  const known: string[] | undefined = (COPART_TITLES as Record<string, string[]>)[`${state} ${code}`];
+  const words = known ? copartCase(known[0]) : code;
+  return { label: state ? `${state} - ${words}` : words, tone: (known && TITLE_GROUP_TONES[known[1]]) || "neutral" };
+}
 export const odometerStatus = (lot: Lot) => lookup("odometer", lot.odometer_brand);
 export const saleStatus = (lot: Lot) => lookup("sale", lot.sale_status);
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { badges, countdown, engineSpec, odometerStatus, titleType } from "@/lib/lot-signals";
+import { badges, copartCase, countdown, engineSpec, odometerStatus, titleType } from "@/lib/lot-signals";
 import { sampleLot } from "@/lib/lots-fixture";
 
 const lot = (fields: Partial<typeof sampleLot>) => ({ ...sampleLot, ...fields });
@@ -25,13 +25,13 @@ describe("badges", () => {
 
   it("colours each code by how much it should worry a buyer", () => {
     const tones = (fields: Partial<typeof sampleLot>) => badges(lot(fields)).map((b) => b.tone);
-    expect(tones({ runs_drives: "Vehicle Starts", has_keys: "NO", title_type: "CD", odometer_brand: "E" })).toEqual([
+    expect(tones({ runs_drives: "Vehicle Starts", has_keys: "NO", title_type: "CD", title_state: "FL", odometer_brand: "E" })).toEqual([
       "warn",
       "warn",
       "bad",
       "warn",
     ]);
-    expect(tones({ runs_drives: "DEFAULT", has_keys: "YES", title_type: "CT", odometer_brand: "A" })).toEqual([
+    expect(tones({ runs_drives: "DEFAULT", has_keys: "YES", title_type: "CT", title_state: "AL", odometer_brand: "A" })).toEqual([
       "bad",
       "good",
       "good",
@@ -45,23 +45,34 @@ describe("badges", () => {
 });
 
 describe("titleType", () => {
-  it("reads as copart.com shows it: state, then Copart's wording", () => {
-    expect(titleType(lot({ title_type: "SC", title_state: "WV" }))).toEqual({ label: "WV - Salvage Certificate", tone: "warn" });
-    expect(titleType(lot({ title_type: " ct ", title_state: "CT" }))).toEqual({ label: "CT - Certificate Of Title", tone: "good" });
+  it("reads as copart.com shows it: the state, then Copart's wording for that state's code", () => {
+    // Lot 63059096 on copart.com: "OR - Lien Papers Salvage"; the export says only "OR", "LS".
+    expect(titleType(lot({ title_type: "LS", title_state: "OR" }))).toEqual({ label: "OR - Lien Papers Salvage", tone: "warn" });
+    expect(titleType(lot({ title_type: " sc ", title_state: " wv " })).label).toBe("WV - Salvage Certificate");
   });
 
-  it("shows a code with no checked wording as the code, keeping its colour", () => {
-    expect(titleType(lot({ title_type: "NR", title_state: "TX" }))).toEqual({ label: "TX - NR", tone: "bad" });
-    expect(titleType(lot({ title_type: "S1", title_state: "FL" }))).toEqual({ label: "FL - S1", tone: "neutral" });
+  it("words and colours a code by its state, since Copart does", () => {
+    expect(titleType(lot({ title_type: "DV", title_state: "OH" }))).toEqual({ label: "OH - Dis/dlr/exp Only Clean Title", tone: "good" });
+    expect(titleType(lot({ title_type: "DV", title_state: "FL" }))).toEqual({ label: "FL - Derelict Vehicle Certificate", tone: "bad" });
   });
 
-  it("leaves the state out when the auction gives none", () => {
-    expect(titleType(lot({ title_type: "SC", title_state: null })).label).toBe("Salvage Certificate");
+  it("shows a pair it has no wording for as the code, neutral", () => {
+    expect(titleType(lot({ title_type: "ZZ", title_state: "OR" }))).toEqual({ label: "OR - ZZ", tone: "neutral" });
+    expect(titleType(lot({ title_type: "LS", title_state: null }))).toEqual({ label: "LS", tone: "neutral" });
   });
 
   it("says so when the auction gives no title code", () => {
     expect(titleType(lot({ title_type: null }))).toEqual({ label: "Title not stated", tone: "neutral" });
     expect(titleType(lot({ title_type: "  " })).label).toBe("Title not stated");
+  });
+});
+
+describe("copartCase", () => {
+  it("capitalises each space-separated word the way copart.com does", () => {
+    expect(copartCase("DIS/DLR/EXP LIEN PAPERS-SALV")).toBe("Dis/dlr/exp Lien Papers-salv");
+    expect(copartCase("CERT OF TITLE - SALVAGE")).toBe("Cert Of Title - Salvage");
+    expect(copartCase("WRECKER'S NOTICE (PARTS ONLY)")).toBe("Wrecker's Notice (Parts Only)");
+    expect(copartCase("CERT OF SALVAGE > 75% DAMAGE")).toBe("Cert Of Salvage > 75% Damage");
   });
 });
 
