@@ -73,11 +73,18 @@ describe("lot page", () => {
     expect(screen.getByRole("button", { name: "Copy lot number" })).toBeTruthy();
   });
 
-  it("leaves the second damage out of the meta line when the auction gives none", async () => {
+  it("says the second damage is N/A when the auction gives none", async () => {
     getLot.mockResolvedValue({ ...sampleLot, damage_secondary: null });
     await show();
     const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
-    expect(header).toContain("120,500 mi (mileage not real) · FWD · #1 FRONT END · VALLEJO, CA");
+    expect(header).toContain("120,500 mi (mileage not real) · FWD · #1 FRONT END · #2 N/A · VALLEJO, CA");
+  });
+
+  it("leaves both damages out of the meta line when the auction gives no damage", async () => {
+    getLot.mockResolvedValue({ ...sampleLot, damage_primary: null, damage_secondary: null });
+    await show();
+    const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
+    expect(header).toContain("120,500 mi (mileage not real) · FWD · VALLEJO, CA");
     expect(header).not.toContain("#2");
   });
 

@@ -68,7 +68,7 @@ export default async function LotPage({ params }: { params: Params }) {
     lot.odometer != null && `${odometer(lot.odometer)} (${odometerLabel.toLowerCase()})`,
     driveType(lot),
     lot.damage_primary && `#1 ${lot.damage_primary}`,
-    lot.damage_secondary && `#2 ${lot.damage_secondary}`,
+    lot.damage_primary && `#2 ${lot.damage_secondary || "N/A"}`,
     place(lot) !== "—" && place(lot),
   ].filter(Boolean);
   const left = lot.sale_at ? countdown(lot.sale_at, new Date()) : null;
