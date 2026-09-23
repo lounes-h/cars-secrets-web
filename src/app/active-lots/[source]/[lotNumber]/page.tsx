@@ -108,6 +108,7 @@ export default async function LotPage({ params }: { params: Params }) {
                 View on {auction}
               </a>
             )}
+            <p className="hint mt-1">Bidding happens on {auction}&apos;s own site.</p>
           </div>
         </div>
         {meta.length > 0 && <p className="mt-3 text-sm text-muted">{meta.join(" · ")}</p>}
@@ -139,21 +140,11 @@ export default async function LotPage({ params }: { params: Params }) {
           <p className="mt-3 text-sm text-muted">
             Retail value (ACV) {amount(lot.est_retail_value, lot.currency)}
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {lot.listing_url && (
-              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-primary">
-                Place bid
-              </a>
-            )}
-            {lot.listing_url && buyNow && (
-              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline">
-                Buy now {buyNow}
-              </a>
-            )}
-          </div>
-          <p className="hint mt-3">
-            Bidding happens on {auction}&apos;s own site.
-          </p>
+          {lot.listing_url && buyNow && (
+            <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline mt-4">
+              Buy now {buyNow}
+            </a>
+          )}
         </section>
       </div>
 

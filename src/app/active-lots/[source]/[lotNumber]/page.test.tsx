@@ -143,30 +143,24 @@ describe("lot page", () => {
     expect(cost).toContain("Retail value (ACV) $8,119");
   });
 
-  it("sends the dealer to the auction to bid", async () => {
-    await show();
-    const bid = screen.getByRole("link", { name: "Place bid" });
-    expect(bid.getAttribute("href")).toBe(sampleLot.listing_url);
-    expect(bid.getAttribute("rel")).toContain("noopener");
-    expect(screen.queryByRole("link", { name: /Buy now/ })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Active lots" })).toBeNull();
-    expect(screen.getByText("Bidding happens on Copart's own site.")).toBeTruthy();
-  });
-
-  it("opens the lot on the auction's site from the top of the page", async () => {
+  it("sends the dealer to the auction from the top of the page, and only from there", async () => {
     await show();
     const header = screen.getByRole("banner", { hidden: true });
     const auction = within(header).getByRole("link", { name: "View on Copart" });
     expect(auction.getAttribute("href")).toBe(sampleLot.listing_url);
     expect(auction.getAttribute("target")).toBe("_blank");
     expect(auction.getAttribute("rel")).toContain("noopener");
+    expect(within(header).getByText("Bidding happens on Copart's own site.")).toBeTruthy();
+    const cost = screen.getByRole("region", { name: "All-in cost" });
+    expect(within(cost).queryAllByRole("link")).toEqual([]); // no "Place bid", and no buy now unless offered
+    expect(screen.queryByRole("link", { name: "Place bid" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Active lots" })).toBeNull();
   });
 
   it("has no auction link when the lot has no listing", async () => {
     getLot.mockResolvedValue({ ...sampleLot, listing_url: null });
     await show();
     expect(screen.queryByRole("link", { name: /View on/ })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Place bid" })).toBeNull();
   });
 
   it("offers buy now when the auction does", async () => {
