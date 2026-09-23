@@ -7,7 +7,7 @@
  */
 
 import COPART_TITLES from "@/lib/copart-titles.json";
-import { type Lot, sellerName } from "@/lib/lots";
+import { type Lot, offsiteAddress, sellerName } from "@/lib/lots";
 
 export type Tone = "good" | "warn" | "bad" | "neutral";
 export type Signal = { label: string; tone: Tone };
@@ -94,9 +94,13 @@ export function sellerType(lot: Lot): Entry {
   return INSURER.test(name) ? { label: "Insurance seller", tone: "good" } : { label: "Not an insurance seller", tone: "neutral" };
 }
 
+/** A lot held away from the auction's yard is picked up at its offsite address, not at the yard. */
+export const offsite = (lot: Lot): Entry =>
+  offsiteAddress(lot) ? { label: "Offsite", tone: "warn" } : { label: "At the yard", tone: "neutral", badge: false };
+
 /** The deal breakers, always in this order so a returning buyer knows where to look. */
 export function badges(lot: Lot): Signal[] {
-  return [runStatus(lot), keys(lot), titleType(lot), odometerStatus(lot), saleStatus(lot), sellerType(lot)]
+  return [runStatus(lot), keys(lot), titleType(lot), odometerStatus(lot), saleStatus(lot), sellerType(lot), offsite(lot)]
     .filter((entry) => entry.badge !== false)
     .map(({ label, tone }) => ({ label, tone }));
 }

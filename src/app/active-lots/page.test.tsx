@@ -90,6 +90,14 @@ describe("active lots page", () => {
 });
 
 describe("amounts", () => {
+  it("marks the location of a lot held away from the yard as offsite", async () => {
+    listLots.mockResolvedValue({ items: [{ ...LOT, offsite_address: "645 W UNION ST" }, LOT], total: 2 });
+    await show();
+    const [, offsite, onYard] = screen.getAllByRole("row");
+    expect(offsite.textContent).toContain("VALLEJO, CA · Offsite");
+    expect(onYard.textContent).not.toContain("Offsite");
+  });
+
   it("shows a lot's own currency, and falls back to dollars for a junk code", async () => {
     listLots.mockResolvedValue({
       items: [

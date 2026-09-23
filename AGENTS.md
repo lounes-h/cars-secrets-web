@@ -262,10 +262,11 @@ Copart's own site." under it, a meta line (mileage, drive as a
 dealer says it — FWD, RWD, AWD, 4WD, from `driveType` — "Primary damage: …" and "Secondary damage: …", the latter "N/A" when the auction gives none, location) and
 the deal-breaker badges, with no sentence repeating them, in a fixed order: run status, keys, title, then odometer
 only when it is not the normal case, then sale status always — pure sale, minimum bid, seller must approve — then
-the seller: "Insurance seller" (green) or "Not an insurance seller", and no badge when the seller is not stated); the photos beside the all-in cost
+the seller: "Insurance seller" (green) or "Not an insurance seller", and no badge when the seller is not stated — then "Offsite" (amber) when the auction holds the lot away from its yard); the photos beside the all-in cost
 card, the one emphasised card, whose fee and shipping rows read "Not estimated yet",
 whose total stays a dash until those estimates exist, and which carries a "Buy now" button
-only when the auction offers it; condition, paperwork and pickup;
+only when the auction offers it; condition, paperwork and pickup, where an offsite lot also shows its "Offsite address"
+(`offsiteAddress`: Copart's offsite columns, filled for about 1 % of lots; the list marks their location "· Offsite");
 then specs as tiles and sale info as one light row, both always visible. Sale info's times
 are Copart's last update of the lot ("Updated on Copart", `source_updated_at`), when the
 ingest first saw it ("Added to this site", `first_seen_at`) and when it last saw it change

@@ -42,6 +42,12 @@ describe("badges", () => {
     ]);
   });
 
+  it("ends with an offsite badge when the lot is held away from the yard, and none at the yard", () => {
+    expect(badges(lot({ offsite_address: "645 W UNION ST", offsite_city: "ALLENTOWN", offsite_state: "PA", offsite_zip: "18101" })).at(-1)).toEqual({ label: "Offsite", tone: "warn" });
+    expect(badges(lot({ offsite_city: "ALLENTOWN" })).at(-1)).toEqual({ label: "Offsite", tone: "warn" });
+    expect(badges(sampleLot).map((badge) => badge.label)).not.toContain("At the yard");
+  });
+
   it("shows an unknown code as it came, neutral, rather than guessing", () => {
     expect(odometerStatus(lot({ odometer_brand: " ZZ " }))).toEqual({ label: "ZZ", tone: "neutral" });
     expect(odometerStatus(lot({ odometer_brand: null })).label).toBe("Mileage status not stated");

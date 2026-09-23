@@ -11,6 +11,7 @@ import {
   type Lot,
   type LotImage,
   odometer,
+  offsiteAddress,
   place,
   saleDate,
   sellerName,
@@ -74,6 +75,7 @@ export default async function LotPage({ params }: { params: Params }) {
   const left = lot.sale_at ? countdown(lot.sale_at, new Date()) : null;
   const buyNow = lot.buy_it_now_price ? amount(lot.buy_it_now_price, lot.currency) : null;
   const auction = auctionName(lot.source);
+  const offsiteAt = offsiteAddress(lot);
 
   return (
     <main className="flex-1 bg-white px-4 pt-8 pb-24 sm:px-6 lg:px-10">
@@ -166,6 +168,7 @@ export default async function LotPage({ params }: { params: Params }) {
         <Details title="Pickup">
           <Field label="Yard" value={[lot.yard_name, lot.yard_code && `yard ${lot.yard_code}`].filter(Boolean).join(", ")} />
           <Field label="Address" value={[place(lot) !== "—" && place(lot), lot.location_zip, lot.location_country].filter(Boolean).join(" ")} />
+          {offsiteAt && <Field label="Offsite address" value={offsiteAt} />}
         </Details>
       </div>
 
