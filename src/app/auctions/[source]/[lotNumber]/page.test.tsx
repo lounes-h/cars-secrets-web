@@ -60,6 +60,23 @@ describe("lot page", () => {
     expect(page).toContain("$2,400");
   });
 
+  it("shows every column the auction's export fills, and none of the ingest's bookkeeping", async () => {
+    await show();
+    const page = screen.getByRole("main").textContent ?? "";
+    for (const value of [
+      "AUTOMOBILE", "2.4L 4", "GAS", "AUTOMATIC", "FRONT", "PURE SALE", "INSURANCE CO",
+      "CA - VALLEJO", "123", "94590", "USA", "SEDAN 4DR", "CHARCOAL", "SC",
+      "NOT ACTUAL",             // odometer_brand, "N" in Copart's export
+      "Sep 18, 2026",           // sale_date, as a day
+      "Sep 17, 2026, 9:12 AM",  // source_created_at, which carries no time zone
+      "Sep 18, 2026, 6:44 AM",  // source_updated_at
+    ]) {
+      expect(page, value).toContain(value);
+    }
+    expect(page).not.toContain(sampleLot.image_url);
+    expect(page).not.toContain(sampleLot.thumbnail_url);
+  });
+
   it("sends the dealer to the auction to bid, and back to the listing", async () => {
     await show();
     const bid = screen.getByRole("link", { name: "Bid on copart" });
