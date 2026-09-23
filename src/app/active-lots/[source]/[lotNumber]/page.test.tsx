@@ -64,7 +64,7 @@ describe("lot page", () => {
     expect(badges.map((badge) => [badge.textContent, badge.dataset.tone])).toEqual([
       ["✓Runs and drives", "good"],
       ["✓Keys", "good"],
-      ["•Title SC", "neutral"],
+      ["!Title SC", "warn"],
       ["✕Mileage not real", "bad"],
     ]);
     expect(screen.getByRole("button", { name: "Copy VIN" })).toBeTruthy();

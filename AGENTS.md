@@ -258,8 +258,8 @@ are translated into plain words in one lookup table, `SIGNALS` in
 `src/lib/lot-signals.ts`, which also sets each badge's colour; the page shows no raw
 code except one the table does not know yet, which appears as it came, neutral. Title
 codes are the exception: they are never translated, only spelled out in Copart's own
-words once checked on copart.com (`CT` is "Certificate Of Title"), neutral; any other
-title code shows as it came ("Title SC"). The
+words once checked on copart.com (`CT` is "Certificate Of Title"); any other
+title code shows as it came ("Title SC"). The table still colours the known ones. The
 auction publishes no airbag, seller type, condition report, seller notes, pickup
 deadline, storage fee or buyer eligibility, and the site has no dealer location, so
 those have no place on the page yet. The ingest's own bookkeeping

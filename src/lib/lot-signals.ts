@@ -29,9 +29,15 @@ export const SIGNALS: Record<"run" | "keys" | "title" | "odometer" | "sale", Rec
     "": { label: "Keys not stated", tone: "neutral" },
   },
   // Copart's own wording, word for word, and only what has been checked on copart.com;
-  // any other code is shown as it came ("Title SC").
+  // any other code is shown as it came ("Title SC"), keeping its colour.
   title: {
-    CT: { label: "Certificate Of Title", tone: "neutral" },
+    CT: { label: "Certificate Of Title", tone: "good" },
+    SC: { label: "Title SC", tone: "warn" },
+    ST: { label: "Title ST", tone: "warn" },
+    SV: { label: "Title SV", tone: "warn" },
+    RB: { label: "Title RB", tone: "warn" },
+    NR: { label: "Title NR", tone: "bad" },
+    CD: { label: "Title CD", tone: "bad" },
     "": { label: "Title not stated", tone: "neutral" },
   },
   odometer: {
