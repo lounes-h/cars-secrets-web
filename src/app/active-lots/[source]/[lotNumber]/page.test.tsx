@@ -58,7 +58,7 @@ describe("lot page", () => {
     const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
     expect(header).toContain("Sells in 10h 30m");
     expect(header).toContain("Fri, Sep 18, 7:00 PM UTC"); // the reader's zone, UTC in tests
-    expect(header).toContain("120,500 mi (mileage not real) · FWD · #1 FRONT END · #2 SIDE · VALLEJO, CA");
+    expect(header).toContain("120,500 mi (mileage not real) · FWD · Primary damage: FRONT END · Secondary damage: SIDE · VALLEJO, CA");
     expect(header).not.toContain("Runs and drives, front end damage"); // no sentence repeating the badges
     const badges = within(screen.getByRole("list", { name: "Deal breakers" })).getAllByRole("listitem");
     expect(badges.map((badge) => [badge.textContent, badge.dataset.tone])).toEqual([
@@ -73,12 +73,19 @@ describe("lot page", () => {
     expect(screen.getByRole("button", { name: "Copy lot number" })).toBeTruthy();
   });
 
-  it("leaves the second damage out of the meta line when the auction gives none", async () => {
+  it("says the secondary damage is N/A when the auction gives none", async () => {
     getLot.mockResolvedValue({ ...sampleLot, damage_secondary: null });
     await show();
     const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
-    expect(header).toContain("120,500 mi (mileage not real) · FWD · #1 FRONT END · VALLEJO, CA");
-    expect(header).not.toContain("#2");
+    expect(header).toContain("120,500 mi (mileage not real) · FWD · Primary damage: FRONT END · Secondary damage: N/A · VALLEJO, CA");
+  });
+
+  it("leaves both damages out of the meta line when the auction gives no damage", async () => {
+    getLot.mockResolvedValue({ ...sampleLot, damage_primary: null, damage_secondary: null });
+    await show();
+    const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
+    expect(header).toContain("120,500 mi (mileage not real) · FWD · VALLEJO, CA");
+    expect(header).not.toContain("damage:");
   });
 
   it("shows the sale day when the auction gives no sale time", async () => {
@@ -100,7 +107,7 @@ describe("lot page", () => {
     getLot.mockResolvedValue({ ...sampleLot, drive: "UNKNOWN" });
     await show();
     const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
-    expect(header).toContain("120,500 mi (mileage not real) · #1 FRONT END");
+    expect(header).toContain("120,500 mi (mileage not real) · Primary damage: FRONT END");
   });
 
   it("keeps every column the auction's export fills, in plain words, and none of the ingest's bookkeeping", async () => {

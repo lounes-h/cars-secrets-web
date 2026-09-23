@@ -252,7 +252,7 @@ with copy buttons, the time left before the sale — "Future sale" when the auct
 sale day yet, as Copart calls it — a "View on Copart" button (the auction's name from
 `auctionName` in `src/lib/lots.ts`) to the lot on the auction's site, with "Bidding happens on
 Copart's own site." under it, a meta line (mileage, drive as a
-dealer says it — FWD, RWD, AWD, 4WD, from `driveType` — "#1" primary and "#2" secondary damage, location) and
+dealer says it — FWD, RWD, AWD, 4WD, from `driveType` — "Primary damage: …" and "Secondary damage: …", the latter "N/A" when the auction gives none, location) and
 the deal-breaker badges, with no sentence repeating them, in a fixed order: run status, keys, title, then odometer
 only when it is not the normal case, then sale status always — pure sale, minimum bid, seller must approve — then
 the seller: "Insurance seller" (green) or "Not an insurance seller", and no badge when the seller is not stated); the photos beside the all-in cost
