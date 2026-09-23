@@ -57,7 +57,7 @@ describe("lot page", () => {
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("2013 ACURA TSX TECH");
     const header = screen.getByRole("banner", { hidden: true }).textContent ?? "";
     expect(header).toContain("Sells in 10h 30m");
-    expect(header).toContain("Fri, Sep 18, 7:00 PM");
+    expect(header).toContain("Fri, Sep 18, 7:00 PM UTC"); // the reader's zone, UTC in tests
     expect(header).toContain("120,500 mi (mileage not real) · FWD · #1 FRONT END · #2 SIDE · VALLEJO, CA");
     expect(header).not.toContain("Runs and drives, front end damage"); // no sentence repeating the badges
     const badges = within(screen.getByRole("list", { name: "Deal breakers" })).getAllByRole("listitem");
@@ -113,13 +113,13 @@ describe("lot page", () => {
       "CA - VALLEJO, yard 123", "VALLEJO, CA 94590 USA", "SEDAN 4DR", "CHARCOAL", "USD",
       "CA - Salvage Certificate", // title_state and title_type, "CA" and "SC" in Copart's export
       "Mileage not real",       // odometer_brand, "N" in Copart's export
-      "Sep 17, 2026, 9:12 AM",  // source_created_at, which carries no time zone
-      "Sep 18, 2026, 6:44 AM",  // source_updated_at
-      "Sep 18, 2026, 1:31 AM",  // first_seen_at
-      "Sep 18, 2026, 12:01 PM", // last_changed_at
+      "Updated on CopartSep 18, 2026, 6:44 AM UTC",   // source_updated_at
+      "Added to this siteSep 18, 2026, 1:31 AM UTC",  // first_seen_at
+      "Last change seenSep 18, 2026, 12:01 PM UTC",   // last_changed_at
     ]) {
       expect(page, value).toContain(value);
     }
+    expect(page).not.toContain("Sep 17, 2026"); // source_created_at: the export's stamp, not when the lot was listed
     expect(page).not.toContain("NOT ACTUAL");
     expect(page).not.toContain("Sale status"); // a badge in the header, not a row in sale info
     expect(page).not.toContain("Drive"); // "FWD" in the header, not a spec tile

@@ -36,7 +36,7 @@ export type Lot = {
   buy_it_now_price: number | null;
   currency: string | null;
   sale_status: string | null;
-  /** The auction's sale day, without a time: formatted by `saleDate`, not `saleTime`. */
+  /** The auction's sale day, without a time: formatted by `saleDate`, not `LocalTime`. */
   sale_date: string | null;
   sale_at: string | null;
   yard_code: string | null;
@@ -49,6 +49,7 @@ export type Lot = {
   thumbnail_url: string | null;
   /** The auction's photo listing endpoint, not an image: never use it as an <img> source. */
   image_url: string | null;
+  /** Copart's "Create Date/Time": when the export was made, the same on every row and without a zone. Not a lot date, so never shown. */
   source_created_at: string | null;
   source_updated_at: string | null;
   listing_url: string | null;
@@ -123,21 +124,11 @@ export function amount(value: number | null, currency: string | null): string {
 }
 
 const miles = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-/** Sale times are the auction's own; UTC keeps server and browser rendering the same string. */
-const when = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" });
+/** A calendar day, not a moment: UTC keeps it the same day in every zone. */
 const day = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
 
 export function odometer(value: number | null): string {
   return value == null ? "—" : `${miles.format(value)} mi`;
-}
-
-/**
- * The auction's own timestamps carry a zone; `source_created_at` does not, and a naive string
- * would otherwise be read in the reader's zone and render differently on server and browser.
- */
-export function saleTime(value: string | null): string {
-  if (!value) return "—";
-  return when.format(new Date(/(Z|[+-]\d\d:?\d\d)$/.test(value) ? value : `${value}Z`));
 }
 
 /** A date column ("2026-10-01"), which carries no time to show. */

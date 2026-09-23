@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
-    env: { NEXT_PUBLIC_SITE_URL: "https://cars-secrets.test" },
+    // TZ: LocalTime renders in the process's zone; UTC makes the expected times the same on every machine.
+    env: { NEXT_PUBLIC_SITE_URL: "https://cars-secrets.test", TZ: "UTC" },
   },
 });
