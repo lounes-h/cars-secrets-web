@@ -47,7 +47,7 @@ See `docs/architecture.md` for details.
   `src/app` is missing from it. A dynamic route behind sign-in has no place in
   the registry (there is no one path to register): it builds its metadata with
   `buildMetadata({ noindex: true })` in `generateMetadata` instead, as
-  `/auctions/[source]/[lotNumber]` does.
+  `/active-lots/[source]/[lotNumber]` does.
 - Build page metadata with `metadataForRoute()` or `buildMetadata()` from
   `src/lib/seo/metadata.ts`. Never hand-write `title`, canonical or Open Graph
   metadata.
@@ -208,7 +208,7 @@ A code change is not considered complete until the relevant unit tests have been
 ## Current state
 
 The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
-`/reset-password`, `/verify-email`, `/account`), `/auctions` (the lot listing)
+`/reset-password`, `/verify-email`, `/account`), `/active-lots` (the lot listing)
 and the empty placeholders the banner menu links to: `/vin-lookup`,
 `/best-buys`, `/how-it-works`, `/pricing`, `/saved` and `/alerts` — blank white
 pages with metadata only, so they have no `h1` until there is something to put
@@ -242,9 +242,9 @@ register" and a sentence above it says that clicking it is the agreement, so the
 action always tells the API the terms are accepted. The Terms of Use and Privacy
 Policy themselves do not exist yet.
 
-In place for lots: `/auctions` ("Active lots" in the menu and as its `h1`; the
-path keeps the auctions name) lists active lots, the most recently listed
-first (the API's order), 20 to a page (`?page=`), and `/auctions/[source]/[lotNumber]` shows one lot —
+In place for lots: `/active-lots` ("Active lots" in the menu and as its `h1`; the
+path was `/auctions`, which redirects here permanently) lists active lots, the most recently listed
+first (the API's order), 20 to a page (`?page=`), and `/active-lots/[source]/[lotNumber]` shows one lot —
 every column the ingest keeps for it, every photo of it, and a "Place bid" button
 (plus "Buy now" when the auction offers it) to the auction site, since bidding never
 happens here. The page reads top to bottom as: a summary (title, lot number and VIN

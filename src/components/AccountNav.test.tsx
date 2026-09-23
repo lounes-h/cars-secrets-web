@@ -31,7 +31,7 @@ describe("AccountNav", () => {
     render(<AccountNav />);
     const menu = await screen.findByRole("navigation", { name: "Main" });
     expect([...menu.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
-      ["Active lots", "/auctions"],
+      ["Active lots", "/active-lots"],
       ["VIN Lookup", "/vin-lookup"],
       ["Best Buys", "/best-buys"],
       ["How It Works", "/how-it-works"],
@@ -44,7 +44,7 @@ describe("AccountNav", () => {
     render(<AccountNav />);
     const menu = await screen.findByRole("navigation", { name: "Main" });
     expect([...menu.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
-      ["Active lots", "/auctions"],
+      ["Active lots", "/active-lots"],
       ["VIN Lookup", "/vin-lookup"],
       ["Best Buys", "/best-buys"],
       ["Saved", "/saved"],

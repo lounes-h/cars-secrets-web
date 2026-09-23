@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Params }) {
     title: `Lot ${lotNumber}`,
     description:
       "Everything the auction publishes about this lot: the car, its damage, title, odometer, where it sells and what it is bid up to.",
-    path: `/auctions/${source}/${lotNumber}`,
+    path: `/active-lots/${source}/${lotNumber}`,
     noindex: true,
   });
 }
@@ -141,7 +141,7 @@ export default async function LotPage({ params }: { params: Params }) {
             )}
           </div>
           <p className="hint mt-3">
-            Bidding happens on {lot.source}&apos;s own site. <Link href="/auctions">Active lots</Link>
+            Bidding happens on {lot.source}&apos;s own site. <Link href="/active-lots">Active lots</Link>
           </p>
         </section>
       </div>

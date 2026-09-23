@@ -155,5 +155,5 @@ export function place(lot: Lot): string {
 
 /** Where this lot's page lives. */
 export function lotPath(lot: Pick<Lot, "source" | "lot_number">): string {
-  return `/auctions/${encodeURIComponent(lot.source)}/${encodeURIComponent(lot.lot_number)}`;
+  return `/active-lots/${encodeURIComponent(lot.source)}/${encodeURIComponent(lot.lot_number)}`;
 }

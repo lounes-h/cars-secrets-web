@@ -15,7 +15,7 @@ import {
 import { metadataForRoute } from "@/lib/seo/metadata";
 import { currentUser, sessionToken, visitorIp } from "@/lib/session";
 
-export const metadata = metadataForRoute("/auctions");
+export const metadata = metadataForRoute("/active-lots");
 
 const count = new Intl.NumberFormat("en-US");
 
@@ -121,7 +121,7 @@ function PageLink({ page, enabled, children }: { page: number; enabled: boolean;
     );
   }
   return (
-    <Link href={page > 1 ? `/auctions?page=${page}` : "/auctions"} className="btn btn-outline">
+    <Link href={page > 1 ? `/active-lots?page=${page}` : "/active-lots"} className="btn btn-outline">
       {children}
     </Link>
   );

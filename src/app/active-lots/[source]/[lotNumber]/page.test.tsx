@@ -18,7 +18,7 @@ vi.mock("@/lib/session", () => ({
 vi.mock("@/lib/lots", async (original) => ({ ...(await original<object>()), getLot, getLotImages }));
 vi.mock("next/navigation", () => ({ notFound }));
 
-const { default: LotPage, generateMetadata } = await import("@/app/auctions/[source]/[lotNumber]/page");
+const { default: LotPage, generateMetadata } = await import("@/app/active-lots/[source]/[lotNumber]/page");
 
 const params = Promise.resolve({ source: "copart", lotNumber: "41633106" });
 
@@ -122,7 +122,7 @@ describe("lot page", () => {
     expect(bid.getAttribute("href")).toBe(sampleLot.listing_url);
     expect(bid.getAttribute("rel")).toContain("noopener");
     expect(screen.queryByRole("link", { name: /Buy now/ })).toBeNull();
-    expect(screen.getByRole("link", { name: "Active lots" }).getAttribute("href")).toBe("/auctions");
+    expect(screen.getByRole("link", { name: "Active lots" }).getAttribute("href")).toBe("/active-lots");
   });
 
   it("offers buy now when the auction does", async () => {
@@ -175,6 +175,6 @@ describe("lot page", () => {
     const metadata = await generateMetadata({ params });
     expect(metadata.title).toEqual({ absolute: "Lot 41633106" });
     expect(metadata.robots).toEqual({ index: false, follow: true });
-    expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/auctions/copart/41633106");
+    expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/active-lots/copart/41633106");
   });
 });

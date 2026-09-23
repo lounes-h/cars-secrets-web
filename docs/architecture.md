@@ -9,7 +9,7 @@ src/
     (auth)/            register, login, forgot-password, reset-password, verify-email pages
       actions.ts       Every auth server action (calls the API, sets the session cookie)
     account/           The signed-in user and a sign-out button
-    auctions/          The lot listing: a page of 20 lots for signed-in dealers
+    active-lots/       The lot listing: a page of 20 lots for signed-in dealers
       [source]/[lotNumber]/  One lot: everything the auction publishes, its photos, where to bid
     auth/callback/[provider]/route.ts  Google (GET) and Apple (POST) sign-in return here
     sitemap.ts         Generated from the route registry

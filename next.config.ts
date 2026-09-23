@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  /** The lot listing was /auctions: old links and bookmarks still land (the query string rides along). */
+  async redirects() {
+    return [{ source: "/auctions/:path*", destination: "/active-lots/:path*", permanent: true }];
+  },
 };
 
 export default nextConfig;
