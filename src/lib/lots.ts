@@ -157,6 +157,11 @@ export function place(lot: Lot): string {
   return [lot.location_city, lot.location_state].filter(Boolean).join(", ") || "—";
 }
 
+/** Copart names some sellers by their logo's file: "ENTERPRISE-LOGO.jpeg" is "ENTERPRISE". */
+export function sellerName(lot: Lot): string | null {
+  return lot.seller_name?.replace(/-LOGO\.\w+$/i, "").trim() || null;
+}
+
 /** Where this lot's page lives. */
 export function lotPath(lot: Pick<Lot, "source" | "lot_number">): string {
   return `/active-lots/${encodeURIComponent(lot.source)}/${encodeURIComponent(lot.lot_number)}`;

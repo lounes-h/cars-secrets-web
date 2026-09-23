@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { badges, copartCase, countdown, driveType, engineSpec, odometerStatus, titleType } from "@/lib/lot-signals";
+import { badges, copartCase, countdown, driveType, engineSpec, odometerStatus, sellerType, titleType, vehicleType } from "@/lib/lot-signals";
 import { sampleLot } from "@/lib/lots-fixture";
 
 const lot = (fields: Partial<typeof sampleLot>) => ({ ...sampleLot, ...fields });
@@ -12,11 +12,12 @@ describe("badges", () => {
       { label: "CA - Salvage Certificate", tone: "warn" },
       { label: "Mileage not real", tone: "bad" },
       { label: "Pure sale", tone: "good" },
+      { label: "Insurance seller", tone: "good" },
     ]);
   });
 
-  it("always ends with the sale status, a pure sale included", () => {
-    const last = (sale_status: string | null) => badges(lot({ sale_status })).at(-1);
+  it("always shows the sale status, a pure sale included, just before the seller", () => {
+    const last = (sale_status: string | null) => badges(lot({ sale_status })).at(-2);
     expect(last("On Minimum Bid")).toEqual({ label: "Minimum bid", tone: "warn" });
     expect(last("On Approval")).toEqual({ label: "Seller must approve", tone: "warn" });
     expect(last("Pure Sale")).toEqual({ label: "Pure sale", tone: "good" });
@@ -31,12 +32,14 @@ describe("badges", () => {
       "bad",
       "warn",
       "good",
+      "good",
     ]);
-    expect(tones({ runs_drives: "DEFAULT", has_keys: "YES", title_type: "CT", title_state: "AL", odometer_brand: "A" })).toEqual([
+    expect(tones({ runs_drives: "DEFAULT", has_keys: "YES", title_type: "CT", title_state: "AL", odometer_brand: "A", seller_name: null })).toEqual([
       "bad",
       "good",
       "good",
       "good",
+      "neutral",
     ]);
   });
 
@@ -66,6 +69,44 @@ describe("titleType", () => {
   it("says so when the auction gives no title code", () => {
     expect(titleType(lot({ title_type: null }))).toEqual({ label: "Title not stated", tone: "neutral" });
     expect(titleType(lot({ title_type: "  " })).label).toBe("Title not stated");
+  });
+});
+
+describe("sellerType", () => {
+  const seller = (seller_name: string | null) => sellerType(lot({ seller_name }));
+
+  it("marks an insurer, named with the word or by its brand", () => {
+    // Seller names seen in Copart's export and on copart.com.
+    for (const name of ["State Farm Insurance", "GEICO", "Progressive", "USAA", "CSAA", "Insurance Vehicle", "DELAWARE VALLEY INS. TRUST", "AMERICAN ROAD INSURANCE CO"]) {
+      expect(seller(name), name).toEqual({ label: "Insurance seller", tone: "good" });
+    }
+  });
+
+  it("says a named seller that is not an insurer is not one", () => {
+    for (const name of ["CAPITAL ONE AUTO", "HERTZ SV", "ENTERPRISE-LOGO.jpeg", "Trusted Dealer", "NATIONWIDE ACCEPTANCE LLC"]) {
+      expect(seller(name), name).toEqual({ label: "Not an insurance seller", tone: "neutral" });
+    }
+  });
+
+  it("says so when the auction names no seller", () => {
+    expect(seller(null)).toEqual({ label: "Seller not stated", tone: "neutral" });
+    expect(seller("  ")).toEqual({ label: "Seller not stated", tone: "neutral" });
+  });
+});
+
+describe("vehicleType", () => {
+  it("words Copart's one-letter codes as copart.com does", () => {
+    const type = (vehicle_type: string | null) => vehicleType(lot({ vehicle_type }));
+    expect(type("V")).toBe("Automobile");
+    expect(type(" k ")).toBe("Medium duty / box truck");
+    expect(type("R")).toBe("Recreational vehicle (RV)");
+    expect(type("J")).toBe("Jet ski");
+  });
+
+  it("shows a code it does not know as it came, and nothing for none", () => {
+    expect(vehicleType(lot({ vehicle_type: " Z " }))).toBe("Z");
+    expect(vehicleType(lot({ vehicle_type: " " }))).toBeNull();
+    expect(vehicleType(lot({ vehicle_type: null }))).toBeNull();
   });
 });
 

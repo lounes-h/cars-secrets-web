@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
-import { badges, countdown, driveType, engineSpec, odometerStatus, titleType } from "@/lib/lot-signals";
+import { badges, countdown, driveType, engineSpec, odometerStatus, titleType, vehicleType } from "@/lib/lot-signals";
 import {
   amount,
   auctionName,
@@ -13,6 +13,7 @@ import {
   place,
   saleDate,
   saleTime,
+  sellerName,
   vehicle,
 } from "@/lib/lots";
 import { buildMetadata } from "@/lib/seo/metadata";
@@ -178,7 +179,7 @@ export default async function LotPage({ params }: { params: Params }) {
             ["fuel", "Fuel", lot.fuel_type],
             ["color", "Color", lot.color],
             ["body", "Body style", lot.body_style],
-            ["tag", "Vehicle type", lot.vehicle_type],
+            ["tag", "Vehicle type", vehicleType(lot)],
             ["tag", "Model detail", lot.model_detail],
           ].map(([icon, label, value]) => (
             <li key={label} className="flex items-start gap-2 rounded border border-line p-2">
@@ -198,7 +199,7 @@ export default async function LotPage({ params }: { params: Params }) {
         <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted [&>div]:flex [&>div]:gap-1.5 [&_dd]:text-ink">
           {[
             ["Auction", auction],
-            ["Seller", lot.seller_name],
+            ["Seller", sellerName(lot)],
             ["Currency", lot.currency],
             ["Listed by the auction", saleTime(lot.source_created_at)],
             ["Last updated", saleTime(lot.source_updated_at)],

@@ -253,7 +253,8 @@ sale day yet, as Copart calls it — a "View on Copart" button (the auction's na
 Copart's own site." under it, a meta line (mileage, drive as a
 dealer says it — FWD, RWD, AWD, 4WD, from `driveType` — "#1" primary and "#2" secondary damage, location) and
 the deal-breaker badges, with no sentence repeating them, in a fixed order: run status, keys, title, then odometer
-only when it is not the normal case, then sale status always — pure sale, minimum bid, seller must approve); the photos beside the all-in cost
+only when it is not the normal case, then sale status always — pure sale, minimum bid, seller must approve — then
+the seller: "Insurance seller" (green), "Not an insurance seller" or "Seller not stated"); the photos beside the all-in cost
 card, the one emphasised card, whose fee and shipping rows read "Not estimated yet",
 whose total stays a dash until those estimates exist, and which carries a "Buy now" button
 only when the auction offers it; condition, paperwork and pickup;
@@ -266,8 +267,16 @@ state and the export carries only the state and the code: it reads as copart.com
 ("OR - Lien Papers Salvage"), with the wording and the colour (Copart's clean, salvage
 or non-repairable group) from `src/lib/copart-titles.json`, keyed "STATE CODE" and read
 off copart.com by `scripts/copart-titles.js`. A pair the file does not hold yet shows as
-the code ("OR - LS"), neutral; rerun the script to add it. The
-auction publishes no airbag, seller type, condition report, seller notes, pickup
+the code ("OR - LS"), neutral; rerun the script to add it. The vehicle type is Copart's
+one-letter code ("V", "K"), worded as copart.com words it ("Automobile", "Medium duty / box
+truck") by `vehicleType`. Neither the export nor copart.com has a seller type, so whether an
+insurer sells the lot — an insurance claim, so less risk of swapped or missing parts or a
+rolled-back odometer — is read from the seller's name (`sellerType`, the `INSURER` pattern:
+add an insurer named without "insurance" there). The export names the seller for only about a
+third of lots, and copart.com names it for some the export leaves blank, so "Seller not
+stated" is not "not an insurer". Copart names a few sellers by their logo's file
+("ENTERPRISE-LOGO.jpeg"), which `sellerName` shortens to the name. The
+auction publishes no airbag, condition report, seller notes, pickup
 deadline, storage fee or buyer eligibility, and the site has no dealer location, so
 those have no place on the page yet. The ingest's own bookkeeping
 (`attributes`, `row_hash`, `last_seen_at`, `removed_at`, the file ids) is not in the

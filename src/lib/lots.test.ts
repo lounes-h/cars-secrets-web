@@ -5,8 +5,9 @@ vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }
 
 const { ApiError } = await import("@/lib/api");
 
-const { auctionName, getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE, saleDate, saleTime } =
+const { auctionName, getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE, saleDate, saleTime, sellerName } =
   await import("@/lib/lots");
+const { sampleLot } = await import("@/lib/lots-fixture");
 
 describe("pageNumber", () => {
   it("keeps a whole page number above one", () => {
@@ -111,5 +112,20 @@ describe("auctionName", () => {
 
   it("shows an auction it does not know as it came", () => {
     expect(auctionName("acv")).toBe("acv");
+  });
+});
+
+describe("sellerName", () => {
+  const name = (seller_name: string | null) => sellerName({ ...sampleLot, seller_name });
+
+  it("drops the logo file Copart names some sellers by", () => {
+    expect(name("ENTERPRISE-LOGO.jpeg")).toBe("ENTERPRISE");
+    expect(name("VROOM-LOGO.png")).toBe("VROOM");
+  });
+
+  it("keeps any other name as it came, and nothing for none", () => {
+    expect(name("State Farm Insurance")).toBe("State Farm Insurance");
+    expect(name(" ")).toBeNull();
+    expect(name(null)).toBeNull();
   });
 });
