@@ -9,7 +9,7 @@ describe("badges", () => {
     expect(badges(sampleLot)).toEqual([
       { label: "Runs and drives", tone: "good" },
       { label: "Keys", tone: "good" },
-      { label: "Title SC", tone: "warn" },
+      { label: "CA - Salvage Certificate", tone: "warn" },
       { label: "Mileage not real", tone: "bad" },
     ]);
   });
@@ -18,7 +18,7 @@ describe("badges", () => {
     expect(badges(lot({ sale_status: "On Minimum Bid", odometer_brand: "A" })).map((b) => b.label)).toEqual([
       "Runs and drives",
       "Keys",
-      "Title SC",
+      "CA - Salvage Certificate",
       "Minimum bid",
     ]);
   });
@@ -45,17 +45,18 @@ describe("badges", () => {
 });
 
 describe("titleType", () => {
-  it("spells out a code in Copart's own words", () => {
-    expect(titleType(lot({ title_type: " ct " }))).toEqual({ label: "Certificate Of Title", tone: "good" });
+  it("reads as copart.com shows it: state, then Copart's wording", () => {
+    expect(titleType(lot({ title_type: "SC", title_state: "WV" }))).toEqual({ label: "WV - Salvage Certificate", tone: "warn" });
+    expect(titleType(lot({ title_type: " ct ", title_state: "CT" }))).toEqual({ label: "CT - Certificate Of Title", tone: "good" });
   });
 
-  it("shows a code whose wording is not confirmed as it came, keeping its colour", () => {
-    expect(titleType(lot({ title_type: " SC " }))).toEqual({ label: "Title SC", tone: "warn" });
-    expect(titleType(lot({ title_type: "NR" }))).toEqual({ label: "Title NR", tone: "bad" });
+  it("shows a code with no checked wording as the code, keeping its colour", () => {
+    expect(titleType(lot({ title_type: "NR", title_state: "TX" }))).toEqual({ label: "TX - NR", tone: "bad" });
+    expect(titleType(lot({ title_type: "S1", title_state: "FL" }))).toEqual({ label: "FL - S1", tone: "neutral" });
   });
 
-  it("leaves a code with no colour yet neutral", () => {
-    expect(titleType(lot({ title_type: "S1" }))).toEqual({ label: "Title S1", tone: "neutral" });
+  it("leaves the state out when the auction gives none", () => {
+    expect(titleType(lot({ title_type: "SC", title_state: null })).label).toBe("Salvage Certificate");
   });
 
   it("says so when the auction gives no title code", () => {

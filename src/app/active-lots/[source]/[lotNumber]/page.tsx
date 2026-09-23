@@ -156,7 +156,6 @@ export default async function LotPage({ params }: { params: Params }) {
         {/* 5. Paperwork */}
         <Details title="Paperwork">
           <Field label="Title" value={titleType(lot).label} />
-          <Field label="Title state" value={lot.title_state} />
           <Field label="Odometer" value={odometer(lot.odometer)} />
           <Field label="Odometer status" value={odometerLabel} />
         </Details>

@@ -28,16 +28,17 @@ export const SIGNALS: Record<"run" | "keys" | "title" | "odometer" | "sale", Rec
     EXM: { label: "Keys exempt", tone: "neutral" },
     "": { label: "Keys not stated", tone: "neutral" },
   },
-  // Copart's own wording, word for word, and only what has been checked on copart.com;
-  // any other code is shown as it came ("Title SC"), keeping its colour.
+  // As copart.com shows it after the state ("WV - Salvage Certificate"), word for word, and only
+  // what has been checked there. A code without checked wording shows as the code, keeping its colour.
+  // ponytail: one wording per code for every state; key by state if Copart's differs by state.
   title: {
     CT: { label: "Certificate Of Title", tone: "good" },
-    SC: { label: "Title SC", tone: "warn" },
-    ST: { label: "Title ST", tone: "warn" },
-    SV: { label: "Title SV", tone: "warn" },
-    RB: { label: "Title RB", tone: "warn" },
-    NR: { label: "Title NR", tone: "bad" },
-    CD: { label: "Title CD", tone: "bad" },
+    SC: { label: "Salvage Certificate", tone: "warn" },
+    ST: { label: "ST", tone: "warn" },
+    SV: { label: "SV", tone: "warn" },
+    RB: { label: "RB", tone: "warn" },
+    NR: { label: "NR", tone: "bad" },
+    CD: { label: "CD", tone: "bad" },
     "": { label: "Title not stated", tone: "neutral" },
   },
   odometer: {
@@ -62,9 +63,11 @@ function lookup(kind: keyof typeof SIGNALS, value: string | null): Entry {
 
 export const runStatus = (lot: Lot) => lookup("run", lot.runs_drives);
 export const keys = (lot: Lot) => lookup("keys", lot.has_keys);
+/** The title as copart.com shows it: "WV - Salvage Certificate", or "WV - S1" for a code it has no wording for. */
 export const titleType = (lot: Lot): Entry => {
-  const code = (lot.title_type ?? "").trim().toUpperCase();
-  return SIGNALS.title[code] ?? { label: `Title ${lot.title_type!.trim()}`, tone: "neutral" };
+  const { label, tone } = lookup("title", lot.title_type);
+  if (!lot.title_type?.trim()) return { label, tone };
+  return { label: [lot.title_state?.trim(), label].filter(Boolean).join(" - "), tone };
 };
 export const odometerStatus = (lot: Lot) => lookup("odometer", lot.odometer_brand);
 export const saleStatus = (lot: Lot) => lookup("sale", lot.sale_status);
