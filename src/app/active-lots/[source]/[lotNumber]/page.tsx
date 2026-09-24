@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
+import { DealCalculator } from "@/components/DealCalculator";
+import { GalleryTabs } from "@/components/GalleryTabs";
 import { LocalTime } from "@/components/LocalTime";
 import { badges, countdown, driveType, engineSpec, odometerStatus, titleType, vehicleType } from "@/lib/lot-signals";
 import {
@@ -127,35 +129,33 @@ export default async function LotPage({ params }: { params: Params }) {
       </header>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        {/* 2. Photos */}
-        <div className="min-w-0 space-y-6">
-          <Photos lot={lot} images={images} />
-          <Premium title="Damage map" />
-        </div>
+        {/* 2. Photos, and the damage map beside them */}
+        <GalleryTabs
+          photos={<Photos lot={lot} images={images} />}
+          damageMap={
+            <div className="card border-dashed">
+              <PremiumBadge />
+              <p className="hint mt-2">Coming soon.</p>
+            </div>
+          }
+        />
 
-        <div className="space-y-6 self-start">
-          {/* 3. All-in cost: the one emphasised card on the page. */}
-          <section aria-labelledby="cost" className="card border-2 border-ink">
-            <h2 id="cost" className="text-lg font-semibold">All-in cost</h2>
-            <dl className="mt-3 grid grid-cols-[1fr_auto] gap-x-6 gap-y-2">
-              <Field label="Current bid" value={amount(lot.high_bid, lot.currency)} />
-              <Field label="Buyer and gate fees (est.)" value="Not estimated yet" />
-              <Field label="Shipping to you (est.)" value="Not estimated yet" />
-              <dt className="border-t border-line pt-2 font-semibold">Total</dt>
-              <dd className="border-t border-line pt-2 text-right font-semibold">—</dd>
-            </dl>
-            <p className="hint mt-2">The total needs the auction&apos;s fees and a shipping estimate, which are not in yet.</p>
-            <p className="mt-3 text-sm text-muted">
-              Retail value (ACV) {amount(lot.est_retail_value, lot.currency)}
-            </p>
-            {lot.listing_url && buyNow && (
-              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline mt-4">
-                Buy now {buyNow}
-              </a>
-            )}
-          </section>
-          <Premium title="Deal calculator" />
-        </div>
+        {/* 3. Deal calculator: the one emphasised card on the page. */}
+        <section aria-labelledby="deal" className="card self-start border-2 border-ink">
+          <div className="flex flex-wrap items-center gap-3">
+            <PremiumBadge />
+            <h2 id="deal" className="text-lg font-semibold">Deal calculator</h2>
+          </div>
+          <DealCalculator />
+          <p className="mt-3 text-sm text-muted">
+            Current bid {amount(lot.high_bid, lot.currency)} · Retail value (ACV) {amount(lot.est_retail_value, lot.currency)}
+          </p>
+          {lot.listing_url && buyNow && (
+            <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline mt-4">
+              Buy now {buyNow}
+            </a>
+          )}
+        </section>
       </div>
 
       <Premium title="Damage report" className="mt-8" />
@@ -286,14 +286,20 @@ function Premium({ title, className = "" }: { title: string; className?: string 
   return (
     <section aria-labelledby={id} className={`card border-dashed ${className}`}>
       <div className="flex flex-wrap items-center gap-3">
-        <span className="badge">
-          <span aria-hidden="true">✦</span>
-          Premium
-        </span>
+        <PremiumBadge />
         <h2 id={id} className="text-base font-semibold">{title}</h2>
       </div>
       <p className="hint mt-2">Coming soon.</p>
     </section>
+  );
+}
+
+function PremiumBadge() {
+  return (
+    <span className="badge">
+      <span aria-hidden="true">✦</span>
+      Premium
+    </span>
   );
 }
 
