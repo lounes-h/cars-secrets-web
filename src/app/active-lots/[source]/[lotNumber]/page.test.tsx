@@ -46,6 +46,29 @@ describe("lot page", () => {
     await show();
     expect(screen.getByRole("link", { name: "Sign in to see this lot" }).getAttribute("href")).toBe("/login");
     expect(getLot).not.toHaveBeenCalled();
+    expect(screen.queryByText("Premium")).toBeNull();
+  });
+
+  it("marks the premium features' places, with no figures in them yet", async () => {
+    await show();
+    for (const name of ["Summary", "Damage map", "Deal calculator", "Damage report", "Market"]) {
+      expect(screen.getByRole("region", { name }).textContent).toBe(`✦Premium${name}Coming soon.`);
+    }
+    expect(within(screen.getByRole("banner", { hidden: true })).getByRole("region", { name: "Summary" })).toBeTruthy();
+    // Beside the existing sections, never in their place.
+    expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual([
+      "Summary",
+      "Damage map",
+      "All-in cost",
+      "Deal calculator",
+      "Damage report",
+      "Market",
+      "Condition",
+      "Paperwork",
+      "Pickup",
+      "Specs",
+      "Sale info",
+    ]);
   });
 
   it("opens with the car, the time left and the deal breakers", async () => {

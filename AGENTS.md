@@ -319,6 +319,13 @@ The photos are not tagged by the auction, so there are no Damage/Exterior/Interi
 is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
+The lot page also marks where the premium features will go, as dashed cards with a grey
+"✦ Premium" badge, a title and "Coming soon." (`Premium` in the page): a Summary under the
+badges, a Damage map under the photos, a Deal calculator under the all-in cost card, then a
+Damage report and Market above Condition. They sit beside the existing sections, not in
+their place, show to every signed-in dealer (there are no plans yet), and hold no figures
+until real ones exist.
+
 There is no search or filtering yet, no deal figures on the pages
 (`src/lib/deal.ts` has no inputs for fees, transport or a target profit yet, and
 nothing may be invented), and no saved lots or alerts.
