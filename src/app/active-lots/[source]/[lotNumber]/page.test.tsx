@@ -49,14 +49,16 @@ describe("lot page", () => {
     expect(screen.queryByText("Premium")).toBeNull();
   });
 
-  it("marks the premium features' places, with no figures in them yet", async () => {
+  it("puts the premium sections in their places, each saying its figures are samples", async () => {
     await show();
-    for (const name of ["Summary", "Damage report", "Market"]) {
-      expect(screen.getByRole("region", { name }).textContent).toBe(`✦Premium${name}Coming soon.`);
+    for (const name of ["Summary", "Deal calculator", "Damage report", "Market"]) {
+      const section = screen.getByRole("region", { name });
+      expect(section.textContent).toMatch(/^✦Premium/);
+      expect(section.textContent).toContain("Sample figures, the same on every lot");
     }
     expect(within(screen.getByRole("banner", { hidden: true })).getByRole("region", { name: "Summary" })).toBeTruthy();
     const damageMap = document.getElementById("panel-damage-map")!;
-    expect(damageMap.textContent).toBe("✦PremiumComing soon.");
+    expect(within(damageMap).getByRole("img", { hidden: true }).getAttribute("aria-label")).toBe("Damage map: 1 front left, 2 rear right");
     expect(damageMap.hidden).toBe(true); // the photos show first
     // Beside the existing sections, never in their place.
     expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual([
@@ -167,7 +169,7 @@ describe("lot page", () => {
     expect(page).not.toContain("Sep 17, 2026"); // source_created_at: the export's stamp, not when the lot was listed
     expect(page).not.toContain("NOT ACTUAL");
     expect(page).not.toContain("Sale status"); // a badge in the header, not a row in sale info
-    expect(page).not.toContain("Drive"); // "FWD" in the header, not a spec tile
+    expect(screen.getByRole("region", { name: "Specs" }).textContent).not.toContain("Drive"); // "FWD" in the header, not a spec tile
     expect(page).not.toContain("Title state"); // the state is part of the title, as on copart.com
     expect(page).not.toContain(sampleLot.image_url);
     expect(page).not.toContain(sampleLot.thumbnail_url);

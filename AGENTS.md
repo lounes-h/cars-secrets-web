@@ -131,9 +131,9 @@ See `docs/architecture.md` for details.
 - Deal arithmetic (cost, profit, margin, max bid) lives only in
   `src/lib/deal.ts`.
 - Never publish invented statistics, testimonials, reviews or prices. The one
-  temporary exception is the lot page's Deal calculator (`src/components/DealCalculator.tsx`),
-  whose `SAMPLE` figures are the same on every lot and say so ("Sample figures…"); they
-  go when the real estimates exist.
+  temporary exception is the lot page's premium sections: their figures and words come
+  from `SAMPLE` in `src/lib/premium-sample.ts`, are the same on every lot, and each section
+  says so (`SAMPLE_NOTE`). They go, section by section, as the real analysis arrives.
 
 ## Security rules
 
@@ -322,11 +322,14 @@ The photos are not tagged by the auction, so there are no Damage/Exterior/Interi
 is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
-The premium features carry a grey "✦ Premium" badge (`PremiumBadge` in the page) and show
-to every signed-in dealer (there are no plans yet). Besides the Deal calculator, they are
-dashed "Coming soon." placeholders with no figures: a Summary under the badges, the
-gallery's Damage map tab, and a Damage report and Market above Condition, which they sit
-beside rather than replace.
+The premium sections (`src/components/PremiumSections.tsx`, and `DealCalculator`) carry a
+grey "✦ Premium" badge and show sample figures (see the invented-figures rule) to every
+signed-in dealer, since there are no plans yet: a Summary under the badges; the gallery's
+Damage map tab, the car drawn from above with each damaged area numbered and a legend in
+words; the Deal calculator; then a Damage report (primary and secondary damage, the
+insurer's estimate, a table of areas with severity and a used-parts estimate, and their
+total) and Market (value and how the lot sells) above Condition, which they sit beside
+rather than replace. Severity is words, not colour, like the rest of the grayscale page.
 
 There is no search or filtering yet, no real deal figures on the pages (the API has no
 fees, transport or target profit to feed `src/lib/deal.ts` yet), and no saved lots or alerts.

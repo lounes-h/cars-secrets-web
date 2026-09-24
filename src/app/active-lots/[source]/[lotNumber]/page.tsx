@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
 import { DealCalculator } from "@/components/DealCalculator";
 import { GalleryTabs } from "@/components/GalleryTabs";
+import { DamageMap, DamageReport, Market, PremiumBadge, PremiumSummary } from "@/components/PremiumSections";
 import { LocalTime } from "@/components/LocalTime";
 import { badges, countdown, driveType, engineSpec, odometerStatus, titleType, vehicleType } from "@/lib/lot-signals";
 import {
@@ -125,19 +126,14 @@ export default async function LotPage({ params }: { params: Params }) {
             </li>
           ))}
         </ul>
-        <Premium title="Summary" className="mt-6" />
+        <PremiumSummary className="mt-6" />
       </header>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         {/* 2. Photos, and the damage map beside them */}
         <GalleryTabs
           photos={<Photos lot={lot} images={images} />}
-          damageMap={
-            <div className="card border-dashed">
-              <PremiumBadge />
-              <p className="hint mt-2">Coming soon.</p>
-            </div>
-          }
+          damageMap={<DamageMap />}
         />
 
         {/* 3. Deal calculator: the one emphasised card on the page. */}
@@ -158,8 +154,8 @@ export default async function LotPage({ params }: { params: Params }) {
         </section>
       </div>
 
-      <Premium title="Damage report" className="mt-8" />
-      <Premium title="Market" className="mt-6" />
+      <DamageReport className="mt-8" />
+      <Market className="mt-6" />
 
       <div className="mt-8 grid gap-6 sm:grid-cols-3">
         {/* 4. Condition */}
@@ -274,32 +270,6 @@ function Photos({ lot, images }: { lot: Lot; images: LotImage[] }) {
         </div>
       </div>
     </section>
-  );
-}
-
-/**
- * A premium feature not built yet: its place on the page and nothing else. It holds no figures
- * until real ones exist, since nothing on the site may be invented.
- */
-function Premium({ title, className = "" }: { title: string; className?: string }) {
-  const id = `premium-${title.toLowerCase().replaceAll(" ", "-")}`;
-  return (
-    <section aria-labelledby={id} className={`card border-dashed ${className}`}>
-      <div className="flex flex-wrap items-center gap-3">
-        <PremiumBadge />
-        <h2 id={id} className="text-base font-semibold">{title}</h2>
-      </div>
-      <p className="hint mt-2">Coming soon.</p>
-    </section>
-  );
-}
-
-function PremiumBadge() {
-  return (
-    <span className="badge">
-      <span aria-hidden="true">✦</span>
-      Premium
-    </span>
   );
 }
 
