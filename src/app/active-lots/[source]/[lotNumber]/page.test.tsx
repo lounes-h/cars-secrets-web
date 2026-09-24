@@ -46,6 +46,32 @@ describe("lot page", () => {
     await show();
     expect(screen.getByRole("link", { name: "Sign in to see this lot" }).getAttribute("href")).toBe("/login");
     expect(getLot).not.toHaveBeenCalled();
+    expect(screen.queryByText("Premium")).toBeNull();
+  });
+
+  it("puts the premium sections in their places, each saying its figures are samples", async () => {
+    await show();
+    for (const name of ["Summary", "Deal calculator", "Damage report", "Market"]) {
+      const section = screen.getByRole("region", { name });
+      expect(section.textContent).toMatch(/^✦Premium/);
+      expect(section.textContent).toContain("Sample figures, the same on every lot");
+    }
+    expect(within(screen.getByRole("banner", { hidden: true })).getByRole("region", { name: "Summary" })).toBeTruthy();
+    const damageMap = document.getElementById("panel-damage-map")!;
+    expect(within(damageMap).getByRole("img", { hidden: true }).getAttribute("aria-label")).toBe("Damage map: 1 front left, 2 rear right");
+    expect(damageMap.hidden).toBe(true); // the photos show first
+    // Beside the existing sections, never in their place.
+    expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual([
+      "Summary",
+      "Deal calculator",
+      "Damage report",
+      "Market",
+      "Condition",
+      "Paperwork",
+      "Pickup",
+      "Specs",
+      "Sale info",
+    ]);
   });
 
   it("opens with the car, the time left and the deal breakers", async () => {
@@ -143,7 +169,7 @@ describe("lot page", () => {
     expect(page).not.toContain("Sep 17, 2026"); // source_created_at: the export's stamp, not when the lot was listed
     expect(page).not.toContain("NOT ACTUAL");
     expect(page).not.toContain("Sale status"); // a badge in the header, not a row in sale info
-    expect(page).not.toContain("Drive"); // "FWD" in the header, not a spec tile
+    expect(screen.getByRole("region", { name: "Specs" }).textContent).not.toContain("Drive"); // "FWD" in the header, not a spec tile
     expect(page).not.toContain("Title state"); // the state is part of the title, as on copart.com
     expect(page).not.toContain(sampleLot.image_url);
     expect(page).not.toContain(sampleLot.thumbnail_url);
@@ -151,19 +177,18 @@ describe("lot page", () => {
 
   it("gives specs and sale info their own sections, never collapsed", async () => {
     await show();
-    for (const name of ["Specs", "Sale info", "Condition", "Paperwork", "Pickup", "All-in cost"]) {
+    for (const name of ["Specs", "Sale info", "Condition", "Paperwork", "Pickup", "Deal calculator"]) {
       expect(screen.getByRole("heading", { level: 2, name })).toBeTruthy();
     }
     expect(document.querySelector("details")).toBeNull();
   });
 
-  it("adds up only what it knows, and says what is not estimated", async () => {
+  it("replaces the all-in cost with the deal calculator, keeping the lot's own bid and value", async () => {
     await show();
-    const cost = screen.getByRole("region", { name: "All-in cost" }).textContent ?? "";
-    expect(cost).toContain("Current bid$0");
-    expect(cost).toContain("Buyer and gate fees (est.)Not estimated yet");
-    expect(cost).toContain("Shipping to you (est.)Not estimated yet");
-    expect(cost).toContain("Retail value (ACV) $8,119");
+    expect(screen.queryByRole("region", { name: "All-in cost" })).toBeNull();
+    const deal = screen.getByRole("region", { name: "Deal calculator" }).textContent ?? "";
+    expect(deal).toContain("Sample figures, the same on every lot");
+    expect(deal).toContain("Current bid $0 · Retail value (ACV) $8,119");
   });
 
   it("sends the dealer to the auction from the top of the page, and only from there", async () => {
@@ -174,7 +199,7 @@ describe("lot page", () => {
     expect(auction.getAttribute("target")).toBe("_blank");
     expect(auction.getAttribute("rel")).toContain("noopener");
     expect(within(header).getByText("Bidding happens on Copart's own site.")).toBeTruthy();
-    const cost = screen.getByRole("region", { name: "All-in cost" });
+    const cost = screen.getByRole("region", { name: "Deal calculator" });
     expect(within(cost).queryAllByRole("link")).toEqual([]); // no "Place bid", and no buy now unless offered
     expect(screen.queryByRole("link", { name: "Place bid" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Active lots" })).toBeNull();

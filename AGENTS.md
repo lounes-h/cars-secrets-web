@@ -130,7 +130,10 @@ See `docs/architecture.md` for details.
   marked noindex.
 - Deal arithmetic (cost, profit, margin, max bid) lives only in
   `src/lib/deal.ts`.
-- Never publish invented statistics, testimonials, reviews or prices.
+- Never publish invented statistics, testimonials, reviews or prices. The one
+  temporary exception is the lot page's premium sections: their figures and words come
+  from `SAMPLE` in `src/lib/premium-sample.ts`, are the same on every lot, and each section
+  says so (`SAMPLE_NOTE`). They go, section by section, as the real analysis arrives.
 
 ## Security rules
 
@@ -262,10 +265,10 @@ Copart's own site." under it, a meta line (mileage, drive as a
 dealer says it — FWD, RWD, AWD, 4WD, from `driveType` — "Primary damage: …" and "Secondary damage: …", the latter "N/A" when the auction gives none, location) and
 the deal-breaker badges, with no sentence repeating them, in a fixed order: run status, keys, title, then odometer
 only when it is not the normal case, then sale status always — pure sale, minimum bid, seller must approve — then
-the seller: "Insurance seller" (green) or "Not an insurance seller", and no badge when the seller is not stated — then "Offsite" (amber) when the auction holds the lot away from its yard); the photos beside the all-in cost
-card, the one emphasised card, whose fee and shipping rows read "Not estimated yet",
-whose total stays a dash until those estimates exist, and which carries a "Buy now" button
-only when the auction offers it; condition, paperwork and pickup, where an offsite lot also shows its "Offsite address"
+the seller: "Insurance seller" (green) or "Not an insurance seller", and no badge when the seller is not stated — then "Offsite" (amber) when the auction holds the lot away from its yard); the gallery (Photos and Damage map tabs) beside the
+Deal calculator, the one emphasised card, which took the all-in cost card's place: sample
+figures for now (see the invented-figures rule), a max bid slider that reruns `analyzeDeal`,
+then the lot's real current bid and ACV, and a "Buy now" button only when the auction offers it; condition, paperwork and pickup, where an offsite lot also shows its "Offsite address"
 (`offsiteAddress`: Copart's offsite columns, filled for about 1 % of lots; the list marks their location "· Offsite");
 then specs as tiles and sale info as one light row, both always visible. Sale info's times
 are Copart's last update of the lot ("Updated on Copart", `source_updated_at`), when the
@@ -310,18 +313,26 @@ share, so a dash for a missing value looks the same on each; `lots-fixture.ts`
 is the complete lot the tests build on. The lot's photos come from
 `GET /api/lots/{source}/{lot}/images` (`getLotImages`), which the API fills from
 the auction; each photo carries a `thumb` and a `full` URL. The detail page shows
-them as a gallery in the left column beside the cost card: one full-size photo at a
+them as a gallery in the left column's Photos tab (`src/components/GalleryTabs.tsx`), beside the deal calculator: one full-size photo at a
 time in a scroll-snapping strip, with a column of thumbnails beside it linking to
 `#photo-N`. Scrolling and the jumps are the browser's own, so the page stays a
-Server Component; its only JavaScript is the copy buttons (`src/components/CopyButton.tsx`)
-and `LocalTime`.
+Server Component; its only JavaScript is the copy buttons (`src/components/CopyButton.tsx`),
+`LocalTime`, the gallery's tab switch and the deal calculator's slider.
 The photos are not tagged by the auction, so there are no Damage/Exterior/Interior filters yet. The auction may be unreachable, so no photos
 is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
-There is no search or filtering yet, no deal figures on the pages
-(`src/lib/deal.ts` has no inputs for fees, transport or a target profit yet, and
-nothing may be invented), and no saved lots or alerts.
+The premium sections (`src/components/PremiumSections.tsx`, and `DealCalculator`) carry a
+grey "✦ Premium" badge and show sample figures (see the invented-figures rule) to every
+signed-in dealer, since there are no plans yet: a Summary under the badges; the gallery's
+Damage map tab, the car drawn from above with each damaged area numbered and a legend in
+words; the Deal calculator; then a Damage report (primary and secondary damage, the
+insurer's estimate, a table of areas with severity and a used-parts estimate, and their
+total) and Market (value and how the lot sells) above Condition, which they sit beside
+rather than replace. Severity is words, not colour, like the rest of the grayscale page.
+
+There is no search or filtering yet, no real deal figures on the pages (the API has no
+fees, transport or target profit to feed `src/lib/deal.ts` yet), and no saved lots or alerts.
 
 ## Branching
 
