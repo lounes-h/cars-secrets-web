@@ -30,6 +30,7 @@ export const sampleLot: Lot = {
   est_retail_value: 8119,
   repair_cost: 2400,
   high_bid: 0,
+  predicted_final_price: 3175,
   buy_it_now_price: 0,
   currency: "USD",
   sale_status: "PURE SALE",

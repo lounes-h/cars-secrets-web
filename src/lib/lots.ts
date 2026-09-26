@@ -33,6 +33,8 @@ export type Lot = {
   est_retail_value: number | null;
   repair_cost: number | null;
   high_bid: number | null;
+  /** The ingest model's estimate, null until the lot has been priced. */
+  predicted_final_price: number | null;
   buy_it_now_price: number | null;
   currency: string | null;
   sale_status: string | null;

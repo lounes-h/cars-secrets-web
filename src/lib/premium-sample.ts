@@ -34,8 +34,6 @@ export const SAMPLE = {
   },
   market,
   deal: {
-    finalBid: [1600, 2200],
-    similarSales: market.similarSold90Days,
     maxBid: 1900,
     fees: 550,
     shipping: 900,

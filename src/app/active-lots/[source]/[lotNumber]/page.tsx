@@ -142,6 +142,9 @@ export default async function LotPage({ params }: { params: Params }) {
             <PremiumBadge />
             <h2 id="deal" className="text-lg font-semibold">Deal calculator</h2>
           </div>
+          <p className="mt-3 font-semibold">
+            Likely final bid: {lot.predicted_final_price == null ? "Not available" : amount(lot.predicted_final_price, lot.currency)}
+          </p>
           <DealCalculator />
           <p className="mt-3 text-sm text-muted">
             Current bid {amount(lot.high_bid, lot.currency)} · Retail value (ACV) {amount(lot.est_retail_value, lot.currency)}
