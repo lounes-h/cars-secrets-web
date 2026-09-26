@@ -27,7 +27,7 @@ in `node_modules/next/dist/docs/`.
 ```bash
 corepack enable      # once per machine
 yarn install
-yarn dev             # http://localhost:3000 (auth pages need the API: API_URL in .env.local)
+yarn dev             # http://localhost:3000 (API defaults to localhost:8001; override API_URL in .env.local)
 yarn lint
 yarn typecheck       # next typegen && tsc --noEmit
 yarn test            # vitest run
