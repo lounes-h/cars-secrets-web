@@ -100,9 +100,12 @@ describe("toApiError", () => {
 });
 
 describe("apiUrl", () => {
-  it("defaults to the API on this machine", async () => {
+  it("sends requests to port 8001 when API_URL is unset", async () => {
     vi.stubEnv("API_URL", undefined);
     const { apiUrl } = await import("@/lib/api");
-    expect(apiUrl()).toBe("http://localhost:8000");
+    expect(apiUrl()).toBe("http://localhost:8001");
+    fetchMock.mockResolvedValue(json(200, { status: "ok" }));
+    await expect(api("/api/health")).resolves.toEqual({ status: "ok" });
+    expect(fetchMock.mock.calls[0][0]).toBe("http://localhost:8001/api/health");
   });
 });

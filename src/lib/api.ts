@@ -28,7 +28,7 @@ type Options = {
 };
 
 export function apiUrl(): string {
-  return (process.env.API_URL ?? "http://localhost:8000").replace(/\/$/, "");
+  return (process.env.API_URL ?? "http://localhost:8001").replace(/\/$/, "");
 }
 
 export async function api<T>(path: string, options: Options = {}): Promise<T> {

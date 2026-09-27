@@ -100,7 +100,10 @@ route list, and tests pass them `src/lib/seo/fixtures.ts`.
 ## Accounts
 
 Accounts live in the API (`../cars-secrets-api`, see its `docs/architecture.md`). This
-site never stores credentials or talks to a database: server actions in
+site never stores credentials or talks to a database. The API client defaults to
+`http://localhost:8001`; `API_URL` overrides it for other environments. Start the local
+API with `uv run uvicorn app.main:app_factory --factory --reload --port 8001` from
+`../cars-secrets-api`. Server actions in
 `src/app/(auth)/actions.ts` post to the API through `src/lib/api.ts`, which adds the
 visitor's address with the shared `API_INTERNAL_KEY` so the API rate-limits visitors and
 not this server.

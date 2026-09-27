@@ -62,7 +62,8 @@ hashing, throttling, captcha and token rules.
 - `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` are public. They
   are inlined into the client bundle, so never put a secret in a
   `NEXT_PUBLIC_*` variable.
-- `API_URL` and `API_INTERNAL_KEY` are server-only. `API_INTERNAL_KEY` is a
+- `API_URL` and `API_INTERNAL_KEY` are server-only. `API_URL` defaults to
+  `http://localhost:8001`; set it explicitly for a hosted API. `API_INTERNAL_KEY` is a
   secret shared with the API: with it, the API trusts the visitor address this
   server forwards for rate limiting.
 - The Turnstile widget loads its script from `challenges.cloudflare.com`. The
