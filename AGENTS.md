@@ -133,7 +133,9 @@ See `docs/architecture.md` for details.
 - Never publish invented statistics, testimonials, reviews or prices. The one
   temporary exception is the lot page's premium sections: their figures and words come
   from `SAMPLE` in `src/lib/premium-sample.ts`, are the same on every lot, and each section
-  says so (`SAMPLE_NOTE`). They go, section by section, as the real analysis arrives.
+  says so (`SAMPLE_NOTE`, or the calculator's cost/profit note). The likely final bid
+  comes from the API's `predicted_final_price`; it is not a sample. Remaining samples go,
+  section by section, as the real analysis arrives.
 
 ## Security rules
 
@@ -266,8 +268,9 @@ dealer says it — FWD, RWD, AWD, 4WD, from `driveType` — "Primary damage: …
 the deal-breaker badges, with no sentence repeating them, in a fixed order: run status, keys, title, then odometer
 only when it is not the normal case, then sale status always — pure sale, minimum bid, seller must approve — then
 the seller: "Insurance seller" (green) or "Not an insurance seller", and no badge when the seller is not stated — then "Offsite" (amber) when the auction holds the lot away from its yard); the gallery (Photos and Damage map tabs) beside the
-Deal calculator, the one emphasised card, which took the all-in cost card's place: sample
-figures for now (see the invented-figures rule), a max bid slider that reruns `analyzeDeal`,
+Deal calculator, the one emphasised card, which took the all-in cost card's place: the lot's
+`predicted_final_price` as "Likely final bid" in its currency ("Not available" when null),
+then sample costs and profit (explicitly labeled), a max bid slider that reruns `analyzeDeal`,
 then the lot's real current bid and ACV, and a "Buy now" button only when the auction offers it; condition, paperwork and pickup, where an offsite lot also shows its "Offsite address"
 (`offsiteAddress`: Copart's offsite columns, filled for about 1 % of lots; the list marks their location "· Offsite");
 then specs as tiles and sale info as one light row, both always visible. Sale info's times
@@ -331,8 +334,9 @@ insurer's estimate, a table of areas with severity and a used-parts estimate, an
 total) and Market (value and how the lot sells) above Condition, which they sit beside
 rather than replace. Severity is words, not colour, like the rest of the grayscale page.
 
-There is no search or filtering yet, no real deal figures on the pages (the API has no
-fees, transport or target profit to feed `src/lib/deal.ts` yet), and no saved lots or alerts.
+There is no search or filtering yet, and no saved lots or alerts. The likely final bid uses
+the real stored prediction; calculator costs and profit remain samples because the API has
+no fees, transport or target profit to feed `src/lib/deal.ts` yet.
 
 ## Branching
 

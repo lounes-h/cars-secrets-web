@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { analyzeDeal } from "@/lib/deal";
-import { SAMPLE, SAMPLE_NOTE, usd } from "@/lib/premium-sample";
+import { SAMPLE, usd } from "@/lib/premium-sample";
 
 const sample = SAMPLE.deal;
 
@@ -21,10 +21,6 @@ export function DealCalculator() {
 
   return (
     <>
-      <p className="mt-3 font-semibold">
-        Likely final bid: {usd.format(sample.finalBid[0])} to {usd.format(sample.finalBid[1])}
-      </p>
-      <p className="hint">Based on {sample.similarSales} similar sales</p>
       <label htmlFor="max-bid" className="mt-4 block">
         Your max bid: {usd.format(maxBid)}
       </label>
@@ -58,7 +54,7 @@ export function DealCalculator() {
       <p className="mt-1 text-sm">
         Max bid for {usd.format(sample.targetProfit)} profit: {usd.format(deal.suggestedMaxBid)}
       </p>
-      <p className="hint mt-3">{SAMPLE_NOTE}</p>
+      <p className="hint mt-3">Calculator costs and profit use sample figures, the same on every lot, while this is being built.</p>
     </>
   );
 }

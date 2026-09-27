@@ -161,3 +161,11 @@ To regenerate `dial-codes.ts`, run the snippet in its header against the API's
 environment. `phone-formats.ts` carries the example number shown as the placeholder,
 the national lengths the number is validated against and the trunk prefix, from the
 same metadata; the snippet in its header regenerates it the same way.
+
+## Lot price prediction
+
+The lot page reads `predicted_final_price` from the existing authenticated lot API response
+and renders it as "Likely final bid" in the lot's currency. It is a single model estimate,
+not a range; null displays "Not available". The ingest model currently trains on generated
+sold prices, so this is an estimate rather than a confirmed sale price. No similar-sales
+count is claimed. `DealCalculator` still uses explicitly labeled sample costs and profit.

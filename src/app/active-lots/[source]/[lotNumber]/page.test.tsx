@@ -54,7 +54,7 @@ describe("lot page", () => {
     for (const name of ["Summary", "Deal calculator", "Damage report", "Market"]) {
       const section = screen.getByRole("region", { name });
       expect(section.textContent).toMatch(/^✦Premium/);
-      expect(section.textContent).toContain("Sample figures, the same on every lot");
+      expect(section.textContent).toMatch(/sample figures, the same on every lot/i);
     }
     expect(within(screen.getByRole("banner", { hidden: true })).getByRole("region", { name: "Summary" })).toBeTruthy();
     const damageMap = document.getElementById("panel-damage-map")!;
@@ -72,6 +72,20 @@ describe("lot page", () => {
       "Specs",
       "Sale info",
     ]);
+  });
+
+  it.each([
+    [4250.5, "USD", "$4,251"],
+    [0, "USD", "$0"],
+    [3175, "CAD", "CA$3,175"],
+    [null, "USD", "Not available"],
+  ])("shows the API prediction %s in %s as %s", async (price, currency, display) => {
+    getLot.mockResolvedValue({ ...sampleLot, predicted_final_price: price, currency });
+    await show();
+    const deal = within(screen.getByRole("region", { name: "Deal calculator" }));
+    expect(deal.getByText(`Likely final bid: ${display}`)).toBeTruthy();
+    expect(deal.queryByText(/Based on .* similar sales/)).toBeNull();
+    expect(deal.queryByText(/\$1,600 to \$2,200/)).toBeNull();
   });
 
   it("opens with the car, the time left and the deal breakers", async () => {
@@ -187,7 +201,7 @@ describe("lot page", () => {
     await show();
     expect(screen.queryByRole("region", { name: "All-in cost" })).toBeNull();
     const deal = screen.getByRole("region", { name: "Deal calculator" }).textContent ?? "";
-    expect(deal).toContain("Sample figures, the same on every lot");
+    expect(deal).toMatch(/sample figures, the same on every lot/i);
     expect(deal).toContain("Current bid $0 · Retail value (ACV) $8,119");
   });
 
