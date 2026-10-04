@@ -58,6 +58,9 @@ See `docs/architecture.md` for details.
   search engines and AI assistants can quote it. The auth pages are the
   exception: heading and form only, no lede — their registered description
   carries the answer.
+  `/active-lots` is one too: it opens on the search, so its `h1` is visually
+  hidden (`sr-only`) and it has no lede; its registered description carries
+  the answer.
 - The layout is full width: no centered `max-w-*` page container. Sections
   span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
   running text is capped at a readable measure (`max-w-[65ch]`). Auth pages
@@ -75,15 +78,17 @@ See `docs/architecture.md` for details.
   tokens: base styles for headings, labels, inputs, selects, checkboxes, links
   and alerts, plus a few classes (`btn`, `btn-primary`, `btn-outline`,
   `btn-ghost`, `btn-link`, `card`, `auth-main`, `auth-panel`, `form-stack`,
-  `phone-field`, `divider`, `hint`, `notice`, `badge`). Reuse them rather than adding
+  `phone-field`, `divider`, `hint`, `notice`, `badge`, and for the lot list's filters
+  `filter-menu`, `filter-menu-panel`, `filters-panel`, `chip`). Reuse them rather than adding
   one-off styles, and add no branding until the name and a design exist.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page and shows the site name as plain text. Its navigation
   (`src/components/AccountNav.tsx`) is a client component that asks
   `/auth/session` after each navigation and renders both the main menu and the
-  account side: Active lots, VIN Lookup, Best Buys, then How It Works and Pricing
+  account side: Active lots, VIN Lookup, then How It Works and Pricing
   with "Sign in" and the "7 days free trial" button for visitors, or Saved and
-  Alerts with the dealer's avatar and "Sign out" once signed in. The menu is
+  Alerts with the dealer's avatar and "Sign out" once signed in. Best Buys is
+  left out of the menu for now, though its page exists. The menu is
   hidden below `lg`. Never read the session in the root layout: it would make
   every page dynamic.
 - Pages are Server Components and stay static. Add `"use client"` only where
@@ -130,6 +135,12 @@ See `docs/architecture.md` for details.
   marked noindex.
 - Deal arithmetic (cost, profit, margin, max bid) lives only in
   `src/lib/deal.ts`.
+- The lot list's search and filters live in one table, `FILTERS` in
+  `src/lib/lot-filters.ts`: each filter's label, group, kind and options. The URL is the
+  state, and its parameters are the API's own (`/api/lots`), so a valid query string passes
+  straight through; `readQuery` keeps only what the table allows, so add a filter there and in
+  the API's `LotFilters`, nowhere else. The bar always writes an order (`sort`), so a URL
+  without parameters means "as I left it".
 - Never publish invented statistics, testimonials, reviews or prices. The one
   temporary exception is the lot page's premium sections: their figures and words come
   from `SAMPLE` in `src/lib/premium-sample.ts`, are the same on every lot, and each section
@@ -223,7 +234,8 @@ A code change is not considered complete until the relevant unit tests have been
 The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
 `/reset-password`, `/verify-email`, `/account`), `/active-lots` (the lot listing)
 and the empty placeholders the banner menu links to: `/vin-lookup`,
-`/best-buys`, `/how-it-works`, `/pricing`, `/saved` and `/alerts` — blank white
+`/how-it-works`, `/pricing`, `/saved` and `/alerts`, plus `/best-buys`, which the menu
+leaves out for now — blank white
 pages with metadata only, so they have no `h1` until there is something to put
 on them.
 Styling stays basic until a design system exists. `/` is the home page: the
@@ -255,9 +267,10 @@ register" and a sentence above it says that clicking it is the agreement, so the
 action always tells the API the terms are accepted. The Terms of Use and Privacy
 Policy themselves do not exist yet.
 
-In place for lots: `/active-lots` ("Active lots" in the menu and as its `h1`; the
+In place for lots: `/active-lots` ("Active lots" in the menu and as its visually hidden `h1`; the
 path was `/auctions`, which redirects here permanently) lists active lots, the most recently listed
-first (the API's order), 20 to a page (`?page=`), and `/active-lots/[source]/[lotNumber]` shows one lot —
+first unless the dealer picks another order, 20 to a page (`?page=`), with search and filters
+(below), and `/active-lots/[source]/[lotNumber]` shows one lot —
 every column the ingest keeps for it, every photo of it, and a way to the lot on the
 auction's site, since bidding never happens here. The page reads top to bottom as: a summary (title, lot number and VIN
 with copy buttons, the time left before the sale — "Future sale" when the auction has set no
@@ -285,14 +298,16 @@ the server's text in the browser before the first paint (Next's "Preventing flas
 hydration" guide). A sale day without a time (`sale_date`) is a calendar day and stays as
 the auction gives it (`saleDate`). Auction codes
 are translated into plain words in one lookup table, `SIGNALS` in
-`src/lib/lot-signals.ts`, which also sets each badge's colour; the page shows no raw
+`src/lib/lot-words.ts` (with the vehicle types and auction names, apart from the rest so the
+browser's filter bar can share them), which also sets each badge's colour; the page shows no raw
 code except one the table does not know yet, which appears as it came, neutral. The
 title is the exception, because Copart words and groups the same code differently by
 state and the export carries only the state and the code: it reads as copart.com shows it
 ("OR - Lien Papers Salvage"), with the wording and the colour (Copart's clean, salvage
 or non-repairable group) from `src/lib/copart-titles.json`, keyed "STATE CODE" and read
 off copart.com by `scripts/copart-titles.js`. A pair the file does not hold yet shows as
-the code ("OR - LS"), neutral; rerun the script to add it. The vehicle type is Copart's
+the code ("OR - LS"), neutral; rerun the script to add it, and copy the file to the API
+(`app/copart_titles.json`), whose title filter reads the same groups. The vehicle type is Copart's
 one-letter code ("V", "K"), worded as copart.com words it ("Automobile", "Medium duty / box
 truck") by `vehicleType`. Neither the export nor copart.com has a seller type, so whether an
 insurer sells the lot — an insurance claim, so less risk of swapped or missing parts or a
@@ -334,7 +349,36 @@ insurer's estimate, a table of areas with severity and a used-parts estimate, an
 total) and Market (value and how the lot sells) above Condition, which they sit beside
 rather than replace. Severity is words, not colour, like the rest of the grayscale page.
 
-There is no search or filtering yet, and no saved lots or alerts. The likely final bid uses
+The lot list's search and filters (`src/components/LotFilters.tsx`, a client component around
+the server-rendered table) work like this:
+
+- **Search** takes a make, model, year, VIN, lot number or keywords. The page asks the API what
+  it names (`interpretSearch`): a lot number or VIN of exactly one lot opens that lot; a make,
+  model or years ("2018-2021 toyota rav4") become those filters and removable chips; the words
+  left over are keywords, matched against trim, model detail, colour, body, fuel and drive.
+- **The bar** shows the main filters as dropdowns: Sale date (Today, Tomorrow, This week,
+  Next week, Future sale, in the dealer's own zone), Title (Copart's salvage, clean and
+  non-repairable groups), Runs and drives and Damage. **All filters** (a side sheet, the whole
+  screen below `lg`, where the bar is only "Filters · n") holds every filter: year, make,
+  model, mileage, vehicle type, keys, secondary damage, sale type, Buy now available, retail
+  value, Buy now price, current bid, auction (hidden while every lot has the same one), state
+  and location. Up to two filters the dealer has set at least three times move into the bar
+  (`promoted`). Sort: newest listed, sale soonest, year, mileage, retail value.
+- **Counts**: an opened dropdown, or the sheet, asks for its options' counts
+  (`lotCountsAction`); each filter's counts leave out its own choice. An option with no lot is
+  shown disabled, and a choice no lot has any more stays listed. Counts are never part of the
+  page render, because counting costs a scan per filter.
+- **Chips** show every chosen value with the result count; each removes its own, and
+  "Clear all" keeps the order.
+- **Remembered**: the filters and order (not the search's words) are kept in the dealer's
+  account through the API (`rememberLotFiltersAction`), with how often each is set, so a
+  visit to the bare `/active-lots` from any browser comes back as the dealer left it. A shared
+  link, which has parameters, always wins.
+- The dealer's time zone travels in the `cs_tz` cookie, which the bar sets from the browser,
+  so "today" is their today; until it is set, it is UTC.
+
+There is no saved search, saved lot or alert yet, and no "who can bid" or distance filter
+(the data has neither buyer eligibility nor the dealer's location). The likely final bid uses
 the real stored prediction; calculator costs and profit remain samples because the API has
 no fees, transport or target profit to feed `src/lib/deal.ts` yet.
 

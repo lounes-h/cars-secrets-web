@@ -9,6 +9,7 @@ import {
   setSession,
   visitorIp,
   visitorIpFrom,
+  visitorZone,
 } from "@/lib/session";
 
 const { cookieStore, apiMock } = vi.hoisted(() => ({
@@ -118,5 +119,17 @@ describe("safePath", () => {
     expect(safePath("//evil.test")).toBeNull();
     expect(safePath("https://evil.test")).toBeNull();
     expect(safePath(undefined)).toBeNull();
+  });
+});
+
+describe("visitorZone", () => {
+  it("is the zone the filter bar stored, when the runtime knows it", async () => {
+    cookieStore.get.mockReturnValueOnce({ value: "America/Chicago" });
+    expect(await visitorZone()).toBe("America/Chicago");
+    expect(cookieStore.get).toHaveBeenCalledWith("cs_tz");
+    cookieStore.get.mockReturnValueOnce({ value: "Mars/Olympus" });
+    expect(await visitorZone()).toBeNull();
+    cookieStore.get.mockReturnValueOnce(undefined);
+    expect(await visitorZone()).toBeNull();
   });
 });

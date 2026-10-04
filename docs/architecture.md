@@ -9,7 +9,8 @@ src/
     (auth)/            register, login, forgot-password, reset-password, verify-email pages
       actions.ts       Every auth server action (calls the API, sets the session cookie)
     account/           The signed-in user and a sign-out button
-    active-lots/       The lot listing: a page of 20 lots for signed-in dealers
+    active-lots/       The lot listing: search, filters, order and a page of 20 lots for signed-in dealers
+      actions.ts       Its server actions: option counts, and keeping the dealer's filters
       [source]/[lotNumber]/  One lot: everything the auction publishes, its photos, where to bid
     auth/callback/[provider]/route.ts  Google (GET) and Apple (POST) sign-in return here
     sitemap.ts         Generated from the route registry
@@ -21,6 +22,7 @@ src/
     auth/              Auth forms (React Hook Form), PasswordField, PhoneField, Turnstile, SocialButtons,
                        form-helpers (server errors on fields, remembered email)
     LocalTime.tsx      A time in the reader's own time zone: server text, rewritten before paint
+    LotFilters.tsx     The lot list's search box, filter bar, All filters sheet, chips and order
   lib/
     site.ts            Site identity (URL, language, description) and URL resolution
     routes.ts          Registry of every public page
@@ -28,8 +30,11 @@ src/
     lots.ts            Auction lots from the API: the Lot shape, one page of 20, one lot,
                        its photos, and the formatters both pages share
     lots-fixture.ts    A complete Lot for tests
+    lot-filters.ts     The lot list's filters (FILTERS), URL validation (readQuery), chips, promotion
+    lot-words.ts       Auction codes in plain words (SIGNALS, vehicle types, auction names), browser-safe
+    lot-signals.ts     A lot's badges and labels, from lot-words and the Copart title table
     api.ts             Server-only client for the API; errors become ApiError
-    session.ts         Session and OAuth-state cookies, currentUser(), visitor IP, safePath
+    session.ts         Session and OAuth-state cookies, currentUser(), visitor IP and time zone, safePath
     auth-schemas.ts    Zod schemas shared by the auth forms and server actions
     remembered-email.ts  The last complete address typed in an auth form, per tab (sessionStorage)
     countries.ts       Countries with flag, name and calling code; phone composition
@@ -44,6 +49,27 @@ public/
 Dependencies point downward: `app` → `components` → `lib`. The
 modules in `lib` are pure functions with no React, so tests can cover them
 directly.
+
+## Lot search and filters
+
+The URL is the lot list's state, with the API's own parameter names (`title=salvage&sort=sale`),
+so the server renders every list and a list can be shared. `readQuery` (`lib/lot-filters.ts`)
+keeps only the parameters and values `FILTERS` allows, in one order, so equal filters make
+equal URLs. The page, for a signed-in dealer:
+
+1. With a search (`q`), asks the API what it names (`/api/lots/interpret`): one lot is a
+   redirect to it; a make, model or years are a redirect to those filters (`searched`).
+2. With no parameters at all, redirects to the filters kept in the dealer's account
+   (`/api/me/lot-preferences`). The filter bar always writes `sort`, so a bare URL only comes
+   from elsewhere, such as the banner's link; kept filters that read as nothing do not redirect.
+3. Lists the page of lots (`/api/lots`) in the dealer's zone (the `cs_tz` cookie).
+
+`LotFilters` turns every change into a new URL (`router.push`, no scroll), so Back undoes a
+filter. It asks for option counts (`/api/lots/counts`, through `lotCountsAction`) only for the
+dropdown or sheet that is open, since each filter's counts are a scan of the lots, and drops
+an answer that arrives after the filters changed. After each change it stores the filters and
+order (not the search's words) through `rememberLotFiltersAction`, unless they equal what the
+page read; the API counts how often each parameter is set, and the most used move into the bar.
 
 ## Layout
 

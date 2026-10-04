@@ -1,49 +1,17 @@
 /**
  * What a lot's auction codes mean in plain words, and how much each one should worry a buyer.
- * The lot page reads its badges and its labels from here, so a code is
- * translated in one place. An unknown code is shown as it came, neutral, rather than guessed at.
+ * The lot page reads its badges and its labels from here; the words themselves are in
+ * `lot-words.ts`, which the lot list's filters share, so a code is translated in one place.
+ * An unknown code is shown as it came, neutral, rather than guessed at.
  * Titles are Copart's own words, not ours: see `titleType`.
  * ponytail: Copart's codes only, since Copart is the only source; key by source when a second arrives.
  */
 
 import COPART_TITLES from "@/lib/copart-titles.json";
+import { type Entry, type Signal, SIGNALS, type Tone, VEHICLE_TYPES } from "@/lib/lot-words";
 import { type Lot, offsiteAddress, sellerName } from "@/lib/lots";
 
-export type Tone = "good" | "warn" | "bad" | "neutral";
-export type Signal = { label: string; tone: Tone };
-
-/** `badge: false` marks the normal case, which gets a label but no badge. */
-type Entry = Signal & { badge?: false };
-
-/** Keyed by the auction's code, trimmed and upper-cased. */
-export const SIGNALS: Record<"run" | "keys" | "odometer" | "sale", Record<string, Entry>> = {
-  run: {
-    "RUN & DRIVE VERIFIED": { label: "Runs and drives", tone: "good" },
-    "VEHICLE STARTS": { label: "Engine starts only", tone: "warn" },
-    // Copart's "DEFAULT" is a lot nobody checked: treat it as stationary until proven otherwise.
-    DEFAULT: { label: "Not verified to start", tone: "bad" },
-    "": { label: "Not verified to start", tone: "bad" },
-  },
-  keys: {
-    YES: { label: "Keys", tone: "good" },
-    NO: { label: "No keys", tone: "warn" },
-    EXM: { label: "Keys exempt", tone: "neutral" },
-    "": { label: "Keys not stated", tone: "neutral" },
-  },
-  odometer: {
-    A: { label: "Actual mileage", tone: "good", badge: false },
-    E: { label: "Mileage exempt", tone: "warn" },
-    N: { label: "Mileage not real", tone: "bad" },
-    X: { label: "Exceeds mechanical limits", tone: "bad" },
-    "": { label: "Mileage status not stated", tone: "neutral", badge: false },
-  },
-  sale: {
-    "PURE SALE": { label: "Pure sale", tone: "good" },
-    "ON MINIMUM BID": { label: "Minimum bid", tone: "warn" },
-    "ON APPROVAL": { label: "Seller must approve", tone: "warn" },
-    "": { label: "Sale status not stated", tone: "neutral" },
-  },
-};
+export { SIGNALS, type Signal, type Tone } from "@/lib/lot-words";
 
 function lookup(kind: keyof typeof SIGNALS, value: string | null): Entry {
   const code = (value ?? "").trim().toUpperCase();
@@ -130,27 +98,6 @@ export function driveType(lot: Lot): string | null {
   if (/^rear/i.test(drive)) return "RWD";
   return drive;
 }
-
-/** Copart's vehicle type codes in copart.com's words, made singular: its lot details call "K" "MEDIUM DUTY/BOX TRUCKS". */
-const VEHICLE_TYPES: Record<string, string> = {
-  V: "Automobile",
-  K: "Medium duty / box truck",
-  U: "Heavy duty truck",
-  B: "Bus",
-  R: "Recreational vehicle (RV)",
-  L: "Trailer",
-  C: "Motorcycle",
-  D: "Dirt bike",
-  A: "ATV",
-  S: "Snowmobile",
-  M: "Boat",
-  J: "Jet ski",
-  E: "Industrial equipment",
-  N: "Construction equipment",
-  F: "Agriculture and farm equipment",
-  H: "Other goods",
-  I: "Inspection",
-};
 
 /** The lot's vehicle type in words; a code the table does not know shows as it came. */
 export function vehicleType(lot: Lot): string | null {

@@ -1,7 +1,12 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { LocalTime } from "@/components/LocalTime";
+import { LotFilters } from "@/components/LotFilters";
+import { listPath, type Query, queryString, readQuery, searched } from "@/lib/lot-filters";
 import {
   amount,
+  getLotPreferences,
+  interpretSearch,
   listLots,
   lotPath,
   odometer,
@@ -10,38 +15,35 @@ import {
   pageNumber,
   PAGE_SIZE,
   place,
+  saleDate,
   vehicle,
   type LotPage,
 } from "@/lib/lots";
 import { metadataForRoute } from "@/lib/seo/metadata";
-import { currentUser, sessionToken, visitorIp } from "@/lib/session";
+import { currentUser, sessionToken, visitorIp, visitorZone } from "@/lib/session";
 
 export const metadata = metadataForRoute("/active-lots");
 
 const count = new Intl.NumberFormat("en-US");
 
-export default async function AuctionsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
-  const [user, token, { page: raw }] = await Promise.all([currentUser(), sessionToken(), searchParams]);
-  const page = pageNumber(raw);
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export default async function AuctionsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const [user, token, params] = await Promise.all([currentUser(), sessionToken(), searchParams]);
   // Fetched here rather than in <Lots>: a nested async component would make the page a suspense
   // boundary for one table, and the page is nothing without it.
-  const found = user && token ? await listLots(page, token, await visitorIp()) : null;
+  const found = user && token ? await dealerLots(params, token) : null;
 
   return (
     <main className="flex-1 bg-white px-4 py-10 sm:px-6 lg:px-10">
-      <h1>Active lots</h1>
-      <p className="mt-3 max-w-[65ch] text-muted">
-        Every active lot from the auctions we track, the most recently listed first: what the car
-        is, what it is worth, what it is bid up to and where it sells.
-      </p>
+      {/* No visible title or lede: the search comes first. The heading stays for screen readers. */}
+      <h1 className="sr-only">Active lots</h1>
       {found ? (
-        <Lots page={page} {...found} />
+        <LotFilters query={found.query} total={found.total} usage={found.usage} remembered={found.remembered}>
+          <Lots {...found} />
+        </LotFilters>
       ) : (
-        <p className="mt-8">
+        <p>
           <Link href="/login" className="btn btn-primary">
             Sign in to see the lots
           </Link>
@@ -51,17 +53,40 @@ export default async function AuctionsPage({
   );
 }
 
-function Lots({ page, items, total }: { page: number } & LotPage) {
+/**
+ * The lots a signed-in dealer asked for. A search that names a lot opens it, and one that names
+ * a make, model or years becomes those filters; the bare list comes back as the dealer left it.
+ */
+async function dealerLots(params: SearchParams, token: string) {
+  const query = readQuery(params);
+  const page = pageNumber(params.page);
+  const ip = await visitorIp();
+  if (query.q) {
+    const named = await interpretSearch(query.q[0], token, ip);
+    if (named.lot) redirect(lotPath(named.lot));
+    const filtered = searched(query, named);
+    if (filtered) redirect(listPath(filtered));
+  }
+  const { filters, usage } = await getLotPreferences(token, ip);
+  // No parameters at all: the dealer came from elsewhere, not from the filter bar, which always
+  // sets an order. Kept filters that read as nothing would only lead back here.
+  const saved = readQuery(new URLSearchParams(filters));
+  if (Object.keys(params).length === 0 && Object.keys(saved).length) redirect(listPath(saved));
+  const list = await listLots(query, page, token, ip, await visitorZone());
+  return { query, page, usage, remembered: queryString(saved), ...list };
+}
+
+function Lots({ query, page, items, total }: { query: Query; page: number } & LotPage) {
   const pages = pageCount(total);
   const first = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
 
   if (items.length === 0) {
-    return <p className="mt-8">No lots on this page.</p>;
+    return <p className="mt-8">{total === 0 ? "No lots match these filters." : "No lots on this page."}</p>;
   }
 
   return (
     <>
-      <div className="mt-8 overflow-x-auto">
+      <div className="mt-6 overflow-x-auto">
         <table className="w-full border-collapse text-[0.9375rem]">
           <thead>
             <tr className="border-b border-line text-left">
@@ -87,7 +112,9 @@ function Lots({ page, items, total }: { page: number } & LotPage) {
                 <td className="py-2 pr-4">{lot.damage_primary ?? "—"}</td>
                 <td className="py-2 pr-4">{lot.title_type ?? "—"}</td>
                 <td className="py-2 pr-4">{place(lot)}{offsiteAddress(lot) && " · Offsite"}</td>
-                <td className="py-2 pr-4 whitespace-nowrap"><LocalTime value={lot.sale_at} /></td>
+                <td className="py-2 pr-4 whitespace-nowrap">
+                  {lot.sale_at ? <LocalTime value={lot.sale_at} /> : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
+                </td>
                 <td className="py-2 pr-4 text-right whitespace-nowrap">
                   {amount(lot.est_retail_value, lot.currency)}
                 </td>
@@ -98,14 +125,14 @@ function Lots({ page, items, total }: { page: number } & LotPage) {
         </table>
       </div>
       <nav aria-label="Pagination" className="mt-6 flex items-center gap-4">
-        <PageLink page={page - 1} enabled={page > 1}>
+        <PageLink href={listPath(query, page - 1)} enabled={page > 1}>
           Previous
         </PageLink>
         <p className="text-muted">
           {count.format(first)}–{count.format(first + items.length - 1)} of {count.format(total)}, page{" "}
           {count.format(page)} of {count.format(pages)}
         </p>
-        <PageLink page={page + 1} enabled={page < pages}>
+        <PageLink href={listPath(query, page + 1)} enabled={page < pages}>
           Next
         </PageLink>
       </nav>
@@ -113,7 +140,7 @@ function Lots({ page, items, total }: { page: number } & LotPage) {
   );
 }
 
-function PageLink({ page, enabled, children }: { page: number; enabled: boolean; children: string }) {
+function PageLink({ href, enabled, children }: { href: string; enabled: boolean; children: string }) {
   if (!enabled) {
     return (
       <span aria-disabled="true" className="btn btn-outline opacity-50">
@@ -122,7 +149,7 @@ function PageLink({ page, enabled, children }: { page: number; enabled: boolean;
     );
   }
   return (
-    <Link href={page > 1 ? `/active-lots?page=${page}` : "/active-lots"} className="btn btn-outline">
+    <Link href={href} className="btn btn-outline">
       {children}
     </Link>
   );

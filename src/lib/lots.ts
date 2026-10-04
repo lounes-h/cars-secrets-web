@@ -1,6 +1,7 @@
 /** Auction lots, read from the API, which reads the ingest database. */
 
 import { api, ApiError } from "@/lib/api";
+import { type Query, queryString } from "@/lib/lot-filters";
 
 export const PAGE_SIZE = 20;
 
@@ -79,9 +80,66 @@ export function pageCount(total: number): number {
   return Math.max(1, Math.ceil(total / PAGE_SIZE));
 }
 
-export function listLots(page: number, token: string, clientIp: string | null = null): Promise<LotPage> {
+/** The query as the API takes it: the same parameters, plus the zone that says when "today" is. */
+function apiQuery(query: Query, zone: string | null): string {
+  return queryString(zone ? { ...query, tz: [zone] } : query);
+}
+
+export function listLots(
+  query: Query,
+  page: number,
+  token: string,
+  clientIp: string | null = null,
+  zone: string | null = null,
+): Promise<LotPage> {
   const offset = (page - 1) * PAGE_SIZE;
-  return api<LotPage>(`/api/lots?limit=${PAGE_SIZE}&offset=${offset}`, { token, clientIp });
+  const search = [apiQuery(query, zone), `limit=${PAGE_SIZE}`, `offset=${offset}`].filter(Boolean).join("&");
+  return api<LotPage>(`/api/lots?${search}`, { token, clientIp });
+}
+
+export type Facets = Record<string, { value: string; count: number }[]>;
+
+/** How many lots each option of these filters would show, given the query's other filters. */
+export async function countLots(
+  query: Query,
+  names: string[],
+  token: string,
+  clientIp: string | null = null,
+  zone: string | null = null,
+): Promise<Facets> {
+  const search = queryString({ ...query, ...(zone ? { tz: [zone] } : {}), facets: names });
+  return (await api<{ facets: Facets }>(`/api/lots/counts?${search}`, { token, clientIp })).facets;
+}
+
+/** What a search names: the one lot of a lot number or VIN, or a make, model and years. */
+export type Interpretation = {
+  lot: { source: string; lot_number: string } | null;
+  make: string | null;
+  model: string | null;
+  year_min: number | null;
+  year_max: number | null;
+  /** The words left over, still searched as keywords. */
+  q: string;
+};
+
+export function interpretSearch(q: string, token: string, clientIp: string | null = null): Promise<Interpretation> {
+  return api<Interpretation>(`/api/lots/interpret?${new URLSearchParams({ q })}`, { token, clientIp });
+}
+
+/** The lot list as the dealer last left it (a query string), and how often they set each filter. */
+export type LotPreferences = { filters: string; usage: Record<string, number> };
+
+/** Never an error: without them the list simply starts from no filters. */
+export async function getLotPreferences(token: string, clientIp: string | null = null): Promise<LotPreferences> {
+  try {
+    return await api<LotPreferences>("/api/me/lot-preferences", { token, clientIp });
+  } catch {
+    return { filters: "", usage: {} };
+  }
+}
+
+export function saveLotPreferences(filters: string, token: string, clientIp: string | null = null): Promise<LotPreferences> {
+  return api<LotPreferences>("/api/me/lot-preferences", { method: "PUT", body: { filters }, token, clientIp });
 }
 
 /** One lot, or null when the auction no longer lists it. */
@@ -143,9 +201,7 @@ export function saleDate(value: string | null): string {
   return value ? day.format(new Date(`${value}T00:00:00Z`)) : "—";
 }
 
-/** The auction's own name for its slug in the URL: "copart" is "Copart", "iaa" is "IAA". */
-const AUCTIONS: Record<string, string> = { copart: "Copart", iaa: "IAA", manheim: "Manheim" };
-export const auctionName = (source: string) => AUCTIONS[source.toLowerCase()] ?? source;
+export { auctionName } from "@/lib/lot-words";
 
 export function vehicle(lot: Lot): string {
   return [lot.year, lot.make, lot.model].filter(Boolean).join(" ") || "—";

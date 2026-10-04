@@ -50,7 +50,7 @@ body {
     margin-bottom: 0.25rem;
   }
 
-  input:is([type="text"], [type="email"], [type="tel"], [type="password"]),
+  input:is([type="text"], [type="email"], [type="tel"], [type="password"], [type="search"], [type="number"]),
   input:not([type]),
   select {
     width: 100%;
@@ -66,7 +66,7 @@ body {
     border-color: var(--ink);
   }
 
-  input[type="checkbox"] {
+  input:is([type="checkbox"], [type="radio"]) {
     width: 1.125rem;
     height: 1.125rem;
     accent-color: var(--ink);
@@ -262,6 +262,68 @@ body {
   }
   [data-tone="bad"] {
     color: var(--bad);
+  }
+  /* A filter of the lot list's bar: its options drop below its button. */
+  .filter-menu {
+    position: relative;
+  }
+  .filter-menu > summary {
+    list-style: none;
+  }
+  .filter-menu > summary::-webkit-details-marker {
+    display: none;
+  }
+  .filter-menu-panel {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.25rem);
+    left: 0;
+    width: 18rem;
+    max-height: 24rem;
+    overflow-y: auto;
+    padding: 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0.25rem;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+  }
+  /* "All filters": a sheet at the right, the whole screen on a phone. */
+  .filters-panel {
+    position: fixed;
+    inset: 0 0 0 auto;
+    margin: 0;
+    width: min(100%, 28rem);
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .filters-panel[open] {
+    display: flex;
+    flex-direction: column;
+  }
+  .filters-panel::backdrop {
+    background: rgb(0 0 0 / 0.3);
+  }
+  /* A chosen filter, removed by a click. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .chip:hover {
+    border-color: var(--muted);
   }
   .notice {
     background: var(--surface);
