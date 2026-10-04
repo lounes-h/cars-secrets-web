@@ -11,13 +11,16 @@ const { SiteBanner } = await import("@/components/SiteBanner");
 afterEach(cleanup);
 
 describe("SiteBanner", () => {
-  it("renders a link home, with no brand name or logo image", () => {
-    const { container } = render(<SiteBanner />);
-    const link = screen.getByRole("link", { name: "Home" });
-    expect(screen.getByRole("banner").textContent).not.toMatch(/CarBidWise/i);
+  it("links home with the CarBidInsight logo", () => {
+    render(<SiteBanner />);
+    const link = screen.getByRole("link", { name: "CarBidInsight" });
+    const logo = screen.getByRole("img", { name: "CarBidInsight" });
     expect(link.getAttribute("href")).toBe("/");
     expect(screen.getByRole("banner").contains(link)).toBe(true);
-    expect(container.querySelector("img, picture, svg")).toBe(null);
+    expect(link.contains(logo)).toBe(true);
+    expect(logo.getAttribute("width")).toBe("192");
+    expect(logo.getAttribute("height")).toBe("32");
+    expect(logo.getAttribute("src")).toBe("/logo.png");
   });
 
   it("holds the account navigation", async () => {

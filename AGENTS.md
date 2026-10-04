@@ -9,7 +9,7 @@ read `docs/project-specification.md`
 - Next.js 16 (App Router) with React 19 and TypeScript, server-rendered and
   statically prerendered.
 - Tailwind CSS 4. Design tokens are CSS variables in `src/app/globals.css`.
-- No design system or logo yet: black, grey and white only, in Work Sans
+- No design system yet: black, grey and white only, in Work Sans
   (`next/font/google`, self-hosted at build time, set on `<html>` in the root
   layout and put first in `--font-sans` in `src/app/globals.css`).
 - Yarn 4 through Corepack (`packageManager` in `package.json`), with the
@@ -68,9 +68,11 @@ See `docs/architecture.md` for details.
   are the exception: their form sits in one centered `.auth-panel` column
   (28rem) inside `.auth-main`, which fills the viewport with white, because a
   full-width form is hard to fill in.
-- There is no design system, logo, favicon or share image yet, and no dark
-  mode. The interface uses black, grey and white only: `--ink`, `--muted`,
-  `--line`, `--paper` and `--surface` in `src/app/globals.css`. `--ink` carries
+- There is no design system, favicon or share image yet, and no dark mode.
+  The one logo is the CarBidInsight wordmark in the banner (`public/logo.png`,
+  384×64, shown at 192×32 and served as is, unoptimized); its navy and green
+  are the logo's own, not tokens. The interface uses black, grey and white
+  only: `--ink`, `--muted`, `--line`, `--paper` and `--surface` in `src/app/globals.css`. `--ink` carries
   buttons, links, checkboxes and focus rings; errors read as bold text rather
   than a colour, since there is no error colour. The one exception is the lot
   page's deal-breaker badges and sale countdown: `--good`, `--warn` and `--bad`
@@ -81,9 +83,9 @@ See `docs/architecture.md` for details.
   `btn-ghost`, `btn-link`, `card`, `auth-main`, `auth-panel`, `form-stack`,
   `phone-field`, `divider`, `hint`, `notice`, `badge`, and for the lot list's filters
   `filter-menu`, `filter-menu-panel`, `filters-panel`, `chip`). Reuse them rather than adding
-  one-off styles, and add no branding until the name and a design exist.
+  one-off styles, and add no further branding until a design exists.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
-  layout on every page and shows the site name as plain text. Its navigation
+  layout on every page and links home with the logo. Its navigation
   (`src/components/AccountNav.tsx`) is a client component that asks
   `/auth/session` after each navigation and renders both the main menu and the
   account side: Active lots, VIN Lookup, then How It Works and Pricing
@@ -243,19 +245,19 @@ Styling stays basic until a design system exists. `/` is the home page: the
 centred title "Everything You Need to Know Before Buying a Car at Auction" and
 nothing else yet. Add no other pages until the user asks.
 
-**There is no brand name.** `src/lib/site.ts` holds only the URL, language,
-locale and a description; nothing invents a name, a slogan or a wordmark.
-Page titles stand alone (no "| Name" suffix), the banner links home with the
-word "Home", and `llms.txt` is headed by the site host (`siteHost`). The
-repository and the API keep their `cars-secrets-*` names, and so does the
-`cars-secrets.test` origin the tests run against. Until a name is chosen, the
-work is features and functionality, not branding — do not add one.
+**The brand is CarBidInsight, and so far only the banner's logo carries it.**
+The logo links home, its alt text the name. `src/lib/site.ts` still holds only
+the URL, language, locale and a description; page titles stand alone (no
+"| Name" suffix) and `llms.txt` is headed by the site host (`siteHost`), until
+the user asks for the name there. The repository and the API keep their
+`cars-secrets-*` names, and so does the `cars-secrets.test` origin the tests
+run against. Invent no slogan.
 
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
 (grayscale tokens and the full-width top banner); the SEO builders (metadata,
 sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; security
-headers; and the deal calculation in `src/lib/deal.ts`. There is no logo,
-favicon, touch icon, web app manifest, share image or structured data.
+headers; the deal calculation in `src/lib/deal.ts`; and the banner's logo.
+There is no favicon, touch icon, web app manifest, share image or structured data.
 
 In place for accounts: registration (names, email, optional phone with every
 country's flag and calling code, password with show/hide, Turnstile captcha),

@@ -85,9 +85,10 @@ which both redirect, updates it.
 
 ## Colours and assets
 
-There is no brand name, design system, logo, favicon, manifest or share image
-yet, and no structured data. Page titles stand alone, and the banner links home
-with the word "Home". The interface uses
+The brand, CarBidInsight, appears only as the banner's logo (`public/logo.png`,
+whose navy and green are its own), which links home. There is no design system,
+favicon, manifest or share image yet, and no structured data. Page titles stand
+alone. The interface uses
 black, grey and white only, through the tokens in `src/app/globals.css`
 (`--ink`, `--muted`, `--line`, `--paper`, `--surface`), Work Sans (loaded with
 `next/font/google` in the root layout, the system font stack behind it), and

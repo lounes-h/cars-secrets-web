@@ -1,7 +1,7 @@
 /**
  * Single source of truth for site-wide identity. Anything that ends up in
- * metadata, the sitemap or llms.txt reads from here. There is no brand name
- * yet: nothing here should invent one.
+ * metadata, the sitemap or llms.txt reads from here. The brand name
+ * (CarBidInsight) is only in the banner's logo so far, not here.
  */
 
 const LOCAL_URL = "http://localhost:3000";
