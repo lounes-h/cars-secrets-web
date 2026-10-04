@@ -109,6 +109,9 @@ describe("forms with the captcha", () => {
     type("Password", "whatever-password");
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
     await screen.findByTestId("turnstile");
+    // The widget renders and resets in effects that can run after the div appears; solving
+    // before then lost the token on a slow CI runner.
+    await waitFor(() => expect(widget.reset).toHaveBeenCalled());
     solve("tok");
     type("Password", "whatever-password");
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));

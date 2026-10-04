@@ -20,6 +20,8 @@ vi.mock("@/app/(auth)/actions", () => ({
   resendVerificationAction: vi.fn(),
 }));
 vi.mock("@/lib/session", () => ({ currentUser }));
+// next/font runs at build time, so the test stands in for what it returns.
+vi.mock("next/font/google", () => ({ Work_Sans: () => ({ variable: "work-sans-variable" }) }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers({ "accept-language": acceptLanguage() }) }));
 vi.mock("next/navigation", async (original) => ({
   ...(await original<object>()),
@@ -37,10 +39,15 @@ afterEach(() => {
 });
 
 describe("root layout", () => {
-  it("wraps every page in the site's language with the banner above it", async () => {
+  it("wraps every page in the site's language and font with the banner above it", async () => {
     const { default: RootLayout, metadata } = await import("@/app/layout");
-    const html = RootLayout({ children: <p>page</p> }) as ReactElement<{ lang: string; children: ReactElement<{ children: unknown[] }> }>;
+    const html = RootLayout({ children: <p>page</p> }) as ReactElement<{
+      lang: string;
+      className: string;
+      children: ReactElement<{ children: unknown[] }>;
+    }>;
     expect(html.props.lang).toBe(site.language);
+    expect(html.props.className).toBe("work-sans-variable");
     expect(html.props.children.props.children).toHaveLength(2);
     expect(metadata.description).toBe(site.description);
   });
