@@ -38,9 +38,9 @@ function Menu({ items }: { items: typeof GUEST_MENU }) {
 
 /**
  * The banner's menu and its right side: the pages a visitor or a signed-in
- * dealer can reach, then "Sign in / free trial" or the dealer's avatar and
- * "Sign out". It asks /auth/session after every navigation, so signing in or
- * out (both redirect) updates it.
+ * dealer can reach, then "Sign in / free trial" or the dealer's initials,
+ * which open the account menu. It asks /auth/session after every navigation,
+ * so signing in or out (both redirect) updates it.
  */
 export function AccountNav() {
   const pathname = usePathname();
@@ -77,24 +77,71 @@ export function AccountNav() {
       </>
     );
   }
-  const name = user.first_name || user.email;
   return (
     <>
       <Menu items={MEMBER_MENU} />
-      <nav aria-label="Account" className="ml-auto flex items-center gap-2 sm:gap-3">
-        <Link href="/account" className="btn btn-ghost font-medium" title={user.email}>
-          <span aria-hidden="true" className="grid size-7 place-items-center rounded-full bg-ink text-sm text-surface">
-            {name.charAt(0).toUpperCase()}
-          </span>
-          <span className="hidden sm:inline">{name}</span>
-          <span className="sr-only sm:hidden">Your account ({name})</span>
-        </Link>
-        <form action={logoutAction} onSubmit={forgetEmail}>
-          <button type="submit" className="btn btn-outline font-medium">
-            Sign out
+      <nav aria-label="Account" className="ml-auto flex items-center">
+        <AccountMenu user={user} />
+      </nav>
+    </>
+  );
+}
+
+/** "LH" from the dealer's names, or the email's first letter when they gave none. */
+export function initials(user: NonNullable<User>): string {
+  const letters = `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` || user.email.charAt(0);
+  return letters.toUpperCase();
+}
+
+function Avatar({ user }: { user: NonNullable<User> }) {
+  return (
+    <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-line text-sm font-semibold text-ink">
+      {initials(user)}
+    </span>
+  );
+}
+
+/**
+ * The round initials button and the menu it opens: who is signed in, Settings,
+ * Account and Log out. A native popover, so a click outside or Escape closes it.
+ */
+function AccountMenu({ user }: { user: NonNullable<User> }) {
+  const name = `${user.first_name} ${user.last_name}`.trim();
+  return (
+    <>
+      <button type="button" popoverTarget="account-menu" aria-label="Account menu" title={name || user.email} className="account-avatar cursor-pointer rounded-full">
+        <Avatar user={user} />
+      </button>
+      <div
+        id="account-menu"
+        popover="auto"
+        className="account-menu"
+        // A link moves within the app and the banner stays, so close the menu behind it.
+        onClick={(event) => (event.target as Element).closest("a") && event.currentTarget.hidePopover()}
+      >
+        <div className="flex items-center gap-3 px-5 py-4">
+          <Avatar user={user} />
+          <div className="min-w-0">
+            {name && <p className="m-0 truncate text-sm">{name}</p>}
+            <p className="m-0 truncate text-xs text-muted" title={user.email}>
+              {user.email}
+            </p>
+          </div>
+        </div>
+        <div className="py-2">
+          <Link href="/settings" className="account-menu-item">
+            Settings
+          </Link>
+          <Link href="/account" className="account-menu-item">
+            Account
+          </Link>
+        </div>
+        <form action={logoutAction} onSubmit={forgetEmail} className="py-2">
+          <button type="submit" className="account-menu-item">
+            Log out
           </button>
         </form>
-      </nav>
+      </div>
     </>
   );
 }

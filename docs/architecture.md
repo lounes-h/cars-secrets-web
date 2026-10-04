@@ -76,10 +76,12 @@ page read; the API counts how often each parameter is set, and the most used mov
 The site is full width. There is no centered page container: sections span
 the viewport with side padding, and only running text is capped at a readable
 line length. Auth pages center their form in one 28rem column (`.auth-panel`).
-The top banner shows the site name as plain text on the left and the account
-navigation on the right: "Sign in" and "Register", or the signed-in dealer's
-initial, name and "Sign out". The navigation is a client component that asks
-`/auth/session` (a route handler returning only the first name and email) after
+The top banner shows the logo on the left, linking home, and the account
+navigation on the right: "Sign in" and "7 days free trial", or the signed-in dealer's
+initials in a round button that opens the account menu (a native popover: the
+initials, name and email, then Settings, Account and Log out). The navigation is
+a client component that asks `/auth/session` (a route handler returning only the
+first and last name and the email) after
 every navigation, so the pages themselves stay static and signing in or out,
 which both redirect, updates it.
 

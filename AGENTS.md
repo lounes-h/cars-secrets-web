@@ -82,7 +82,8 @@ See `docs/architecture.md` for details.
   and alerts, plus a few classes (`btn`, `btn-primary`, `btn-outline`,
   `btn-ghost`, `btn-link`, `card`, `auth-main`, `auth-panel`, `form-stack`,
   `phone-field`, `divider`, `hint`, `notice`, `badge`, and for the lot list's filters
-  `filter-menu`, `filter-menu-panel`, `filters-panel`, `chip`). Reuse them rather than adding
+  `filter-menu`, `filter-menu-panel`, `filters-panel`, `chip`, and for the banner's account
+  menu `account-menu`, `account-menu-item`). Reuse them rather than adding
   one-off styles, and add no further branding until a design exists.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page and links home with the logo. Its navigation
@@ -90,7 +91,11 @@ See `docs/architecture.md` for details.
   `/auth/session` after each navigation and renders both the main menu and the
   account side: Active lots, VIN Lookup, then How It Works and Pricing
   with "Sign in" and the "7 days free trial" button for visitors, or Saved and
-  Alerts with the dealer's avatar and "Sign out" once signed in. Best Buys is
+  Alerts with the dealer's initials in a round button once signed in. That
+  button opens the account menu, a native popover (a click outside or Escape
+  closes it, and so does following one of its links): the initials, the full
+  name and the email, then Settings, Account and Log out. A language selector
+  ("English") belongs there too but is not built yet. Best Buys is
   left out of the menu for now, though its page exists. The menu is
   hidden below `lg`. Never read the session in the root layout: it would make
   every page dynamic.
@@ -237,7 +242,7 @@ A code change is not considered complete until the relevant unit tests have been
 The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
 `/reset-password`, `/verify-email`, `/account`), `/active-lots` (the lot listing)
 and the empty placeholders the banner menu links to: `/vin-lookup`,
-`/how-it-works`, `/pricing`, `/saved` and `/alerts`, plus `/best-buys`, which the menu
+`/how-it-works`, `/pricing`, `/saved`, `/alerts` and `/settings`, plus `/best-buys`, which the menu
 leaves out for now — blank white
 pages with metadata only, so they have no `h1` until there is something to put
 on them.

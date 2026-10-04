@@ -78,6 +78,14 @@ export const routes: readonly SiteRoute[] = [
     noindex: true,
   },
   {
+    path: "/settings",
+    title: "Settings",
+    description: "Your settings: how the site works for you once you are signed in.",
+    changeFrequency: "yearly",
+    priority: 0.1,
+    noindex: true,
+  },
+  {
     path: "/register",
     title: "Create your account",
     description:

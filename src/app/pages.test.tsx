@@ -61,7 +61,7 @@ describe("robots and sitemap", () => {
 });
 
 describe("placeholder pages", () => {
-  it.each(["alerts", "best-buys", "how-it-works", "pricing", "saved", "vin-lookup"])(
+  it.each(["alerts", "best-buys", "how-it-works", "pricing", "saved", "settings", "vin-lookup"])(
     "/%s is a blank main with its registered metadata",
     async (path) => {
       const page = await import(`@/app/${path}/page.tsx`);
