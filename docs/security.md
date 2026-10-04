@@ -37,7 +37,7 @@ hashing, throttling, captcha and token rules.
   parameters and values. The filters are kept in the API (at most 2000 characters), and
   a kept query passes through `readQuery` again before the page redirects to it, always
   to `/active-lots`. The browser never calls the API.
-- `/auth/session` returns only the signed-in user's first name and email, with
+- `/auth/session` returns only the signed-in user's first and last name and email, with
   `Cache-Control: private, no-store`, for the banner.
 - The email typed in an auth form is kept in sessionStorage for the tab, never
   in a URL, so it does not reach server logs or referrers.

@@ -287,6 +287,29 @@ body {
     border-radius: 0.25rem;
     box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
   }
+  /* The banner's account menu, a popover under the avatar (anchored where the browser can). */
+  .account-avatar {
+    anchor-name: --account;
+  }
+  .account-menu {
+    inset: 4rem 1rem auto auto;
+    margin: 0;
+    width: 16rem;
+    padding: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 0.25rem;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+  }
+  @supports (position-area: bottom) {
+    .account-menu {
+      inset: auto;
+      position-anchor: --account;
+      position-area: bottom span-left;
+      margin-top: 0.25rem;
+    }
+  }
   /* "All filters": a sheet at the right, the whole screen on a phone. */
   .filters-panel {
     position: fixed;

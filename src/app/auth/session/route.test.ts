@@ -10,10 +10,10 @@ beforeEach(() => {
 });
 
 describe("GET /auth/session", () => {
-  it("returns only the name and email of the signed-in user, uncached", async () => {
+  it("returns only the names and email of the signed-in user, uncached", async () => {
     currentUser.mockResolvedValue({ id: "u1", email: "l@example.com", first_name: "Lounes", last_name: "H", phone: null, email_verified: true });
     const response = await GET();
-    expect(await response.json()).toEqual({ user: { first_name: "Lounes", email: "l@example.com" } });
+    expect(await response.json()).toEqual({ user: { first_name: "Lounes", last_name: "H", email: "l@example.com" } });
     expect(response.headers.get("cache-control")).toBe("private, no-store");
   });
 
