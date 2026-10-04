@@ -36,18 +36,14 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
 
   return (
     <main className="flex-1 bg-white px-4 py-10 sm:px-6 lg:px-10">
-      <h1>Active lots</h1>
-      <p className="mt-3 max-w-[65ch] text-muted">
-        Every active lot from the auctions we track, searchable by make, model, year, VIN or lot
-        number and narrowed by sale date, title, condition and damage: what the car is, what it
-        is worth, what it is bid up to and where it sells.
-      </p>
+      {/* No visible title or lede: the search comes first. The heading stays for screen readers. */}
+      <h1 className="sr-only">Active lots</h1>
       {found ? (
         <LotFilters query={found.query} total={found.total} usage={found.usage} remembered={found.remembered}>
           <Lots {...found} />
         </LotFilters>
       ) : (
-        <p className="mt-8">
+        <p>
           <Link href="/login" className="btn btn-primary">
             Sign in to see the lots
           </Link>

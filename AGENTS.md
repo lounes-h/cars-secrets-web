@@ -58,6 +58,9 @@ See `docs/architecture.md` for details.
   search engines and AI assistants can quote it. The auth pages are the
   exception: heading and form only, no lede — their registered description
   carries the answer.
+  `/active-lots` is one too: it opens on the search, so its `h1` is visually
+  hidden (`sr-only`) and it has no lede; its registered description carries
+  the answer.
 - The layout is full width: no centered `max-w-*` page container. Sections
   span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
   running text is capped at a readable measure (`max-w-[65ch]`). Auth pages
@@ -262,7 +265,7 @@ register" and a sentence above it says that clicking it is the agreement, so the
 action always tells the API the terms are accepted. The Terms of Use and Privacy
 Policy themselves do not exist yet.
 
-In place for lots: `/active-lots` ("Active lots" in the menu and as its `h1`; the
+In place for lots: `/active-lots` ("Active lots" in the menu and as its visually hidden `h1`; the
 path was `/auctions`, which redirects here permanently) lists active lots, the most recently listed
 first unless the dealer picks another order, 20 to a page (`?page=`), with search and filters
 (below), and `/active-lots/[source]/[lotNumber]` shows one lot —

@@ -139,7 +139,7 @@ export function LotFilters({
   }
 
   return (
-    <div className="mt-8">
+    <div>
       <form
         role="search"
         className="flex max-w-3xl gap-2"

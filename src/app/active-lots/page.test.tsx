@@ -55,6 +55,14 @@ afterEach(() => {
 });
 
 describe("active lots page", () => {
+  it("opens on the search, with its heading for screen readers only and no lede", async () => {
+    const { container } = render(await AuctionsPage({ searchParams: Promise.resolve({}) }));
+    const heading = screen.getByRole("heading", { level: 1, name: "Active lots" });
+    expect(heading.className).toBe("sr-only");
+    expect(container.querySelector("main > p")).toBeNull();
+    expect(screen.queryByText(/Every active lot/)).toBeNull();
+  });
+
   it("asks a visitor to sign in instead of listing lots", async () => {
     currentUser.mockResolvedValue(null);
     await show();
