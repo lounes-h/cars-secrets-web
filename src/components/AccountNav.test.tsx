@@ -33,7 +33,6 @@ describe("AccountNav", () => {
     expect([...menu.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
       ["Active lots", "/active-lots"],
       ["VIN Lookup", "/vin-lookup"],
-      ["Best Buys", "/best-buys"],
       ["How It Works", "/how-it-works"],
       ["Pricing", "/pricing"],
     ]);
@@ -46,7 +45,6 @@ describe("AccountNav", () => {
     expect([...menu.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
       ["Active lots", "/active-lots"],
       ["VIN Lookup", "/vin-lookup"],
-      ["Best Buys", "/best-buys"],
       ["Saved", "/saved"],
       ["Alerts", "/alerts"],
     ]);

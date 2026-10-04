@@ -9,10 +9,10 @@ import type { SessionSummary } from "@/app/auth/session/route";
 
 type User = SessionSummary["user"];
 
+// Best Buys is left out of both menus for now; its page (/best-buys) still exists.
 const GUEST_MENU = [
   { href: "/active-lots", label: "Active lots" },
   { href: "/vin-lookup", label: "VIN Lookup" },
-  { href: "/best-buys", label: "Best Buys" },
   { href: "/how-it-works", label: "How It Works" },
   { href: "/pricing", label: "Pricing" },
 ];
@@ -20,7 +20,6 @@ const GUEST_MENU = [
 const MEMBER_MENU = [
   { href: "/active-lots", label: "Active lots" },
   { href: "/vin-lookup", label: "VIN Lookup" },
-  { href: "/best-buys", label: "Best Buys" },
   { href: "/saved", label: "Saved" },
   { href: "/alerts", label: "Alerts" },
 ];
