@@ -109,7 +109,7 @@ function AccountMenu({ user }: { user: NonNullable<User> }) {
   const name = `${user.first_name} ${user.last_name}`.trim();
   return (
     <>
-      <button type="button" popoverTarget="account-menu" aria-label="Account menu" title={name || user.email} className="account-avatar rounded-full">
+      <button type="button" popoverTarget="account-menu" aria-label="Account menu" title={name || user.email} className="account-avatar cursor-pointer rounded-full">
         <Avatar user={user} />
       </button>
       <div

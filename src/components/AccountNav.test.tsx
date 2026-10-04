@@ -58,6 +58,7 @@ describe("AccountNav", () => {
     const button = await screen.findByRole("button", { name: "Account menu" });
     expect(button.textContent).toBe("LH");
     expect(button.className).toContain("rounded-full");
+    expect(button.className).toContain("cursor-pointer");
     expect(button.getAttribute("popovertarget")).toBe("account-menu");
     expect(document.getElementById("account-menu")?.getAttribute("popover")).toBe("auto");
     expect(screen.queryByText("Lounes")).toBeNull();
