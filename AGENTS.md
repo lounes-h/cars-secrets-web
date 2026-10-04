@@ -80,7 +80,8 @@ See `docs/architecture.md` for details.
   and alerts, plus a few classes (`btn`, `btn-primary`, `btn-outline`,
   `btn-ghost`, `btn-link`, `card`, `auth-main`, `auth-panel`, `form-stack`,
   `phone-field`, `divider`, `hint`, `notice`, `badge`, and for the lot list's filters
-  `filter-menu`, `filter-menu-panel`, `filters-panel`, `chip`). Reuse them rather than adding
+  `filter-menu`, `filter-menu-panel`, `filters-panel`, `chip`, and for the banner's account
+  menu `account-menu`, `account-menu-item`). Reuse them rather than adding
   one-off styles, and add no branding until the name and a design exist.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page and shows the site name as plain text. Its navigation

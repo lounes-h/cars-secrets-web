@@ -95,7 +95,7 @@ export function initials(user: NonNullable<User>): string {
 
 function Avatar({ user }: { user: NonNullable<User> }) {
   return (
-    <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-full bg-ink text-sm font-semibold text-surface">
+    <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-line text-sm font-semibold text-ink">
       {initials(user)}
     </span>
   );
@@ -107,7 +107,6 @@ function Avatar({ user }: { user: NonNullable<User> }) {
  */
 function AccountMenu({ user }: { user: NonNullable<User> }) {
   const name = `${user.first_name} ${user.last_name}`.trim();
-  const item = "btn btn-ghost w-full justify-start font-medium";
   return (
     <>
       <button type="button" popoverTarget="account-menu" aria-label="Account menu" title={name || user.email} className="account-avatar rounded-full">
@@ -120,28 +119,28 @@ function AccountMenu({ user }: { user: NonNullable<User> }) {
         // A link moves within the app and the banner stays, so close the menu behind it.
         onClick={(event) => (event.target as Element).closest("a") && event.currentTarget.hidePopover()}
       >
-        <div className="flex items-center gap-3 border-b border-line px-2 pt-1 pb-3">
+        <div className="flex items-center gap-3 px-5 py-4">
           <Avatar user={user} />
           <div className="min-w-0">
-            {name && <p className="m-0 truncate font-semibold">{name}</p>}
+            {name && <p className="m-0 truncate text-[1.0625rem]">{name}</p>}
             <p className="m-0 truncate text-sm text-muted" title={user.email}>
               {user.email}
             </p>
           </div>
         </div>
-        <div className="flex flex-col pt-2">
-          <Link href="/settings" className={item}>
+        <div className="py-2">
+          <Link href="/settings" className="account-menu-item">
             Settings
           </Link>
-          <Link href="/account" className={item}>
+          <Link href="/account" className="account-menu-item">
             Account
           </Link>
-          <form action={logoutAction} onSubmit={forgetEmail}>
-            <button type="submit" className={item}>
-              Log out
-            </button>
-          </form>
         </div>
+        <form action={logoutAction} onSubmit={forgetEmail} className="py-2">
+          <button type="submit" className="account-menu-item">
+            Log out
+          </button>
+        </form>
       </div>
     </>
   );
