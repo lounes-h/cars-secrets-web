@@ -5,8 +5,21 @@ vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }
 
 const { ApiError } = await import("@/lib/api");
 
-const { auctionName, getLot, getLotImages, listLots, pageCount, pageNumber, PAGE_SIZE, saleDate, sellerName } =
-  await import("@/lib/lots");
+const {
+  auctionName,
+  countLots,
+  getLot,
+  getLotImages,
+  getLotPreferences,
+  interpretSearch,
+  listLots,
+  pageCount,
+  pageNumber,
+  PAGE_SIZE,
+  saleDate,
+  saveLotPreferences,
+  sellerName,
+} = await import("@/lib/lots");
 const { sampleLot } = await import("@/lib/lots-fixture");
 
 describe("pageNumber", () => {
@@ -34,10 +47,65 @@ describe("pageCount", () => {
 describe("listLots", () => {
   it("asks the API for the page's slice with the dealer's token", async () => {
     api.mockResolvedValue({ items: [], total: 0 });
-    await listLots(3, "token-abc", "203.0.113.4");
+    await listLots({}, 3, "token-abc", "203.0.113.4");
     expect(api).toHaveBeenCalledWith(`/api/lots?limit=${PAGE_SIZE}&offset=${PAGE_SIZE * 2}`, {
       token: "token-abc",
       clientIp: "203.0.113.4",
+    });
+  });
+
+  it("passes the filters and the dealer's zone as the API's own parameters", async () => {
+    api.mockResolvedValue({ items: [], total: 0 });
+    await listLots({ title: ["salvage", "clean"], sale: ["today"], sort: ["sale"] }, 1, "token-abc", null, "America/New_York");
+    expect(api).toHaveBeenCalledWith(
+      `/api/lots?title=salvage&title=clean&sale=today&sort=sale&tz=America%2FNew_York&limit=${PAGE_SIZE}&offset=0`,
+      { token: "token-abc", clientIp: null },
+    );
+  });
+});
+
+describe("countLots", () => {
+  it("asks for the counts of the named filters under the query's others", async () => {
+    const facets = { title: [{ value: "salvage", count: 3 }] };
+    api.mockResolvedValue({ facets });
+    expect(await countLots({ run: ["verified"] }, ["title", "run"], "token-abc", "1.2.3.4", "UTC")).toEqual(facets);
+    expect(api).toHaveBeenCalledWith("/api/lots/counts?run=verified&tz=UTC&facets=title&facets=run", {
+      token: "token-abc",
+      clientIp: "1.2.3.4",
+    });
+    await countLots({}, ["sale"], "token-abc");
+    expect(api).toHaveBeenLastCalledWith("/api/lots/counts?facets=sale", { token: "token-abc", clientIp: null });
+  });
+});
+
+describe("interpretSearch", () => {
+  it("asks the API what a search names", async () => {
+    api.mockResolvedValue({ lot: null, make: "TOYOTA", model: null, year_min: null, year_max: null, q: "" });
+    expect((await interpretSearch("toyota & co", "token-abc")).make).toBe("TOYOTA");
+    expect(api).toHaveBeenCalledWith("/api/lots/interpret?q=toyota+%26+co", { token: "token-abc", clientIp: null });
+  });
+});
+
+describe("lot preferences", () => {
+  it("are read for the dealer", async () => {
+    api.mockResolvedValue({ filters: "title=clean", usage: { title: 2 } });
+    expect(await getLotPreferences("token-abc", "1.2.3.4")).toEqual({ filters: "title=clean", usage: { title: 2 } });
+    expect(api).toHaveBeenCalledWith("/api/me/lot-preferences", { token: "token-abc", clientIp: "1.2.3.4" });
+  });
+
+  it("are none when the API cannot say, so the list still shows", async () => {
+    api.mockRejectedValue(new ApiError(0, "unavailable", "down"));
+    expect(await getLotPreferences("token-abc")).toEqual({ filters: "", usage: {} });
+  });
+
+  it("are saved with a PUT", async () => {
+    api.mockResolvedValue({ filters: "sort=year", usage: { sort: 1 } });
+    await saveLotPreferences("sort=year", "token-abc");
+    expect(api).toHaveBeenCalledWith("/api/me/lot-preferences", {
+      method: "PUT",
+      body: { filters: "sort=year" },
+      token: "token-abc",
+      clientIp: null,
     });
   });
 });

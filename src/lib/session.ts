@@ -2,6 +2,7 @@
 
 import { cookies, headers } from "next/headers";
 import { api, ApiError } from "@/lib/api";
+import { knownZone, ZONE_COOKIE } from "@/lib/lot-filters";
 
 export const SESSION_COOKIE = "cs_session";
 export const OAUTH_STATE_COOKIE = "cs_oauth_state";
@@ -74,6 +75,11 @@ export function visitorIpFrom(h: Headers): string | null {
 
 export async function visitorIp(): Promise<string | null> {
   return visitorIpFrom(await headers());
+}
+
+/** The visitor's time zone, which the lot list's filter bar keeps in a cookie; null until it has. */
+export async function visitorZone(): Promise<string | null> {
+  return knownZone((await cookies()).get(ZONE_COOKIE)?.value);
 }
 
 /** Only a site-relative path may be used as a redirect target after sign-in. */

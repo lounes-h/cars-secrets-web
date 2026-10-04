@@ -7,7 +7,8 @@
  *      WHERE removed_at IS NULL AND source = 'copart' AND title_type IS NOT NULL;
  * 2. Open any copart.com page, paste this file into the console with LOTS set to those lot numbers,
  *    and wait for "copied".
- * 3. Merge the clipboard's entries into src/lib/copart-titles.json, keys sorted.
+ * 3. Merge the clipboard's entries into src/lib/copart-titles.json, keys sorted, and copy the file to
+ *    the API (../cars-secrets-api/app/copart_titles.json), whose title filter reads the same groups.
  */
 const LOTS = [];
 

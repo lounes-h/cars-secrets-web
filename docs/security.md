@@ -19,6 +19,10 @@ hashing, throttling, captcha and token rules.
   The callback refuses any state that does not match it.
 - After sign-in the visitor is sent only to site-relative paths (`safePath`), so
   the redirect target cannot point to another site.
+- `cs_tz` holds the browser's time zone name, set by the lot list's filter bar
+  (`SameSite=Lax`, path `/`, a year). It is not secret and not `HttpOnly`: the server
+  reads it only through `knownZone`, which accepts a zone `Intl` knows (64 characters
+  at most), and uses it only to say when "today" is; the API checks it again.
 
 ## Forms and server actions
 
@@ -27,6 +31,12 @@ hashing, throttling, captcha and token rules.
   `SameSite=Lax`. Actions parse their input with the same Zod schemas as the
   forms before calling the API, which validates again; they return only messages
   and field errors, never tokens or user records.
+- The lot list's actions need a session and trust nothing they are sent:
+  `lotCountsAction` counts only filters named in `COUNTED`, and both it and
+  `rememberLotFiltersAction` read the query through `readQuery`, which keeps only known
+  parameters and values. The filters are kept in the API (at most 2000 characters), and
+  a kept query passes through `readQuery` again before the page redirects to it, always
+  to `/active-lots`. The browser never calls the API.
 - `/auth/session` returns only the signed-in user's first name and email, with
   `Cache-Control: private, no-store`, for the banner.
 - The email typed in an auth form is kept in sessionStorage for the tab, never

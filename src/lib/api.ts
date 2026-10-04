@@ -19,7 +19,7 @@ export class ApiError extends Error {
 }
 
 type Options = {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   body?: unknown;
   /** Bearer session token of the signed-in user. */
   token?: string;
