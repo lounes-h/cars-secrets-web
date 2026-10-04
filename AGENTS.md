@@ -81,9 +81,10 @@ See `docs/architecture.md` for details.
   layout on every page and shows the site name as plain text. Its navigation
   (`src/components/AccountNav.tsx`) is a client component that asks
   `/auth/session` after each navigation and renders both the main menu and the
-  account side: Active lots, VIN Lookup, Best Buys, then How It Works and Pricing
+  account side: Active lots, VIN Lookup, then How It Works and Pricing
   with "Sign in" and the "7 days free trial" button for visitors, or Saved and
-  Alerts with the dealer's avatar and "Sign out" once signed in. The menu is
+  Alerts with the dealer's avatar and "Sign out" once signed in. Best Buys is
+  left out of the menu for now, though its page exists. The menu is
   hidden below `lg`. Never read the session in the root layout: it would make
   every page dynamic.
 - Pages are Server Components and stay static. Add `"use client"` only where
@@ -223,7 +224,8 @@ A code change is not considered complete until the relevant unit tests have been
 The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
 `/reset-password`, `/verify-email`, `/account`), `/active-lots` (the lot listing)
 and the empty placeholders the banner menu links to: `/vin-lookup`,
-`/best-buys`, `/how-it-works`, `/pricing`, `/saved` and `/alerts` — blank white
+`/how-it-works`, `/pricing`, `/saved` and `/alerts`, plus `/best-buys`, which the menu
+leaves out for now — blank white
 pages with metadata only, so they have no `h1` until there is something to put
 on them.
 Styling stays basic until a design system exists. `/` is the home page: the
