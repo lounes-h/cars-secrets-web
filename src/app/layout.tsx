@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import { Work_Sans } from "next/font/google";
 import { SiteBanner } from "@/components/SiteBanner";
 import { getRoute } from "@/lib/routes";
 import { site } from "@/lib/site";
 import "./globals.css";
+
+// Self-hosted by next/font at build time; globals.css puts it first in --font-sans.
+const workSans = Work_Sans({ subsets: ["latin"], variable: "--font-work-sans" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -15,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang={site.language}>
+    <html lang={site.language} className={workSans.variable}>
       <body className="flex min-h-dvh flex-col antialiased">
         <SiteBanner />
         {children}

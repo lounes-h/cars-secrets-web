@@ -89,8 +89,9 @@ There is no brand name, design system, logo, favicon, manifest or share image
 yet, and no structured data. Page titles stand alone, and the banner links home
 with the word "Home". The interface uses
 black, grey and white only, through the tokens in `src/app/globals.css`
-(`--ink`, `--muted`, `--line`, `--paper`, `--surface`), the system font stack,
-and no dark mode. Buttons, links, checkboxes and focus rings are all `--ink`;
+(`--ink`, `--muted`, `--line`, `--paper`, `--surface`), Work Sans (loaded with
+`next/font/google` in the root layout, the system font stack behind it), and
+no dark mode. Buttons, links, checkboxes and focus rings are all `--ink`;
 errors read as bold text rather than a colour. The lot page's deal-breaker
 badges and sale countdown are the one exception: green, amber and red
 (`--good`, `--warn`, `--bad`), always with an icon and words as well. Add branding once a name and a

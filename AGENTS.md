@@ -9,8 +9,9 @@ read `docs/project-specification.md`
 - Next.js 16 (App Router) with React 19 and TypeScript, server-rendered and
   statically prerendered.
 - Tailwind CSS 4. Design tokens are CSS variables in `src/app/globals.css`.
-- No design system, logo or font choice yet: black, grey and white only, on the
-  system font stack.
+- No design system or logo yet: black, grey and white only, in Work Sans
+  (`next/font/google`, self-hosted at build time, set on `<html>` in the root
+  layout and put first in `--font-sans` in `src/app/globals.css`).
 - Yarn 4 through Corepack (`packageManager` in `package.json`), with the
   `node-modules` linker.
 - Vitest with Testing Library for unit tests, V8 coverage with a 95 % minimum.
