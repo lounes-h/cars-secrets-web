@@ -122,8 +122,8 @@ function AccountMenu({ user }: { user: NonNullable<User> }) {
         <div className="flex items-center gap-3 px-5 py-4">
           <Avatar user={user} />
           <div className="min-w-0">
-            {name && <p className="m-0 truncate text-[1.0625rem]">{name}</p>}
-            <p className="m-0 truncate text-sm text-muted" title={user.email}>
+            {name && <p className="m-0 truncate text-sm">{name}</p>}
+            <p className="m-0 truncate text-xs text-muted" title={user.email}>
               {user.email}
             </p>
           </div>
