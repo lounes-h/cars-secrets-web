@@ -17,9 +17,8 @@ export type SiteRoute = {
 export const routes: readonly SiteRoute[] = [
   {
     path: "/",
-    title: "Everything You Need to Know Before Buying a Car at Auction",
-    description:
-      "See what a Copart, IAA or Manheim lot is worth, what it will cost to own and what to bid, before the auction closes.",
+    title: "Find the Right Vehicle. Make a Better Bid.",
+    description: "Search vehicle auctions in one place, compare lots, track searches, and understand fees before you bid.",
     changeFrequency: "daily",
     priority: 1,
     llms: true,

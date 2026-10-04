@@ -83,12 +83,15 @@ initials, name and email, then Settings, Account and Log out). The navigation is
 a client component that asks `/auth/session` (a route handler returning only the
 first and last name and the email) after
 every navigation, so the pages themselves stay static and signing in or out,
-which both redirect, updates it.
+which both redirect, updates it. A full-width footer closes every page: the
+logo, linking home, then Active lots, How It Works and Pricing, the only pages
+it links until About, Contact, Terms and Privacy exist.
 
 ## Colours and assets
 
-The brand, CarBidInsight, appears only as the banner's logo (`public/logo.png`,
-whose navy and green are its own), which links home. There is no design system,
+The brand, CarBidInsight, appears as the logo (`public/logo.png`, whose navy
+and green are its own) in the banner and the footer, both linking home, and in
+the home page's copy. There is no design system,
 favicon, manifest or share image yet, and no structured data. Page titles stand
 alone. The interface uses
 black, grey and white only, through the tokens in `src/app/globals.css`

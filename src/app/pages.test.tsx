@@ -39,7 +39,7 @@ afterEach(() => {
 });
 
 describe("root layout", () => {
-  it("wraps every page in the site's language and font with the banner above it", async () => {
+  it("wraps every page in the site's language and font between the banner and the footer", async () => {
     const { default: RootLayout, metadata } = await import("@/app/layout");
     const html = RootLayout({ children: <p>page</p> }) as ReactElement<{
       lang: string;
@@ -48,7 +48,7 @@ describe("root layout", () => {
     }>;
     expect(html.props.lang).toBe(site.language);
     expect(html.props.className).toBe("work-sans-variable");
-    expect(html.props.children.props.children).toHaveLength(2);
+    expect(html.props.children.props.children).toHaveLength(3);
     expect(metadata.description).toBe(site.description);
   });
 });

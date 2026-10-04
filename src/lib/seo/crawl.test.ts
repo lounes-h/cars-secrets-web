@@ -47,7 +47,7 @@ describe("llms.txt", () => {
 
   it("lists the home page as the site's key page", () => {
     expect(buildLlmsTxt()).toContain(
-      "- [Everything You Need to Know Before Buying a Car at Auction](https://cars-secrets.test/)",
+      "- [Find the Right Vehicle. Make a Better Bid.](https://cars-secrets.test/)",
     );
   });
 });

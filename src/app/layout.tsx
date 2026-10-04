@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Work_Sans } from "next/font/google";
 import { SiteBanner } from "@/components/SiteBanner";
+import { SiteFooter } from "@/components/SiteFooter";
 import { getRoute } from "@/lib/routes";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="flex min-h-dvh flex-col antialiased">
         <SiteBanner />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

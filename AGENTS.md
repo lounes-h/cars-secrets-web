@@ -70,7 +70,8 @@ See `docs/architecture.md` for details.
   full-width form is hard to fill in.
 - There is no design system, favicon or share image yet, and no dark mode.
   The one logo is the CarBidInsight wordmark in the banner (`public/logo.png`,
-  384×64, shown at 192×32 and served as is, unoptimized); its navy and green
+  384×64, shown at 192×32 and served as is, unoptimized; the footer shows it at
+  144×24); its navy and green
   are the logo's own, not tokens. The interface uses black, grey and white
   only: `--ink`, `--muted`, `--line`, `--paper` and `--surface` in `src/app/globals.css`. `--ink` carries
   buttons, links, checkboxes and focus rings; errors read as bold text rather
@@ -99,6 +100,10 @@ See `docs/architecture.md` for details.
   left out of the menu for now, though its page exists. The menu is
   hidden below `lg`. Never read the session in the root layout: it would make
   every page dynamic.
+- The footer (`src/components/SiteFooter.tsx`) is rendered by the root layout
+  under every page: the logo linking home, then Active lots, How It Works and
+  Pricing. About, Contact, Terms and Privacy join it once those pages exist;
+  never link a page that does not.
 - Pages are Server Components and stay static. Add `"use client"` only where
   interaction needs it. Pages that read the session (`/register`, `/login`,
   `/account`) or a token from the URL are dynamic by necessity.
@@ -154,7 +159,8 @@ See `docs/architecture.md` for details.
   from `SAMPLE` in `src/lib/premium-sample.ts`, are the same on every lot, and each section
   says so (`SAMPLE_NOTE`, or the calculator's cost/profit note). The likely final bid
   comes from the API's `predicted_final_price`; it is not a sample. Remaining samples go,
-  section by section, as the real analysis arrives.
+  section by section, as the real analysis arrives. The home page's fee example
+  ($7,800 bid, $1,124 fees) is the other: an illustration labelled "Example", not a quote.
 
 ## Security rules
 
@@ -246,12 +252,19 @@ and the empty placeholders the banner menu links to: `/vin-lookup`,
 leaves out for now — blank white
 pages with metadata only, so they have no `h1` until there is something to put
 on them.
-Styling stays basic until a design system exists. `/` is the home page: the
-centred title "Everything You Need to Know Before Buying a Car at Auction" and
-nothing else yet. Add no other pages until the user asks.
+Styling stays basic until a design system exists. `/` is the home page, the
+user's own copy: a hero ("Find the Right Vehicle. Make a Better Bid."), one
+place for the auction search, the four tools (saved searches, alerts, lot
+comparison, fee calculator), a comparison spotlight, the fee example, and a
+closing call to action. Every button goes to `/active-lots` ("Try Fee
+Calculator" too, for the lot page's calculator, until a fee calculator exists);
+"See how it works" scrolls down the page. Its copy promises saved searches,
+alerts, comparison and a fee calculator, which are not built yet. There are no
+screenshots: grey sketches drawn in the page (`SearchSketch`, `CompareSketch`)
+stand in for them, with no figures. Add no other pages until the user asks.
 
-**The brand is CarBidInsight, and so far only the banner's logo carries it.**
-The logo links home, its alt text the name. `src/lib/site.ts` still holds only
+**The brand is CarBidInsight: the banner's and footer's logo carry it, and so
+does the home page's copy.** The logo links home, its alt text the name. `src/lib/site.ts` still holds only
 the URL, language, locale and a description; page titles stand alone (no
 "| Name" suffix) and `llms.txt` is headed by the site host (`siteHost`), until
 the user asks for the name there. The repository and the API keep their
@@ -259,7 +272,7 @@ the user asks for the name there. The repository and the API keep their
 run against. Invent no slogan.
 
 In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
-(grayscale tokens and the full-width top banner); the SEO builders (metadata,
+(grayscale tokens, the full-width top banner and the footer); the SEO builders (metadata,
 sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; security
 headers; the deal calculation in `src/lib/deal.ts`; and the banner's logo.
 There is no favicon, touch icon, web app manifest, share image or structured data.
