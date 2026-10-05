@@ -168,13 +168,14 @@ sign in then focuses the password. Entering a confirmation code or signing out f
   for it in one field (`autocomplete="one-time-code"`, numeric keyboard), keeps only the
   digits of whatever is typed or pasted (`codeDigits`) and submits on the sixth. A right
   code signs the dealer in: `verifyEmailAction` sets the session and redirects to
-  `/account`. A wrong one clears the field and says so on it. "Send a new code" appears
+  `/active-lots`. A wrong one clears the field and says so on it. "Send a new code" appears
   after 60 seconds, the API's own minimum between codes. The step follows registration,
   a sign-in on an unconfirmed address, and `/verify-email`, which asks for the address
   first (prefilled from the tab's remembered one).
 - **Sign in**: on success the API returns a token, which becomes the `cs_session`
   cookie (30 days with "remember me", browser session otherwise), and the visitor lands
-  on `/account`. When the API answers `captcha_required`, the form shows the Turnstile
+  on `/active-lots`. The choice itself is kept in the `cs_remember` cookie, which
+  sign-out leaves, so the box comes back ticked after a sign-in that had it. When the API answers `captcha_required`, the form shows the Turnstile
   widget. A wrong password clears the password (not the email) and offers a reset link.
   A right password on an unconfirmed address makes the API mail a code, and the form
   turns into the code step, keeping "remember me" for the session it opens.
@@ -184,8 +185,8 @@ sign in then focuses the password. Entering a confirmation code or signing out f
 - **Google / Apple**: the buttons call `socialLoginAction`, which gets the provider URL
   and a `state` from the API, stores the state in the `cs_oauth_state` cookie and
   redirects. The provider returns to `/auth/callback/{provider}`; the route handler
-  compares the state with the cookie, asks the API to finish the handshake and sets the
-  session cookie.
+  compares the state with the cookie, asks the API to finish the handshake, sets the
+  session cookie and lands on `/active-lots`.
 
 The register page builds the country list on the server from `dial-codes.ts` (generated
 from the phonenumbers metadata the API uses), names from `Intl.DisplayNames` and flags

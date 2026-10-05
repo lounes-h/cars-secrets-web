@@ -269,7 +269,9 @@ In place for accounts: registration (names, email, optional phone with every
 country's flag and calling code, password with show/hide, Turnstile captcha),
 email confirmation by a six-digit emailed code that also signs the dealer in (one numeric
 field that takes pastes and one-time-code autofill, a new code after 60 seconds), sign-in with remember me (captcha after
-repeated failures), sign-out, forgot and reset password, and Google and Apple
+repeated failures; the box comes back as the last sign-in left it, through the
+`cs_remember` cookie that sign-out keeps), landing on `/active-lots` like every
+other sign-in, sign-out, forgot and reset password, and Google and Apple
 buttons. The API answers "not configured" for Google and Apple until their
 credentials are set. There is no terms checkbox: the button reads "Agree and
 register" and a sentence above it says that clicking it is the agreement, so the

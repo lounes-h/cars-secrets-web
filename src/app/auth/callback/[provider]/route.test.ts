@@ -30,13 +30,13 @@ describe("OAuth callback", () => {
   });
 
   it("finishes the handshake, sets the session cookie and redirects", async () => {
-    apiMock.mockResolvedValue({ token: "tok", redirect_to: "/account" });
+    apiMock.mockResolvedValue({ token: "tok", redirect_to: "/active-lots" });
     const response = await GET(get("code=c&state=real", "real"), params);
     expect(apiMock).toHaveBeenCalledWith(
       "/api/auth/oauth/google/callback",
       expect.objectContaining({ body: { code: "c", state: "real", user: null } }),
     );
-    expect(response.headers.get("location")).toBe("https://web.test/account");
+    expect(response.headers.get("location")).toBe("https://web.test/active-lots");
     const cookies = response.headers.getSetCookie().join("\n");
     expect(cookies).toMatch(/cs_session=tok;.*HttpOnly/);
     expect(cookies).toMatch(/cs_oauth_state=;/);
@@ -58,13 +58,13 @@ describe("OAuth callback", () => {
     });
     const response = await POST(request, { params: Promise.resolve({ provider: "apple" }) });
     expect(apiMock.mock.calls[0][1].body.user).toBe('{"name":{"firstName":"D"}}');
-    expect(response.headers.get("location")).toBe("https://web.test/account");
+    expect(response.headers.get("location")).toBe("https://web.test/active-lots");
   });
 
   it("ignores a redirect target that leaves the site", async () => {
     apiMock.mockResolvedValue({ token: "tok", redirect_to: "https://evil.test" });
     const response = await GET(get("code=c&state=real", "real"), params);
-    expect(response.headers.get("location")).toBe("https://web.test/account");
+    expect(response.headers.get("location")).toBe("https://web.test/active-lots");
   });
 });
 
