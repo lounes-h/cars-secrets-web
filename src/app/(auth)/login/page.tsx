@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { messageFor } from "@/components/auth/messages";
 import { SocialButtons } from "@/components/auth/SocialButtons";
-import { currentUser } from "@/lib/session";
+import { currentUser, rememberedChoice } from "@/lib/session";
 import { metadataForRoute } from "@/lib/seo/metadata";
 
 export const metadata = metadataForRoute("/login");
@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="card form-stack">
         <SocialButtons intent="Sign in" />
         <p className="divider">or sign in with your email</p>
-        <LoginForm />
+        <LoginForm remember={await rememberedChoice()} />
       </div>
       </div>
     </main>

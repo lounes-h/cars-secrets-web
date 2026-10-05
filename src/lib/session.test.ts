@@ -4,6 +4,7 @@ import {
   clearSession,
   currentUser,
   oauthStateCookieOptions,
+  rememberedChoice,
   safePath,
   sessionCookieOptions,
   setSession,
@@ -38,13 +39,41 @@ describe("the session cookie", () => {
     });
     vi.stubEnv("NODE_ENV", "production");
     await setSession("tok", true);
-    expect(cookieStore.set).toHaveBeenLastCalledWith("cs_session", "tok", expect.objectContaining({ secure: true }));
+    expect(cookieStore.set).toHaveBeenCalledWith("cs_session", "tok", expect.objectContaining({ secure: true }));
     vi.unstubAllEnvs();
   });
 
   it("is deleted on sign-out", async () => {
     await clearSession();
     expect(cookieStore.delete).toHaveBeenCalledWith("cs_session");
+  });
+});
+
+describe("the remember me choice", () => {
+  it("is kept for a year by a sign-in with remember me, and survives sign-out", async () => {
+    await setSession("tok", true);
+    expect(cookieStore.set).toHaveBeenCalledWith("cs_remember", "1", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      path: "/",
+      maxAge: 365 * 24 * 3600,
+    });
+    await clearSession();
+    expect(cookieStore.delete).not.toHaveBeenCalledWith("cs_remember");
+  });
+
+  it("is forgotten by a sign-in without it", async () => {
+    await setSession("tok", false);
+    expect(cookieStore.set).not.toHaveBeenCalledWith("cs_remember", expect.anything(), expect.anything());
+    expect(cookieStore.delete).toHaveBeenCalledWith("cs_remember");
+  });
+
+  it("reads as ticked only when the cookie says so", async () => {
+    cookieStore.get.mockReturnValueOnce({ value: "1" });
+    expect(await rememberedChoice()).toBe(true);
+    cookieStore.get.mockReturnValueOnce(undefined);
+    expect(await rememberedChoice()).toBe(false);
   });
 });
 

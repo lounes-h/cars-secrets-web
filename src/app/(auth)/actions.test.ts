@@ -87,10 +87,10 @@ describe("registerAction", () => {
 });
 
 describe("loginAction", () => {
-  it("stores the session and redirects to the account page", async () => {
+  it("stores the session and redirects to the active lots", async () => {
     apiMock.mockResolvedValue({ token: "tok" });
     await expect(loginAction({ email: "d@example.com", password: "pw", remember: true })).rejects.toThrow(
-      "REDIRECT /account",
+      "REDIRECT /active-lots",
     );
     expect(setSession).toHaveBeenCalledWith("tok", true);
   });
@@ -106,9 +106,9 @@ describe("loginAction", () => {
 describe("verifyEmailAction", () => {
   const input = { email: " d@example.com ", code: "042917", remember: true };
 
-  it("confirms with the code, stores the session and redirects to the account page", async () => {
+  it("confirms with the code, stores the session and redirects to the active lots", async () => {
     apiMock.mockResolvedValue({ token: "tok", expires_at: "2026-10-22T00:00:00Z" });
-    await expect(verifyEmailAction(input)).rejects.toThrow("REDIRECT /account");
+    await expect(verifyEmailAction(input)).rejects.toThrow("REDIRECT /active-lots");
     expect(apiMock).toHaveBeenCalledWith("/api/auth/verify-email", {
       body: { email: "d@example.com", code: "042917", remember: true },
       clientIp: "9.9.9.9",
@@ -159,6 +159,7 @@ describe("socialLoginAction", () => {
       "REDIRECT https://accounts.google.com/o/oauth2/v2/auth?x=1",
     );
     expect(cookieSet).toHaveBeenCalledWith("cs_oauth_state", "st", expect.objectContaining({ httpOnly: true }));
+    expect(apiMock).toHaveBeenCalledWith("/api/auth/oauth/google/start", { body: { redirect_to: "/active-lots" } });
   });
 
   it("sends unconfigured providers back to the login page with a code", async () => {

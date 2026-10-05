@@ -7,6 +7,7 @@ import { buildSitemap } from "@/lib/seo/sitemap";
 import { site } from "@/lib/site";
 
 const currentUser = vi.fn();
+const rememberedChoice = vi.fn(async () => false);
 const acceptLanguage = vi.fn(() => "fr-FR,fr;q=0.9");
 
 vi.mock("@/app/(auth)/actions", () => ({
@@ -19,7 +20,7 @@ vi.mock("@/app/(auth)/actions", () => ({
   forgotPasswordAction: vi.fn(),
   resendVerificationAction: vi.fn(),
 }));
-vi.mock("@/lib/session", () => ({ currentUser }));
+vi.mock("@/lib/session", () => ({ currentUser, rememberedChoice }));
 // next/font runs at build time, so the test stands in for what it returns.
 vi.mock("next/font/google", () => ({ Work_Sans: () => ({ variable: "work-sans-variable" }) }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers({ "accept-language": acceptLanguage() }) }));
@@ -95,6 +96,13 @@ describe("sign-in page", () => {
     await show();
     expect(screen.getByRole("heading", { level: 1, name: "Sign in" })).toBeTruthy();
     expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByLabelText<HTMLInputElement>("Remember me").checked).toBe(false);
+  });
+
+  it("ticks remember me when the last sign-in in this browser had it ticked", async () => {
+    rememberedChoice.mockResolvedValueOnce(true);
+    await show();
+    expect(screen.getByLabelText<HTMLInputElement>("Remember me").checked).toBe(true);
   });
 });
 

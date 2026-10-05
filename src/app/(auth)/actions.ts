@@ -89,7 +89,7 @@ export async function loginAction(input: unknown): Promise<FormState> {
     return failure(error);
   }
   await setSession(token, data.remember);
-  redirect("/account");
+  redirect("/active-lots");
 }
 
 export async function logoutAction(): Promise<void> {
@@ -162,7 +162,7 @@ export async function verifyEmailAction(input: unknown): Promise<FormState> {
     return failure(error);
   }
   await setSession(token, data.remember);
-  redirect("/account");
+  redirect("/active-lots");
 }
 
 /** "Continue with Google / Apple": asks the API for the provider's URL and goes there. */
@@ -171,7 +171,7 @@ export async function socialLoginAction(formData: FormData): Promise<void> {
   if (provider !== "google" && provider !== "apple") redirect("/login?error=invalid_state");
   let start: { authorize_url: string; state: string };
   try {
-    start = await api(`/api/auth/oauth/${provider}/start`, { body: { redirect_to: "/account" } });
+    start = await api(`/api/auth/oauth/${provider}/start`, { body: { redirect_to: "/active-lots" } });
   } catch (error) {
     if (error instanceof ApiError) redirect(`/login?error=${encodeURIComponent(error.code)}`);
     throw error;

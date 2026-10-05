@@ -12,7 +12,8 @@ import { Turnstile } from "@/components/auth/Turnstile";
 import { VerifyEmailForm } from "@/components/auth/VerifyEmailForm";
 import { EMAIL_MAX, loginSchema, type LoginInput } from "@/lib/auth-schemas";
 
-export function LoginForm() {
+/** `remember` ticks the box when the last sign-in in this browser had it ticked. */
+export function LoginForm({ remember = false }: { remember?: boolean }) {
   const [unconfirmed, setUnconfirmed] = useState<{ email: string; remember: boolean } | null>(null);
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [captchaReset, setCaptchaReset] = useState(0);
@@ -20,14 +21,14 @@ export function LoginForm() {
     resolver: zodResolver(loginSchema),
     // A field is checked once it has been visited, then on every submit.
     mode: "onTouched",
-    defaultValues: { email: "", password: "", remember: false, captcha_token: "" },
+    defaultValues: { email: "", password: "", remember, captcha_token: "" },
   });
   const { register, handleSubmit, setValue, formState } = form;
   const { errors, isSubmitting } = formState;
   useRememberedEmail(form, "email", "password");
 
   const onSubmit = handleSubmit(async (values) => {
-    // On success the action redirects to /account and does not return.
+    // On success the action redirects to /active-lots and does not return.
     const state = await loginAction(values);
     if (!state) return;
     if (state.code === "email_unverified") {

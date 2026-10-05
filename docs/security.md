@@ -13,6 +13,10 @@ hashing, throttling, captcha and token rules.
   `Secure` in production, path `/`. With "remember me" it lasts 30 days;
   otherwise it ends with the browser session. The API also expires it after
   12 hours of inactivity. Only `src/lib/session.ts` sets or clears it.
+- `cs_remember` holds only `1`, set for a year by a sign-in with "remember me"
+  and deleted by one without it; sign-out leaves it, so the next sign-in form
+  comes back ticked. `HttpOnly`, same flags as `cs_session`, read only by the
+  login page through `rememberedChoice()`. It never signs anyone in.
 - `cs_oauth_state` holds the social sign-in state for 10 minutes, on path
   `/auth/callback` only. In production it is `SameSite=None; Secure`, because
   Apple returns with a cross-site POST that a Lax cookie would not accompany.

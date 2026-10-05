@@ -62,7 +62,7 @@ async function finish(request: NextRequest, provider: string, callback: Callback
     if (error instanceof ApiError) return fail(error.code);
     throw error;
   }
-  const response = NextResponse.redirect(new URL(safePath(result.redirect_to) ?? "/account", request.url), 303);
+  const response = NextResponse.redirect(new URL(safePath(result.redirect_to) ?? "/active-lots", request.url), 303);
   response.cookies.set(SESSION_COOKIE, result.token, sessionCookieOptions(true, isSecure()));
   response.cookies.delete(OAUTH_STATE_COOKIE);
   return response;

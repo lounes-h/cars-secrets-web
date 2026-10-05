@@ -6,7 +6,10 @@ import { knownZone, ZONE_COOKIE } from "@/lib/lot-filters";
 
 export const SESSION_COOKIE = "cs_session";
 export const OAUTH_STATE_COOKIE = "cs_oauth_state";
+/** The last sign-in's "Remember me" choice, which outlives sign-out to tick the box next time. */
+export const REMEMBER_COOKIE = "cs_remember";
 const REMEMBER_SECONDS = 30 * 24 * 3600;
+const YEAR_SECONDS = 365 * 24 * 3600;
 
 export type User = {
   id: string;
@@ -44,7 +47,15 @@ export function oauthStateCookieOptions(secure: boolean) {
 }
 
 export async function setSession(token: string, remember: boolean): Promise<void> {
-  (await cookies()).set(SESSION_COOKIE, token, sessionCookieOptions(remember, isSecure()));
+  const store = await cookies();
+  store.set(SESSION_COOKIE, token, sessionCookieOptions(remember, isSecure()));
+  if (remember) store.set(REMEMBER_COOKIE, "1", { ...sessionCookieOptions(false, isSecure()), maxAge: YEAR_SECONDS });
+  else store.delete(REMEMBER_COOKIE);
+}
+
+/** Whether the last successful sign-in in this browser had "Remember me" ticked. */
+export async function rememberedChoice(): Promise<boolean> {
+  return (await cookies()).get(REMEMBER_COOKIE)?.value === "1";
 }
 
 export async function clearSession(): Promise<void> {

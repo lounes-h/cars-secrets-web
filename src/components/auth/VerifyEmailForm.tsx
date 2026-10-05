@@ -25,7 +25,7 @@ type Props = {
 /**
  * The six-digit code mailed to confirm an address. One field rather than six boxes: it takes a
  * paste in any shape, the phone's one-time-code autofill and a screen reader alike. A right code
- * signs the dealer in (the action redirects to /account).
+ * signs the dealer in (the action redirects to /active-lots).
  */
 export function VerifyEmailForm({ email, remember = false, onChangeEmail }: Props) {
   // A deadline rather than a count of ticks: browsers slow timers down in a background tab,
