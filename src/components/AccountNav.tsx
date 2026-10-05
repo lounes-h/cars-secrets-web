@@ -24,6 +24,9 @@ const MEMBER_MENU = [
   { href: "/alerts", label: "Alerts" },
 ];
 
+// Sign-up and sign-in show the logo alone, so nothing pulls the dealer off the form.
+const LOGO_ONLY = new Set(["/register", "/login"]);
+
 function Menu({ items }: { items: typeof GUEST_MENU }) {
   return (
     <nav aria-label="Main" className="ml-6 hidden items-center gap-1 lg:flex">
@@ -40,7 +43,8 @@ function Menu({ items }: { items: typeof GUEST_MENU }) {
  * The banner's menu and its right side: the pages a visitor or a signed-in
  * dealer can reach, then "Sign in / free trial" or the dealer's initials,
  * which open the account menu. It asks /auth/session after every navigation,
- * so signing in or out (both redirect) updates it.
+ * so signing in or out (both redirect) updates it. On /register and /login it
+ * renders nothing, leaving the logo alone.
  */
 export function AccountNav() {
   const pathname = usePathname();
@@ -57,6 +61,7 @@ export function AccountNav() {
     };
   }, [pathname]);
 
+  if (LOGO_ONLY.has(pathname)) return null;
   if (user === undefined) {
     // Same height as the loaded state, so the banner does not jump.
     return <nav aria-label="Account" aria-busy="true" className="ml-auto h-11" />;

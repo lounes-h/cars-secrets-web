@@ -97,8 +97,9 @@ See `docs/architecture.md` for details.
   name and the email, then Settings, Account and Log out. A language selector
   ("English") belongs there too but is not built yet. Best Buys is
   left out of the menu for now, though its page exists. The menu is
-  hidden below `lg`. Never read the session in the root layout: it would make
-  every page dynamic.
+  hidden below `lg`. On `/register` and `/login` the navigation renders
+  nothing, so the banner is the logo alone. Never read the session in the root
+  layout: it would make every page dynamic.
 - Pages are Server Components and stay static. Add `"use client"` only where
   interaction needs it. Pages that read the session (`/register`, `/login`,
   `/account`) or a token from the URL are dynamic by necessity.

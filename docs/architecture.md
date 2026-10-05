@@ -83,7 +83,8 @@ initials, name and email, then Settings, Account and Log out). The navigation is
 a client component that asks `/auth/session` (a route handler returning only the
 first and last name and the email) after
 every navigation, so the pages themselves stay static and signing in or out,
-which both redirect, updates it.
+which both redirect, updates it. On `/register` and `/login` it renders nothing,
+so the banner is the logo alone.
 
 ## Colours and assets
 

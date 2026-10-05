@@ -2,7 +2,8 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+const navigation = vi.hoisted(() => ({ pathname: "/" }));
+vi.mock("next/navigation", () => ({ usePathname: () => navigation.pathname }));
 vi.mock("@/app/(auth)/actions", () => ({ logoutAction: vi.fn() }));
 
 const { AccountNav, initials } = await import("@/components/AccountNav");
@@ -11,6 +12,7 @@ const LOUNES = { first_name: "Lounes", last_name: "Hammache", email: "l@example.
 
 afterEach(() => {
   cleanup();
+  navigation.pathname = "/";
   vi.unstubAllGlobals();
 });
 
@@ -19,6 +21,14 @@ function session(user: { first_name: string; last_name: string; email: string } 
 }
 
 describe("AccountNav", () => {
+  it.each(["/register", "/login"])("leaves the logo alone on %s", async (pathname) => {
+    navigation.pathname = pathname;
+    session(LOUNES);
+    const { container } = render(<AccountNav />);
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
+    expect(container.innerHTML).toBe("");
+  });
+
   it("offers sign in and the free trial to visitors", async () => {
     session(null);
     render(<AccountNav />);
