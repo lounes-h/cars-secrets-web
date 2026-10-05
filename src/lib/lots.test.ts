@@ -6,8 +6,11 @@ vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }
 const { ApiError } = await import("@/lib/api");
 
 const {
+  ACTIVITY_MIN,
+  activityWindow,
   auctionName,
   countLots,
+  getLotActivity,
   getLot,
   getLotImages,
   getLotPreferences,
@@ -75,6 +78,36 @@ describe("countLots", () => {
     });
     await countLots({}, ["sale"], "token-abc");
     expect(api).toHaveBeenLastCalledWith("/api/lots/counts?facets=sale", { token: "token-abc", clientIp: null });
+  });
+});
+
+describe("getLotActivity", () => {
+  it("asks for the counts in the dealer's zone, or the API's own without one", async () => {
+    await getLotActivity("token-abc", "1.2.3.4", "America/New_York");
+    expect(api).toHaveBeenCalledWith("/api/lots/activity?tz=America%2FNew_York", { token: "token-abc", clientIp: "1.2.3.4" });
+    await getLotActivity("token-abc");
+    expect(api).toHaveBeenLastCalledWith("/api/lots/activity", { token: "token-abc", clientIp: null });
+  });
+});
+
+describe("activityWindow", () => {
+  it("says today once today reaches the minimum", () => {
+    expect(activityWindow({ today: ACTIVITY_MIN, last_3_days: 5000, last_7_days: 9000 })).toEqual({
+      count: ACTIVITY_MIN,
+      words: "today",
+    });
+  });
+
+  it("looks back 3 days on a quiet day", () => {
+    expect(activityWindow({ today: ACTIVITY_MIN - 1, last_3_days: 11821, last_7_days: 57043 })).toEqual({
+      count: 11821,
+      words: "in the last 3 days",
+    });
+  });
+
+  it("falls back to the last 7 days, however few", () => {
+    expect(activityWindow({ today: 3, last_3_days: 40, last_7_days: 120 })).toEqual({ count: 120, words: "in the last 7 days" });
+    expect(activityWindow({ today: 0, last_3_days: 0, last_7_days: 0 })).toEqual({ count: 0, words: "in the last 7 days" });
   });
 });
 

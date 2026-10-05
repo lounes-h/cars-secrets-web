@@ -4,7 +4,9 @@ import { LocalTime } from "@/components/LocalTime";
 import { LotFilters } from "@/components/LotFilters";
 import { listPath, type Query, queryString, readQuery, searched } from "@/lib/lot-filters";
 import {
+  activityWindow,
   amount,
+  getLotActivity,
   getLotPreferences,
   interpretSearch,
   listLots,
@@ -17,6 +19,7 @@ import {
   place,
   saleDate,
   vehicle,
+  type LotActivity,
   type LotPage,
 } from "@/lib/lots";
 import { metadataForRoute } from "@/lib/seo/metadata";
@@ -35,21 +38,44 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
   const found = user && token ? await dealerLots(params, token) : null;
 
   return (
-    <main className="flex-1 bg-white px-4 py-10 sm:px-6 lg:px-10">
-      {/* No visible title or lede: the search comes first. The heading stays for screen readers. */}
-      <h1 className="sr-only">Active lots</h1>
-      {found ? (
-        <LotFilters query={found.query} total={found.total} usage={found.usage} remembered={found.remembered}>
-          <Lots {...found} />
-        </LotFilters>
-      ) : (
-        <p>
-          <Link href="/login" className="btn btn-primary">
-            Sign in to see the lots
-          </Link>
-        </p>
-      )}
-    </main>
+    <>
+      {found?.activity && <ActivitySummary {...found.activity} />}
+      <main className="flex-1 bg-white px-4 py-10 sm:px-6 lg:px-10">
+        {/* No visible title or lede: the search comes first. The heading stays for screen readers. */}
+        <h1 className="sr-only">Active lots</h1>
+        {found ? (
+          <LotFilters query={found.query} total={found.total} usage={found.usage} remembered={found.remembered}>
+            <Lots {...found} />
+          </LotFilters>
+        ) : (
+          <p>
+            <Link href="/login" className="btn btn-primary">
+              Sign in to see the lots
+            </Link>
+          </p>
+        )}
+      </main>
+    </>
+  );
+}
+
+/** A strip under the menu: "11,821 new lots in the last 3 days", "14,769 lots updated today". */
+function ActivitySummary({ added, updated }: LotActivity) {
+  const fresh = activityWindow(added);
+  const changed = activityWindow(updated);
+  const lots = (n: number) => (n === 1 ? "lot" : "lots");
+  return (
+    <section
+      aria-label="Lot activity"
+      className="flex flex-wrap gap-x-6 gap-y-1 border-b border-line bg-paper px-4 py-2.5 text-sm sm:px-6 lg:px-10"
+    >
+      <p className="m-0">
+        <strong>{count.format(fresh.count)}</strong> new {lots(fresh.count)} {fresh.words}
+      </p>
+      <p className="m-0">
+        <strong>{count.format(changed.count)}</strong> {lots(changed.count)} updated {changed.words}
+      </p>
+    </section>
   );
 }
 
@@ -72,8 +98,13 @@ async function dealerLots(params: SearchParams, token: string) {
   // sets an order. Kept filters that read as nothing would only lead back here.
   const saved = readQuery(new URLSearchParams(filters));
   if (Object.keys(params).length === 0 && Object.keys(saved).length) redirect(listPath(saved));
-  const list = await listLots(query, page, token, ip, await visitorZone());
-  return { query, page, usage, remembered: queryString(saved), ...list };
+  const zone = await visitorZone();
+  const [list, activity] = await Promise.all([
+    listLots(query, page, token, ip, zone),
+    // The summary is extra: the list stands without it.
+    getLotActivity(token, ip, zone).catch(() => null),
+  ]);
+  return { query, page, usage, remembered: queryString(saved), activity, ...list };
 }
 
 function Lots({ query, page, items, total }: { query: Query; page: number } & LotPage) {

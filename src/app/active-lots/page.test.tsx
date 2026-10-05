@@ -9,6 +9,7 @@ const currentUser = vi.fn();
 const listLots = vi.fn();
 const interpretSearch = vi.fn();
 const getLotPreferences = vi.fn();
+const getLotActivity = vi.fn();
 const filterProps = vi.fn();
 const redirect = vi.fn((url: string) => {
   throw new Error(`REDIRECT ${url}`);
@@ -20,7 +21,13 @@ vi.mock("@/lib/session", () => ({
   visitorIp: async () => null,
   visitorZone: async () => "America/New_York",
 }));
-vi.mock("@/lib/lots", async (original) => ({ ...(await original<object>()), listLots, interpretSearch, getLotPreferences }));
+vi.mock("@/lib/lots", async (original) => ({
+  ...(await original<object>()),
+  listLots,
+  interpretSearch,
+  getLotPreferences,
+  getLotActivity,
+}));
 vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url) }));
 vi.mock("@/components/LotFilters", () => ({
   LotFilters: ({ children, ...props }: { children: ReactNode }) => {
@@ -47,6 +54,10 @@ beforeEach(() => {
   currentUser.mockResolvedValue({ id: "u1", email: "dealer@example.com" });
   listLots.mockResolvedValue({ items: lots(PAGE_SIZE), total: 145 });
   getLotPreferences.mockResolvedValue({ filters: "", usage: {} });
+  getLotActivity.mockResolvedValue({
+    added: { today: 87, last_3_days: 11821, last_7_days: 57043 },
+    updated: { today: 14769, last_3_days: 62275, last_7_days: 61280 },
+  });
 });
 
 afterEach(() => {
@@ -68,7 +79,38 @@ describe("active lots page", () => {
     await show();
     expect(screen.getByRole("link", { name: "Sign in to see the lots" }).getAttribute("href")).toBe("/login");
     expect(listLots).not.toHaveBeenCalled();
+    expect(getLotActivity).not.toHaveBeenCalled();
     expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Lot activity" })).toBeNull();
+  });
+
+  it("sums up the lots added and updated lately in a strip above the page, in the dealer's zone", async () => {
+    const { container } = render(await AuctionsPage({ searchParams: Promise.resolve({}) }));
+    expect(getLotActivity).toHaveBeenCalledWith("token-abc", null, "America/New_York");
+    const strip = screen.getByRole("region", { name: "Lot activity" });
+    expect(container.firstElementChild).toBe(strip);
+    expect([...strip.querySelectorAll("p")].map((p) => p.textContent)).toEqual([
+      "11,821 new lots in the last 3 days",
+      "14,769 lots updated today",
+    ]);
+  });
+
+  it("says lot for a single one", async () => {
+    getLotActivity.mockResolvedValue({
+      added: { today: 0, last_3_days: 0, last_7_days: 1 },
+      updated: { today: 0, last_3_days: 1, last_7_days: 1 },
+    });
+    await show();
+    expect(screen.getByRole("region", { name: "Lot activity" }).textContent).toBe(
+      "1 new lot in the last 7 days1 lot updated in the last 7 days",
+    );
+  });
+
+  it("still lists the lots when the summary cannot be had", async () => {
+    getLotActivity.mockRejectedValue(new Error("API down"));
+    await show();
+    expect(screen.queryByRole("region", { name: "Lot activity" })).toBeNull();
+    expect(screen.getAllByRole("row")).toHaveLength(PAGE_SIZE + 1);
   });
 
   it("lists a page of lots for a signed-in dealer", async () => {

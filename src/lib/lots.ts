@@ -111,6 +111,31 @@ export async function countLots(
   return (await api<{ facets: Facets }>(`/api/lots/counts?${search}`, { token, clientIp })).facets;
 }
 
+/** Lots counted over the windows the API knows, each starting at midnight in the dealer's zone. */
+export type ActivityCounts = { today: number; last_3_days: number; last_7_days: number };
+
+/** How many lots were added lately, and how many seen before changed (a new lot is not also "updated"). */
+export type LotActivity = { added: ActivityCounts; updated: ActivityCounts };
+
+export function getLotActivity(token: string, clientIp: string | null = null, zone: string | null = null): Promise<LotActivity> {
+  const search = zone ? `?${new URLSearchParams({ tz: zone })}` : "";
+  return api<LotActivity>(`/api/lots/activity${search}`, { token, clientIp });
+}
+
+/** Fewer lots than this today reads as a quiet day, so the summary looks further back. */
+export const ACTIVITY_MIN = 1000;
+const ACTIVITY_WINDOWS = [
+  ["today", "today"],
+  ["last_3_days", "in the last 3 days"],
+  ["last_7_days", "in the last 7 days"],
+] as const;
+
+/** The shortest window with at least ACTIVITY_MIN lots, or else the last 7 days, and its words. */
+export function activityWindow(counts: ActivityCounts): { count: number; words: string } {
+  const [key, words] = ACTIVITY_WINDOWS.find(([key]) => counts[key] >= ACTIVITY_MIN) ?? ACTIVITY_WINDOWS[2];
+  return { count: counts[key], words };
+}
+
 /** What a search names: the one lot of a lot number or VIN, or a make, model and years. */
 export type Interpretation = {
   lot: { source: string; lot_number: string } | null;

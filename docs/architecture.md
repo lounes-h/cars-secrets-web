@@ -62,7 +62,13 @@ equal URLs. The page, for a signed-in dealer:
 2. With no parameters at all, redirects to the filters kept in the dealer's account
    (`/api/me/lot-preferences`). The filter bar always writes `sort`, so a bare URL only comes
    from elsewhere, such as the banner's link; kept filters that read as nothing do not redirect.
-3. Lists the page of lots (`/api/lots`) in the dealer's zone (the `cs_tz` cookie).
+3. Lists the page of lots (`/api/lots`) in the dealer's zone (the `cs_tz` cookie), and
+   alongside it asks how many lots were added and updated lately (`/api/lots/activity`, in
+   the same zone) for a strip under the banner: "11,821 new lots in the last 3 days",
+   "14,769 lots updated today". Each figure is today's once it reaches `ACTIVITY_MIN`
+   (1,000), otherwise the last 3 days', otherwise the last 7 days' (`activityWindow` in
+   `lib/lots.ts`). An updated lot is one seen before the window, so new lots are not counted
+   twice. The list stands without the strip when the API cannot give it.
 
 `LotFilters` turns every change into a new URL (`router.push`, no scroll), so Back undoes a
 filter. It asks for option counts (`/api/lots/counts`, through `lotCountsAction`) only for the

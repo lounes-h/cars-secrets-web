@@ -281,7 +281,8 @@ Policy themselves do not exist yet.
 In place for lots: `/active-lots` ("Active lots" in the menu and as its visually hidden `h1`; the
 path was `/auctions`, which redirects here permanently) lists active lots, the most recently listed
 first unless the dealer picks another order, 20 to a page (`?page=`), with search and filters
-(below), and `/active-lots/[source]/[lotNumber]` shows one lot —
+(below), under a light grey strip that says how many lots were added and updated today — or in
+the last 3 or 7 days when today has fewer than 1,000 (`activityWindow`) — and `/active-lots/[source]/[lotNumber]` shows one lot —
 every column the ingest keeps for it, every photo of it, and a way to the lot on the
 auction's site, since bidding never happens here. The page reads top to bottom as: a summary (title, lot number and VIN
 with copy buttons, the time left before the sale — "Future sale" when the auction has set no
