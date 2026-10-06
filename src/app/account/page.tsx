@@ -25,7 +25,7 @@ export default async function AccountPage() {
           </CardContent>
         </Card>
         <form action={logoutAction}>
-          <Button type="submit" variant="outline">
+          <Button type="submit" variant="outline" size="xl">
             Sign out
           </Button>
         </form>

@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 export function SocialButtons({ intent }: { intent: "Sign in" | "Register" }) {
   return (
     <form action={socialLoginAction} aria-label={`${intent} with Google or Apple`} className="flex flex-col gap-2">
-      <Button type="submit" name="provider" value="google" variant="outline" className="w-full">
+      <Button type="submit" name="provider" value="google" variant="outline" size="xl" className="w-full">
         <GoogleMark />
         {intent} with Google
       </Button>
-      <Button type="submit" name="provider" value="apple" variant="outline" className="w-full">
+      <Button type="submit" name="provider" value="apple" variant="outline" size="xl" className="w-full">
         <AppleMark />
         {intent} with Apple
       </Button>

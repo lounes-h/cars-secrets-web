@@ -110,7 +110,7 @@ export function LoginForm({ remember = false }: { remember?: boolean }) {
         {captchaRequired && (
           <Turnstile action="login" resetSignal={captchaReset} onToken={(token) => setValue("captcha_token", token ?? "")} />
         )}
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+        <Button type="submit" disabled={isSubmitting} size="xl" className="w-full">
           {isSubmitting ? "Signing in…" : "Sign in"}
         </Button>
         <FieldDescription className="text-center">

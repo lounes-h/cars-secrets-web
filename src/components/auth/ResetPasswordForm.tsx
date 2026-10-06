@@ -39,7 +39,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         <Alert role="status">
           <AlertDescription>Your password has changed, and every other session was signed out.</AlertDescription>
         </Alert>
-        <Link href="/login" className={buttonVariants({ className: "w-full" })}>
+        <Link href="/login" className={buttonVariants({ size: "xl", className: "w-full" })}>
           Sign in with your new password
         </Link>
       </FieldGroup>
@@ -71,7 +71,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           autoComplete="new-password"
           error={errors.password_confirm?.message}
         />
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+        <Button type="submit" disabled={isSubmitting} size="xl" className="w-full">
           {isSubmitting ? "Changing your password…" : "Change password"}
         </Button>
       </FieldGroup>

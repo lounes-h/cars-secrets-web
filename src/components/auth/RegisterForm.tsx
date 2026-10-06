@@ -135,7 +135,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
             By clicking on &ldquo;Agree and register&rdquo;, I agree to the Terms of Use and Privacy
             Policy.
           </FieldDescription>
-          <Button type="submit" disabled={isSubmitting} className="w-full">
+          <Button type="submit" disabled={isSubmitting} size="xl" className="w-full">
             {isSubmitting ? "Creating your account…" : "Agree and register"}
           </Button>
           <FieldDescription className="text-center">
