@@ -72,7 +72,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
       <form onSubmit={onSubmit} noValidate>
         <FieldGroup>
           <FormError message={errors.root?.server?.message} />
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-6 sm:grid-cols-2">
             <Field data-invalid={errors.first_name ? true : undefined}>
               <FieldLabel htmlFor="first_name">First name</FieldLabel>
               <Input
@@ -135,7 +135,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
             By clicking on &ldquo;Agree and register&rdquo;, I agree to the Terms of Use and Privacy
             Policy.
           </FieldDescription>
-          <Button type="submit" disabled={isSubmitting} size="xl" className="w-full">
+          <Button type="submit" disabled={isSubmitting} size="lg" className="w-full">
             {isSubmitting ? "Creating your account…" : "Agree and register"}
           </Button>
           <FieldDescription className="text-center">

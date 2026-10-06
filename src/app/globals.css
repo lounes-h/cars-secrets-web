@@ -6,11 +6,13 @@
    (Tailwind's default would follow the system setting instead). */
 @custom-variant dark (&:is(.dark *));
 
-/* shadcn/ui's neutral theme: black, grey and white only, until the brand and a real design
-   exist. There is no error colour either, so --destructive is the text colour and errors read
-   as bold text. */
+/* The design tokens. Colour is shadcn/ui's neutral theme, black, grey and white only, until the
+   brand exists; there is no error colour either, so --destructive is the text colour and errors
+   read as bold text. Spacing (a 4px grid) and type (12, 14, 16, 18, 20, 24, 30, 36px) are
+   Tailwind's own scales; the radii are below. Shadows are Tailwind's, and only what floats
+   (popovers, menus, the sheet) has one: everything else is flat, separated by a 1px border. */
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -22,13 +24,15 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: oklch(0.5 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.145 0 0);
+  /* Three border strengths: dividers and cards, controls (a step darker, so a field reads as
+     one), and focus (--primary on fields; the --ring outline on everything else, 4.7:1). */
   --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --input: oklch(0.87 0 0);
+  --ring: oklch(0.556 0 0);
   /* The one exception to grey: the lot page's deal-breaker badges and sale countdown, where
      colour speeds up reading. Each badge also carries an icon and words, never colour alone. */
   --good: #166534;
@@ -67,18 +71,18 @@
   --color-warn-bg: var(--warn-bg);
   --color-bad: var(--bad);
   --color-bad-bg: var(--bad-bg);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* 4px checkboxes, 6px items inside a control, 8px controls, buttons and popovers, 12px cards,
+     16px large surfaces; pills are rounded-full. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
   html {
     @apply font-sans;

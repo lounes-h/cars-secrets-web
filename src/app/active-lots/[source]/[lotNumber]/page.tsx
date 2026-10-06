@@ -17,7 +17,7 @@ import { DamageMap, DamageReport, Market, PremiumBadge, PremiumSummary } from "@
 import { LocalTime } from "@/components/LocalTime";
 import { LotBadges } from "@/components/LotBadges";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { countdown, driveType, engineSpec, odometerStatus, titleType, vehicleType } from "@/lib/lot-signals";
 import {
   amount,
@@ -94,7 +94,7 @@ export default async function LotPage({ params }: { params: Params }) {
   const offsiteAt = offsiteAddress(lot);
 
   return (
-    <main className="flex-1 px-4 pt-8 pb-24 sm:px-6 lg:px-10">
+    <main className="flex-1 px-4 pt-8 pb-16 sm:px-6 lg:px-8">
       {/* 1. Summary */}
       <header>
         <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
@@ -147,10 +147,10 @@ export default async function LotPage({ params }: { params: Params }) {
 
         {/* 3. Deal calculator: the one emphasised card on the page. */}
         <section aria-labelledby="deal" className="self-start">
-          <Card className="ring-2 ring-foreground">
+          <Card className="border-foreground">
             <CardHeader className="flex flex-wrap items-center gap-3">
               <PremiumBadge />
-              <h2 id="deal" className="font-heading text-lg font-semibold">Deal calculator</h2>
+              <CardTitle id="deal">Deal calculator</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="font-semibold">
@@ -207,7 +207,7 @@ export default async function LotPage({ params }: { params: Params }) {
             [TagIcon, "Vehicle type", vehicleType(lot)],
             [TagIcon, "Model detail", lot.model_detail],
           ] satisfies [LucideIcon, string, string | null][]).map(([Icon, label, value]) => (
-            <li key={label} className="flex items-start gap-2 rounded-lg border p-2">
+            <li key={label} className="flex items-start gap-2 rounded-lg border p-3">
               <Icon aria-hidden="true" className="size-4 flex-none" />
               <span className="min-w-0">
                 <span className="block text-xs text-muted-foreground">{label}</span>
@@ -270,7 +270,7 @@ function Photos({ lot, images }: { lot: Lot; images: LotImage[] }) {
             ))}
           </div>
         )}
-        <div className="flex flex-1 snap-x snap-mandatory overflow-x-auto rounded-lg border bg-foreground">
+        <div className="flex flex-1 snap-x snap-mandatory overflow-x-auto rounded-xl border bg-foreground">
           {photos.map((photo, index) => (
             // eslint-disable-next-line @next/next/no-img-element -- as above
             <img
@@ -291,7 +291,7 @@ function Photos({ lot, images }: { lot: Lot; images: LotImage[] }) {
 
 function Shell({ heading, children }: { heading: string; children: React.ReactNode }) {
   return (
-    <main className="flex-1 px-4 py-10 sm:px-6 lg:px-10">
+    <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">
       <h1>{heading}</h1>
       {children}
     </main>

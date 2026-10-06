@@ -178,7 +178,7 @@ export function LotFilters({
             {/* The whole screen on a phone. */}
             <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
               <SheetHeader className="border-b">
-                <SheetTitle className="text-xl font-semibold">All filters</SheetTitle>
+                <SheetTitle className="text-lg font-semibold">All filters</SheetTitle>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto p-4">{groups("sheet")}</div>
               <SheetFooter className="border-t">
@@ -199,7 +199,7 @@ export function LotFilters({
           className="hidden lg:sticky lg:top-6 lg:block lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:pr-2"
         >
           <div className="mb-4 flex items-center justify-between gap-2">
-            <h2 id="all-filters" className="text-xl font-semibold">
+            <h2 id="all-filters" className="text-lg font-semibold">
               All filters
             </h2>
             <CollapsibleTrigger render={<Button variant="ghost" size="icon" aria-label="Hide filters" />}>
@@ -272,7 +272,7 @@ function Fold({ filter, query, counts, apply, place }: { filter: Filter; query: 
   return (
     <Collapsible defaultOpen={chosen > 0} className="border-b">
       <CollapsibleTrigger
-        render={<Button variant="ghost" className="h-11 w-full justify-between px-0 hover:bg-transparent aria-expanded:bg-transparent [&[data-panel-open]>svg]:rotate-180" />}
+        render={<Button variant="ghost" className="h-10 w-full justify-between px-0 hover:bg-transparent aria-expanded:bg-transparent [&[data-panel-open]>svg]:rotate-180" />}
       >
         {/* One string, so the name keeps its spaces: "Auction · 1". */}
         {chosen > 0 ? `${filter.label} · ${chosen}` : filter.label}

@@ -65,7 +65,7 @@ See `docs/architecture.md` for details.
   hidden (`sr-only`) and it has no lede; its registered description carries
   the answer.
 - The layout is full width: no centered `max-w-*` page container. Sections
-  span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
+  span the viewport with side padding (`px-4 sm:px-6 lg:px-8`: 16, 24, 32px), and only
   running text is capped at a readable measure (`max-w-[65ch]`). Auth pages
   are the exception: their form sits in a `Card` in one centered 28rem column
   (`max-w-md`), because a full-width form is hard to fill in.
@@ -79,20 +79,35 @@ See `docs/architecture.md` for details.
   one with `npx shadcn@latest add <name>`, then delete the exports nothing uses
   (coverage counts them). Style with Tailwind utilities on the theme tokens;
   there are no hand-written component classes. Text inputs (`input.tsx`, and
-  `input-group.tsx` for the password and phone fields) are 48px tall with a 5px
+  `input-group.tsx` for the password and phone fields) are 48px tall with an 8px
   radius, and focus only darkens their 1px border (`border-primary`), with no
   ring; an invalid one has a black border, also without a ring. A `NativeSelect` is
-  48px too (40px with `size="sm"`). Buttons keep to one scale: `sm` 32px for chips
-  beside text, the default 40px (the menu, View details, pagination, Show filters,
-  the sort), `lg` 48px for a button on a row with a 48px field (Search, the filter
-  bar, Apply, the filter sheet's buttons) and for the lot page's way to the auction
-  ("View on Copart", "Buy now"), and `xl` 55px (added to `button.tsx`) for the auth
+  48px too (40px with `size="sm"`), with the same radius and focus. Buttons keep to
+  one scale: `sm` 32px for chips beside text, the default 40px (the menu, View
+  details, pagination, Show filters, the sort), and `lg` 48px for a button on a row
+  with a 48px field (Search, the filter bar, Apply, the filter sheet's buttons), for
+  the lot page's way to the auction ("View on Copart", "Buy now") and for the auth
   pages' buttons (submit, Google and Apple, "Sign out"); their inline text links are
-  not. The password field's Show/Hide is 32px. `buttonVariants` returns its classes
+  not. There is no size above 48px. The password field's Show/Hide is 32px. `buttonVariants` returns its classes
   merged through `cn`, so an outline link keeps its border (otherwise the base's
-  `border-transparent` wins). Keep these if a component is re-added with `--overwrite`. A Base UI checkbox or radio is a
+  `border-transparent` wins). Every other control shows keyboard focus as a solid
+  3px `--ring` outline (`focus-visible:ring-3 focus-visible:ring-ring`, never a faded
+  `ring-ring/50`). A card is a 1px `border`, 12px corners and 24px padding (16px
+  with `size="sm"`), flat; its heading is `CardTitle` (an `h2`, 18px semibold).
+  Keep these if a component is re-added with `--overwrite`. A Base UI checkbox or radio is a
   `span` named through `aria-labelledby`, so its `id` must hold no whitespace
   (`LotFilters` encodes option values).
+- The design tokens live in `src/app/globals.css`, and nothing steps off them:
+  Tailwind's 4px spacing grid and its type scale (12, 14, 16, 18, 20, 24, 30, 36px;
+  weights 400–700), radii of 4px (checkboxes), 6px (items inside a control and 32px
+  buttons), 8px (controls, buttons, popovers), 12px (cards) and 16px, and pills
+  `rounded-full`. Borders come in three strengths: `--border` for dividers and
+  cards, `--input` a step darker for controls, and `--primary` for a focused field.
+  Only what floats (popovers, menus, the sheet) has a shadow. Text is
+  `--foreground` or, for what is secondary, `--muted-foreground` (#636363, at least
+  5:1 on white and on `--muted`). `src/components/ui/design-system.test.ts` fails on
+  an arbitrary font size, radius or control height, a weight outside 400–700, a
+  faded focus ring or the old 40px gutter.
 - There is no favicon or share image yet, and no dark mode (`globals.css` keeps
   the `dark` variant on a `.dark` class nothing sets, so the components' `dark:`
   styles never apply).
@@ -275,7 +290,8 @@ and the empty placeholders the banner menu links to: `/vin-lookup`,
 leaves out for now — blank white
 pages with metadata only, so they have no `h1` until there is something to put
 on them.
-Styling stays on shadcn/ui's defaults until a design exists. `/` is the home page: the
+Styling is shadcn/ui's components on the flat, grayscale design tokens above, until a
+brand design exists. `/` is the home page: the
 centred title "Everything You Need to Know Before Buying a Car at Auction" and
 nothing else yet. Add no other pages until the user asks.
 

@@ -37,7 +37,7 @@ export function PhoneField({ countries, country, number, defaultCountry, selecte
         Phone number <span className="font-normal text-muted-foreground">(optional)</span>
       </FieldLabel>
       <InputGroup>
-        <span className="relative flex h-full items-center gap-1 pl-2.5 text-sm whitespace-nowrap">
+        <span className="relative flex h-full items-center gap-1 pl-3 text-sm whitespace-nowrap">
           <span aria-hidden="true">
             {current.flag} +{current.dialCode}
           </span>

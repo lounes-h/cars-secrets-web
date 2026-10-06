@@ -35,7 +35,7 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
   return (
     <>
       {found?.activity && <ActivitySummary {...found.activity} />}
-      <main className="flex-1 px-4 py-10 sm:px-6 lg:px-10">
+      <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {/* No visible title or lede: the search comes first. The heading stays for screen readers. */}
         <h1 className="sr-only">Active lots</h1>
         {found ? (
@@ -62,7 +62,7 @@ function ActivitySummary({ added, updated }: LotActivity) {
   return (
     <section
       aria-label="Lot activity"
-      className="flex flex-wrap gap-x-6 gap-y-1 border-b bg-muted px-4 py-2.5 text-sm sm:px-6 lg:px-10"
+      className="flex flex-wrap gap-x-6 gap-y-1 border-b bg-muted px-4 py-2 text-sm sm:px-6 lg:px-8"
     >
       <p className="m-0">
         {/* The day is not over, so today's new lots are a running count. */}
@@ -109,7 +109,11 @@ function Lots({ query, page, items, total }: { query: Query; page: number } & Lo
   const first = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
 
   if (items.length === 0) {
-    return <p className="mt-8">{total === 0 ? "No lots match these filters." : "No lots on this page."}</p>;
+    return (
+      <p className="mt-6 rounded-xl border border-dashed p-8 text-center text-muted-foreground">
+        {total === 0 ? "No lots match these filters." : "No lots on this page."}
+      </p>
+    );
   }
 
   return (

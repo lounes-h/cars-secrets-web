@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export function GalleryTabs({ photos, damageMap }: { photos: ReactNode; damageMap: ReactNode }) {
   return (
     <Tabs defaultValue="photos" className="min-w-0">
-      <TabsList aria-label="Gallery">
+      <TabsList variant="line" aria-label="Gallery">
         <TabsTrigger value="photos">Photos</TabsTrigger>
         <TabsTrigger value="damage-map">
           <SparklesIcon aria-hidden="true" />
