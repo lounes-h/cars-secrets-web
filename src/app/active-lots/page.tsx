@@ -112,7 +112,7 @@ function Lots({ query, page, items, total }: { query: Query; page: number } & Lo
 
   return (
     <>
-      <ul aria-label="Lots" className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-4">
+      <ul aria-label="Lots" className="mt-6 flex flex-col gap-4">
         {items.map((lot) => (
           <li key={`${lot.source}-${lot.lot_number}`}>
             <LotCard lot={lot} />

@@ -374,12 +374,14 @@ The photos are not tagged by the auction, so there are no Damage/Exterior/Interi
 is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
-Each lot card, in a grid as wide as the page, reads: the photo (the export's `thumbnail_url` is
-144px wide, so the card shows its `_ful` twin, as the API does; https only; "No photo" without
-one), the title (year, make, model, trim, linking to the lot, and stretched over the whole
-card), "Lot N · auction · place", the real figures only — current bid, likely final bid
-(`predicted_final_price`), retail value (ACV) and Buy now when offered, never the calculator's
-samples — then mileage and primary damage, the deal-breaker badges and the sale time.
+The lot cards are horizontal, one per line (stacked, photo on top, on a phone). Each reads,
+left to right: the photo (the export's `thumbnail_url` is 144px wide, so the card shows its
+`_ful` twin, as the API does; https only; "No photo" without one); then the title (year, make,
+model, trim, linking to the lot, and stretched over the whole card), "Lot N · auction · place",
+mileage and primary damage, the deal-breaker badges and the sale time; then, in a column on
+the right, the real figures only — current bid, likely final bid (`predicted_final_price`),
+retail value (ACV) and Buy now when offered, never the calculator's samples. The API lists
+cars (vehicle type `V`) before every other type, whatever the order.
 
 The premium sections (`src/components/PremiumSections.tsx`, and `DealCalculator`) carry a
 grey "Premium" badge with a sparkles icon and show sample figures (see the invented-figures rule) to every
@@ -397,18 +399,22 @@ the server-rendered cards) work like this:
   it names (`interpretSearch`): a lot number or VIN of exactly one lot opens that lot; a make,
   model or years ("2018-2021 toyota rav4") become those filters and removable chips; the words
   left over are keywords, matched against trim, model detail, colour, body, fuel and drive.
-- **The bar** shares the search's line, on its right (below `lg` the search has a line of its own),
-  and shows the main filters as popovers: Sale date (Today, Tomorrow, This week,
-  Next week, Future sale, in the dealer's own zone), Title (Copart's salvage, clean and
-  non-repairable groups), Runs and drives and Damage. **All filters** (a side sheet, the whole
-  screen below `lg`, where the bar is only "Filters · n") holds every filter: year, make,
-  model, mileage, vehicle type, keys, secondary damage, sale type, Buy now available, retail
+- **All filters** is a sidebar on the left of the search and the lots, always open from `lg`
+  up and sticky, scrolling on its own; below `lg` it is a sheet (the whole screen on a phone)
+  behind the bar's "Filters · n". It holds every filter, grouped: sale date, title, runs and
+  drives, damage, year, make, model, mileage, vehicle type, keys, secondary damage, sale type, Buy now available, retail
   value, Buy now price, current bid, auction (hidden while every lot has the same one), state
-  and location. Up to two filters the dealer has set at least three times move into the bar
-  (`promoted`). Sort, on the line below with the count and the chips: newest listed, sale
-  soonest, year, mileage, retail value.
-- **Counts**: an opened popover, or the sheet, asks for its options' counts
-  (`lotCountsAction`); each filter's counts leave out its own choice. An option with no lot is
+  and location.
+- **The bar** shares the search's line, on its right (below `lg` the search has a line of its own),
+  and shows the main filters as popovers from `lg` up: Sale date (Today, Tomorrow, This week,
+  Next week, Future sale, in the dealer's own zone), Title (Copart's salvage, clean and
+  non-repairable groups), Runs and drives and Damage, the same controls as the sidebar's. Up
+  to two filters the dealer has set at least three times move into the bar (`promoted`). Sort,
+  on the line below with the count and the chips: newest listed, sale soonest, year, mileage,
+  retail value.
+- **Counts**: once the list is shown, the sidebar asks for every filter's counts in one call
+  (`lotCountsAction`), which the popovers and the sheet share; each filter's counts leave out
+  its own choice. An option with no lot is
   shown disabled, and a choice no lot has any more stays listed. Counts are never part of the
   page render, because counting costs a scan per filter.
 - **Chips** show every chosen value with the result count; each removes its own, and
