@@ -130,31 +130,31 @@ export function LotFilters({
 
   return (
     <div>
-      <form
-        role="search"
-        className="flex max-w-3xl gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const q = String(new FormData(event.currentTarget).get("q") ?? "").trim();
-          apply(edit(query, { q: q ? [q] : null }));
-        }}
-      >
-        <Label htmlFor="lot-search" className="sr-only">
-          Search lots
-        </Label>
-        <Input
-          key={search}
-          id="lot-search"
-          name="q"
-          type="search"
-          defaultValue={query.q?.[0] ?? ""}
-          maxLength={200}
-          placeholder="Make, model, year, VIN, lot number or keyword"
-        />
-        <Button type="submit">Search</Button>
-      </form>
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      {/* One line: the search takes the room the filters leave, or a line of its own below lg. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <form
+          role="search"
+          className="flex w-full gap-2 lg:w-auto lg:min-w-60 lg:flex-1"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const q = String(new FormData(event.currentTarget).get("q") ?? "").trim();
+            apply(edit(query, { q: q ? [q] : null }));
+          }}
+        >
+          <Label htmlFor="lot-search" className="sr-only">
+            Search lots
+          </Label>
+          <Input
+            key={search}
+            id="lot-search"
+            name="q"
+            type="search"
+            defaultValue={query.q?.[0] ?? ""}
+            maxLength={200}
+            placeholder="Make, model, year, VIN, lot number or keyword"
+          />
+          <Button type="submit">Search</Button>
+        </form>
         {inBar.map((id) => {
           const filter = filterById(id);
           return visible(filter) ? (

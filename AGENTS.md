@@ -381,7 +381,8 @@ the server-rendered table) work like this:
   it names (`interpretSearch`): a lot number or VIN of exactly one lot opens that lot; a make,
   model or years ("2018-2021 toyota rav4") become those filters and removable chips; the words
   left over are keywords, matched against trim, model detail, colour, body, fuel and drive.
-- **The bar** shows the main filters as popovers: Sale date (Today, Tomorrow, This week,
+- **The bar** shares the search's line (below `lg` the search has a line of its own) and shows the
+  main filters as popovers: Sale date (Today, Tomorrow, This week,
   Next week, Future sale, in the dealer's own zone), Title (Copart's salvage, clean and
   non-repairable groups), Runs and drives and Damage. **All filters** (a side sheet, the whole
   screen below `lg`, where the bar is only "Filters · n") holds every filter: year, make,
