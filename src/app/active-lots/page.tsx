@@ -65,7 +65,9 @@ function ActivitySummary({ added, updated }: LotActivity) {
       className="flex flex-wrap gap-x-6 gap-y-1 border-b bg-muted px-4 py-2.5 text-sm sm:px-6 lg:px-10"
     >
       <p className="m-0">
+        {/* The day is not over, so today's new lots are a running count. */}
         <strong>{count.format(fresh.count)}</strong> new {lots(fresh.count)} {fresh.words}
+        {fresh.words === "today" && " so far"}
       </p>
       <p className="m-0">
         <strong>{count.format(changed.count)}</strong> {lots(changed.count)} updated {changed.words}
