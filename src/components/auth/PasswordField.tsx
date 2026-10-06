@@ -52,6 +52,7 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
         />
         <InputGroupAddon align="inline-end">
           <InputGroupButton
+            size="sm"
             aria-pressed={visible}
             aria-controls={id}
             aria-label={visible ? "Hide password" : "Show password"}
