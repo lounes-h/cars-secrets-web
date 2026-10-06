@@ -70,7 +70,7 @@ equal URLs. The page, for a signed-in dealer:
    the same zone) for a strip under the banner: "11,821 new lots in the last 3 days",
    "14,769 lots updated today". Each figure is today's once it reaches `ACTIVITY_MIN`
    (1,000), otherwise the last 3 days', otherwise the last 7 days' (`activityWindow` in
-   `lib/lots.ts`). An updated lot is one seen before the window, so new lots are not counted
+   `lib/lots.ts`); today's new lots read "today so far", since the day is not over. An updated lot is one seen before the window, so new lots are not counted
    twice. The list stands without the strip when the API cannot give it.
 
 `LotFilters` turns every change into a new URL (`router.push`, no scroll), so Back undoes a

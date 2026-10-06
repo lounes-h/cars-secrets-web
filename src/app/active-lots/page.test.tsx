@@ -97,6 +97,18 @@ describe("active lots page", () => {
     ]);
   });
 
+  it("says today's new lots are a count so far", async () => {
+    getLotActivity.mockResolvedValue({
+      added: { today: 2632, last_3_days: 11821, last_7_days: 57043 },
+      updated: { today: 34023, last_3_days: 62275, last_7_days: 61280 },
+    });
+    await show();
+    expect([...screen.getByRole("region", { name: "Lot activity" }).querySelectorAll("p")].map((p) => p.textContent)).toEqual([
+      "2,632 new lots today so far",
+      "34,023 lots updated today",
+    ]);
+  });
+
   it("says lot for a single one", async () => {
     getLotActivity.mockResolvedValue({
       added: { today: 0, last_3_days: 0, last_7_days: 1 },
