@@ -81,10 +81,14 @@ See `docs/architecture.md` for details.
   there are no hand-written component classes. Text inputs (`input.tsx`, and
   `input-group.tsx` for the password and phone fields) are 48px tall with a 5px
   radius, and focus only darkens their 1px border (`border-primary`), with no
-  ring; an invalid one has a black border, also without a ring. The auth pages'
-  buttons (submit, Google and Apple, "Sign out") are 55px (`size="xl"`, the one
-  size added to `button.tsx`); their inline text links are not. The lot list's
-  Search button is as tall as its input (`h-12`). `buttonVariants` returns its classes
+  ring; an invalid one has a black border, also without a ring. A `NativeSelect` is
+  48px too (40px with `size="sm"`). Buttons keep to one scale: `sm` 32px for chips
+  beside text, the default 40px (the menu, View details, pagination, Show filters,
+  the sort), `lg` 48px for a button on a row with a 48px field (Search, the filter
+  bar, Apply, the filter sheet's buttons) and for the lot page's way to the auction
+  ("View on Copart", "Buy now"), and `xl` 55px (added to `button.tsx`) for the auth
+  pages' buttons (submit, Google and Apple, "Sign out"); their inline text links are
+  not. The password field's Show/Hide is 32px. `buttonVariants` returns its classes
   merged through `cn`, so an outline link keeps its border (otherwise the base's
   `border-transparent` wins). Keep these if a component is re-added with `--overwrite`. A Base UI checkbox or radio is a
   `span` named through `aria-labelledby`, so its `id` must hold no whitespace

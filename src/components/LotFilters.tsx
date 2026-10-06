@@ -161,8 +161,8 @@ export function LotFilters({
             maxLength={200}
             placeholder="Make, model, year, VIN, lot number or keyword"
           />
-          {/* As tall as the input beside it (h-12). */}
-          <Button type="submit" className="h-12">
+          {/* As tall as the input beside it, like the bar's buttons. */}
+          <Button type="submit" size="lg">
             Search
           </Button>
         </form>
@@ -172,7 +172,7 @@ export function LotFilters({
             return visible(filter) ? <Menu key={id} filter={filter} query={query} counts={countsOf(id)} apply={apply} /> : null;
           })}
           <Sheet>
-            <SheetTrigger render={<Button variant="outline" className="lg:hidden" />}>
+            <SheetTrigger render={<Button variant="outline" size="lg" className="lg:hidden" />}>
               Filters{active.length > 0 && ` · ${active.length}`}
             </SheetTrigger>
             {/* The whole screen on a phone. */}
@@ -182,7 +182,7 @@ export function LotFilters({
               </SheetHeader>
               <div className="flex-1 overflow-y-auto p-4">{groups("sheet")}</div>
               <SheetFooter className="border-t">
-                <SheetClose render={<Button className="w-full" />}>Show {lots(total)}</SheetClose>
+                <SheetClose render={<Button size="lg" className="w-full" />}>Show {lots(total)}</SheetClose>
               </SheetFooter>
             </SheetContent>
           </Sheet>
@@ -239,6 +239,7 @@ export function LotFilters({
             <Label className="ml-auto font-normal">
               Sort
               <NativeSelect
+                size="sm"
                 value={query.sort?.[0] ?? "newest"}
                 onChange={(event) => apply(edit(query, { sort: [event.target.value] }))}
               >
@@ -303,7 +304,7 @@ function Menu({
   const chosen = chosenCount(filter, query);
   return (
     <Popover>
-      <PopoverTrigger render={<Button variant="outline" className="hidden lg:inline-flex" />}>
+      <PopoverTrigger render={<Button variant="outline" size="lg" className="hidden lg:inline-flex" />}>
         {filter.label}
         {chosen > 0 && <span className="font-normal">· {chosen}</span>}
         <ChevronDownIcon aria-hidden="true" />
@@ -485,7 +486,7 @@ function Range({ filter, query, apply, id }: { filter: Filter; query: Query; app
           />
         </Field>
       ))}
-      <Button type="submit" variant="outline">
+      <Button type="submit" variant="outline" size="lg">
         Apply
       </Button>
     </form>

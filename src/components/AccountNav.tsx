@@ -82,7 +82,7 @@ export function AccountNav() {
   if (LOGO_ONLY.has(pathname)) return null;
   if (user === undefined) {
     // Same height as the loaded state, so the banner does not jump.
-    return <nav aria-label="Account" aria-busy="true" className="ml-auto h-11" />;
+    return <nav aria-label="Account" aria-busy="true" className="ml-auto h-10" />;
   }
   if (user === null) {
     return (
@@ -92,7 +92,7 @@ export function AccountNav() {
           <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
             Sign in
           </Link>
-          <Link href="/register" className={buttonVariants({ className: "h-auto flex-col gap-0 py-1 leading-tight" })}>
+          <Link href="/register" className={buttonVariants({ className: "flex-col gap-0 leading-tight" })}>
             7 days free trial
             <span className="text-[0.6875rem] font-normal opacity-90">No credit cards required</span>
           </Link>

@@ -126,7 +126,7 @@ export default async function LotPage({ params }: { params: Params }) {
               {lot.sale_at ? <LocalTime value={lot.sale_at} format="sale" /> : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
             </p>
             {lot.listing_url && (
-              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className={buttonVariants({ variant: "outline", className: "mt-2" })}>
+              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className={buttonVariants({ variant: "outline", size: "lg", className: "mt-2" })}>
                 View on {auction}
               </a>
             )}
@@ -161,7 +161,7 @@ export default async function LotPage({ params }: { params: Params }) {
                 Current bid {amount(lot.high_bid, lot.currency)} · Retail value (ACV) {amount(lot.est_retail_value, lot.currency)}
               </p>
               {lot.listing_url && buyNow && (
-                <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className={buttonVariants({ variant: "outline", className: "mt-4" })}>
+                <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className={buttonVariants({ variant: "outline", size: "lg", className: "mt-4" })}>
                   Buy now {buyNow}
                 </a>
               )}
