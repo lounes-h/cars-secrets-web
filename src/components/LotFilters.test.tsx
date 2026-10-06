@@ -100,12 +100,17 @@ describe("the bar", () => {
     expect(screen.getByText("145 lots")).toBeTruthy();
   });
 
-  it("puts the search on the same line as the filters and the order", () => {
+  it("puts the search on the filters' line, and the order on the count's", () => {
     show();
     const line = screen.getByRole("search").parentElement!;
-    expect(trigger(/^Title/).parentElement).toBe(line);
-    expect(line.contains(screen.getByRole("button", { name: /All filters/ }))).toBe(true);
-    expect(line.contains(screen.getByRole("combobox", { name: "Sort" }))).toBe(true);
+    // The filters together, after the search, so they can sit at the line's right end.
+    const filters = trigger(/^Title/).parentElement!;
+    expect(filters.parentElement).toBe(line);
+    expect(filters.contains(screen.getByRole("button", { name: /All filters/ }))).toBe(true);
+    expect(screen.getByRole("search").nextElementSibling).toBe(filters);
+    const sort = screen.getByRole("combobox", { name: "Sort" });
+    expect(line.contains(sort)).toBe(false);
+    expect(screen.getByText("145 lots").parentElement!.contains(sort)).toBe(true);
   });
 
   it("counts a title's options when it is opened, and takes a choice", async () => {

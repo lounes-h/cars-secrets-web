@@ -381,15 +381,16 @@ the server-rendered table) work like this:
   it names (`interpretSearch`): a lot number or VIN of exactly one lot opens that lot; a make,
   model or years ("2018-2021 toyota rav4") become those filters and removable chips; the words
   left over are keywords, matched against trim, model detail, colour, body, fuel and drive.
-- **The bar** shares the search's line (below `lg` the search has a line of its own) and shows the
-  main filters as popovers: Sale date (Today, Tomorrow, This week,
+- **The bar** shares the search's line, on its right (below `lg` the search has a line of its own),
+  and shows the main filters as popovers: Sale date (Today, Tomorrow, This week,
   Next week, Future sale, in the dealer's own zone), Title (Copart's salvage, clean and
   non-repairable groups), Runs and drives and Damage. **All filters** (a side sheet, the whole
   screen below `lg`, where the bar is only "Filters · n") holds every filter: year, make,
   model, mileage, vehicle type, keys, secondary damage, sale type, Buy now available, retail
   value, Buy now price, current bid, auction (hidden while every lot has the same one), state
   and location. Up to two filters the dealer has set at least three times move into the bar
-  (`promoted`). Sort: newest listed, sale soonest, year, mileage, retail value.
+  (`promoted`). Sort, on the line below with the count and the chips: newest listed, sale
+  soonest, year, mileage, retail value.
 - **Counts**: an opened popover, or the sheet, asks for its options' counts
   (`lotCountsAction`); each filter's counts leave out its own choice. An option with no lot is
   shown disabled, and a choice no lot has any more stays listed. Counts are never part of the

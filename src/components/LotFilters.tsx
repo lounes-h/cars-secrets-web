@@ -130,11 +130,12 @@ export function LotFilters({
 
   return (
     <div>
-      {/* One line: the search takes the room the filters leave, or a line of its own below lg. */}
+      {/* One line: the search on the left, up to 28rem, and the filters on the right; below lg the
+          search takes a line of its own. The order sits on the line below, with the count and the chips. */}
       <div className="flex flex-wrap items-center gap-2">
         <form
           role="search"
-          className="flex w-full gap-2 lg:w-auto lg:min-w-60 lg:flex-1"
+          className="flex w-full gap-2 lg:w-auto lg:max-w-md lg:min-w-60 lg:flex-1"
           onSubmit={(event) => {
             event.preventDefault();
             const q = String(new FormData(event.currentTarget).get("q") ?? "").trim();
@@ -155,68 +156,57 @@ export function LotFilters({
           />
           <Button type="submit">Search</Button>
         </form>
-        {inBar.map((id) => {
-          const filter = filterById(id);
-          return visible(filter) ? (
-            <Menu
-              key={id}
-              filter={filter}
-              query={query}
-              counts={countsOf(id)}
-              apply={apply}
-              // Another menu may open before this one reports closing.
-              onOpenChange={(open) => setOpenMenu((current) => (open ? id : current === id ? null : current))}
-            />
-          ) : null;
-        })}
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetTrigger render={<Button variant="outline" />}>
-            <span className="lg:hidden">Filters{active.length > 0 && ` · ${active.length}`}</span>
-            <span className="hidden lg:inline">All filters{hidden > 0 && ` · ${hidden}`}</span>
-          </SheetTrigger>
-          {/* The whole screen on a phone. */}
-          <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
-            <SheetHeader className="border-b">
-              <SheetTitle className="text-xl font-semibold">All filters</SheetTitle>
-            </SheetHeader>
-            <div className="flex-1 overflow-y-auto p-4">
-              {GROUPS.map((group) => {
-                const shown = FILTERS.filter((filter) => filter.group === group.id && visible(filter));
-                return (
-                  <section key={group.id} className="mb-6 flex flex-col gap-4">
-                    <h3 className="font-semibold">{group.label}</h3>
-                    {shown.map((filter) =>
-                      filter.kind === "toggle" ? (
-                        <Control key={filter.id} filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
-                      ) : (
-                        <FieldSet key={filter.id} className="gap-2">
-                          <FieldLegend variant="label">{filter.label}</FieldLegend>
-                          <Control filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
-                        </FieldSet>
-                      ),
-                    )}
-                  </section>
-                );
-              })}
-            </div>
-            <SheetFooter className="border-t">
-              <SheetClose render={<Button className="w-full" />}>Show {lots(total)}</SheetClose>
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
-        <Label className="ml-auto font-normal">
-          Sort
-          <NativeSelect
-            value={query.sort?.[0] ?? "newest"}
-            onChange={(event) => apply(edit(query, { sort: [event.target.value] }))}
-          >
-            {SORTS.map((option) => (
-              <NativeSelectOption key={option.value} value={option.value}>
-                {option.label}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </Label>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          {inBar.map((id) => {
+            const filter = filterById(id);
+            return visible(filter) ? (
+              <Menu
+                key={id}
+                filter={filter}
+                query={query}
+                counts={countsOf(id)}
+                apply={apply}
+                // Another menu may open before this one reports closing.
+                onOpenChange={(open) => setOpenMenu((current) => (open ? id : current === id ? null : current))}
+              />
+            ) : null;
+          })}
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetTrigger render={<Button variant="outline" />}>
+              <span className="lg:hidden">Filters{active.length > 0 && ` · ${active.length}`}</span>
+              <span className="hidden lg:inline">All filters{hidden > 0 && ` · ${hidden}`}</span>
+            </SheetTrigger>
+            {/* The whole screen on a phone. */}
+            <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
+              <SheetHeader className="border-b">
+                <SheetTitle className="text-xl font-semibold">All filters</SheetTitle>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto p-4">
+                {GROUPS.map((group) => {
+                  const shown = FILTERS.filter((filter) => filter.group === group.id && visible(filter));
+                  return (
+                    <section key={group.id} className="mb-6 flex flex-col gap-4">
+                      <h3 className="font-semibold">{group.label}</h3>
+                      {shown.map((filter) =>
+                        filter.kind === "toggle" ? (
+                          <Control key={filter.id} filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
+                        ) : (
+                          <FieldSet key={filter.id} className="gap-2">
+                            <FieldLegend variant="label">{filter.label}</FieldLegend>
+                            <Control filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
+                          </FieldSet>
+                        ),
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+              <SheetFooter className="border-t">
+                <SheetClose render={<Button className="w-full" />}>Show {lots(total)}</SheetClose>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -241,6 +231,19 @@ export function LotFilters({
             Clear all
           </Button>
         )}
+        <Label className="ml-auto font-normal">
+          Sort
+          <NativeSelect
+            value={query.sort?.[0] ?? "newest"}
+            onChange={(event) => apply(edit(query, { sort: [event.target.value] }))}
+          >
+            {SORTS.map((option) => (
+              <NativeSelectOption key={option.value} value={option.value}>
+                {option.label}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </Label>
       </div>
 
       <div aria-busy={pending} className={pending ? "opacity-60" : undefined}>
