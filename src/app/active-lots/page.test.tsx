@@ -206,7 +206,7 @@ describe("search and filters", () => {
   it("turns a make, model and years into filters", async () => {
     interpretSearch.mockResolvedValue({ lot: null, make: "TOYOTA", model: "RAV4", year_min: 2018, year_max: 2021, q: "" });
     await expect(show({ q: "2018-2021 toyota rav4", title: "clean" })).rejects.toThrow(
-      "REDIRECT /active-lots?title=clean&year_min=2018&year_max=2021&make=TOYOTA&model=RAV4",
+      "REDIRECT /active-lots?make=TOYOTA&model=RAV4&year_min=2018&year_max=2021&title=clean",
     );
   });
 

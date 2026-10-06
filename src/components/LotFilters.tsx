@@ -120,10 +120,12 @@ export function LotFilters({
   // Every filter, grouped, each folding away: in the sidebar, which leaves out the bar's own
   // filters beside it, and in the sheet that stands in for both below lg.
   const groups = (place: "side" | "sheet") =>
-    GROUPS.filter((group) => place === "sheet" || group.id !== "main").map((group) => (
+    GROUPS.map((group) => (
       <section key={group.id} className="mb-6">
         <h3 className="mb-1 font-semibold">{group.label}</h3>
-        {FILTERS.filter((filter) => filter.group === group.id && visible(filter)).map((filter) =>
+        {FILTERS.filter(
+          (filter) => filter.group === group.id && visible(filter) && (place === "sheet" || !PRIMARY.includes(filter.id)),
+        ).map((filter) =>
           filter.kind === "toggle" ? (
             <div key={filter.id} className="border-b py-2.5">
               <Control filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place={place} />

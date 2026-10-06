@@ -129,7 +129,7 @@ describe("the bar", () => {
     // No non-repairable lot with the other filters: listed, but off.
     expect(within(menu).getByRole("checkbox", { name: /Non-repairable\s*0/ }).getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(salvage);
-    expect(push).toHaveBeenCalledWith("/active-lots?title=salvage&run=verified&sort=newest", { scroll: false });
+    expect(push).toHaveBeenCalledWith("/active-lots?run=verified&title=salvage&sort=newest", { scroll: false });
   });
 
   it("takes a choice back", async () => {
@@ -226,6 +226,12 @@ describe("the chips", () => {
 });
 
 describe("All filters", () => {
+  /** Each group's heading and the filters folded under it, in order. */
+  const sections = (place: HTMLElement) =>
+    within(place)
+      .getAllByRole("heading", { level: 3 })
+      .map((heading) => [heading.textContent, [...heading.parentElement!.querySelectorAll("[aria-expanded]")].map((fold) => fold.textContent)]);
+
   it("is always there, on the left under the search, every filter grouped and counted at once", async () => {
     show();
     // The search first, at the far left; the sidebar and the lots below it, side by side.
@@ -235,14 +241,15 @@ describe("All filters", () => {
     await counted();
     expect(lotCountsAction).toHaveBeenCalledTimes(1);
     expect(lotCountsAction).toHaveBeenCalledWith("", expect.arrayContaining(["title", "damage", "state", "buy_now", "make"]));
-    expect(within(panel()).getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent)).toEqual([
-      "The car",
-      "Condition",
-      "The sale",
-      "Where",
+    // What the lot is, its shape, its price, its sale, where it is. Sale date, title, runs and
+    // drives and damage are the bar's, beside the sidebar; Buy now available is a switch, not a fold.
+    expect(sections(panel())).toEqual([
+      ["Vehicle", ["Vehicle type", "Make", "Year", "Mileage"]],
+      ["Condition", ["Secondary damage", "Keys"]],
+      ["Price", ["Current bid", "Buy now price", "Retail value"]],
+      ["Sale", ["Sale type"]],
+      ["Location", ["State or province", "Yard or offsite"]],
     ]);
-    // Sale date, title, runs and drives and damage are the bar's, beside the sidebar.
-    expect(within(panel()).queryByRole("button", { name: /^(Sale date|Title|Runs and drives|Damage)/ })).toBeNull();
     await within(panel()).findByRole("checkbox", { name: /Buy now available\s*19/ });
     // Every lot comes from one auction: nothing to choose.
     expect(within(panel()).queryByText("Auction")).toBeNull();
@@ -346,8 +353,14 @@ describe("All filters", () => {
       return screen.getByRole("dialog", { name: "All filters" });
     };
     const opened = await sheet();
-    // Every filter, the bar's too, since the bar shows only "Filters" on a narrow screen.
-    expect(within(opened).getByRole("heading", { name: "Sale date, title and damage" })).toBeTruthy();
+    // Every filter, the bar's too, since the bar shows only "Filters" on a narrow screen, each in its group.
+    expect(sections(opened)).toEqual([
+      ["Vehicle", ["Vehicle type", "Make", "Year", "Mileage"]],
+      ["Condition", ["Runs and drives", "Damage", "Secondary damage", "Keys"]],
+      ["Price", ["Current bid", "Buy now price", "Retail value"]],
+      ["Sale", ["Sale date", "Title", "Sale type"]],
+      ["Location", ["State or province", "Yard or offsite"]],
+    ]);
     // Not the sidebar's ids, so a label in the sheet works its own box.
     await act(async () => fireEvent.click(within(opened).getByRole("button", { name: "Year" })));
     expect(within(opened).getByLabelText("From", { selector: "#sheet-year-year_min" })).toBeTruthy();

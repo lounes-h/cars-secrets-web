@@ -16,7 +16,8 @@ export type Filter = {
   /** Its URL parameter, and the name the API counts it by; a range uses `range` instead. */
   id: string;
   label: string;
-  group: "main" | "car" | "condition" | "sale" | "where";
+  /** Its heading in "All filters"; the table's order is the order there. */
+  group: "vehicle" | "condition" | "price" | "sale" | "location";
   /** Several options, one option, one value of a long list, a range, or a switch. */
   kind: "options" | "single" | "select" | "range" | "toggle";
   /** Fixed options. Without them, the options are what the counts find. */
@@ -32,34 +33,20 @@ const signal = (kind: keyof typeof SIGNALS, code: string) => SIGNALS[kind][code]
 
 export const FILTERS: Filter[] = [
   {
-    id: "sale",
-    label: "Sale date",
-    group: "main",
-    kind: "single",
-    options: [
-      { value: "today", label: "Today", chip: "Sells today" },
-      { value: "tomorrow", label: "Tomorrow", chip: "Sells tomorrow" },
-      { value: "this_week", label: "This week", chip: "Sells this week" },
-      { value: "next_week", label: "Next week", chip: "Sells next week" },
-      // Copart's own name for a lot it has given no sale day yet, as the lot page says.
-      { value: "future", label: "Future sale" },
-    ],
-  },
-  {
-    id: "title",
-    label: "Title",
-    group: "main",
+    id: "vehicle_type",
+    label: "Vehicle type",
+    group: "vehicle",
     kind: "options",
-    options: [
-      { value: "salvage", label: "Salvage", chip: "Salvage title" },
-      { value: "clean", label: "Clean", chip: "Clean title" },
-      { value: "nonrepairable", label: "Non-repairable", chip: "Non-repairable title" },
-    ],
+    name: (code) => VEHICLE_TYPES[code.toUpperCase()] ?? code,
   },
+  { id: "make", label: "Make", group: "vehicle", kind: "select" },
+  { id: "model", label: "Model", group: "vehicle", kind: "select" },
+  { id: "year", label: "Year", group: "vehicle", kind: "range", range: { min: "year_min", max: "year_max", unit: "year" } },
+  { id: "mileage", label: "Mileage", group: "vehicle", kind: "range", range: { max: "odometer_max", unit: "mi" } },
   {
     id: "run",
     label: "Runs and drives",
-    group: "main",
+    group: "condition",
     kind: "options",
     options: [
       { value: "verified", label: signal("run", "RUN & DRIVE VERIFIED") },
@@ -67,18 +54,8 @@ export const FILTERS: Filter[] = [
       { value: "unverified", label: signal("run", "DEFAULT") },
     ],
   },
-  { id: "damage", label: "Damage", group: "main", kind: "options" },
-  { id: "year", label: "Year", group: "car", kind: "range", range: { min: "year_min", max: "year_max", unit: "year" } },
-  { id: "make", label: "Make", group: "car", kind: "select" },
-  { id: "model", label: "Model", group: "car", kind: "select" },
-  { id: "mileage", label: "Mileage", group: "car", kind: "range", range: { max: "odometer_max", unit: "mi" } },
-  {
-    id: "vehicle_type",
-    label: "Vehicle type",
-    group: "car",
-    kind: "options",
-    name: (code) => VEHICLE_TYPES[code.toUpperCase()] ?? code,
-  },
+  { id: "damage", label: "Damage", group: "condition", kind: "options" },
+  { id: "damage2", label: "Secondary damage", group: "condition", kind: "options" },
   {
     id: "keys",
     label: "Keys",
@@ -90,7 +67,35 @@ export const FILTERS: Filter[] = [
       { value: "exempt", label: signal("keys", "EXM") },
     ],
   },
-  { id: "damage2", label: "Secondary damage", group: "condition", kind: "options" },
+  { id: "bid", label: "Current bid", group: "price", kind: "range", range: { max: "bid_max", unit: "$" } },
+  { id: "bin", label: "Buy now price", group: "price", kind: "range", range: { max: "bin_max", unit: "$" } },
+  { id: "retail", label: "Retail value", group: "price", kind: "range", range: { min: "retail_min", max: "retail_max", unit: "$" } },
+  {
+    id: "sale",
+    label: "Sale date",
+    group: "sale",
+    kind: "single",
+    options: [
+      { value: "today", label: "Today", chip: "Sells today" },
+      { value: "tomorrow", label: "Tomorrow", chip: "Sells tomorrow" },
+      { value: "this_week", label: "This week", chip: "Sells this week" },
+      { value: "next_week", label: "Next week", chip: "Sells next week" },
+      // Copart's own name for a lot it has given no sale day yet, as the lot page says.
+      { value: "future", label: "Future sale" },
+    ],
+  },
+  {
+    // The document the sale hands over, so it sits with the sale.
+    id: "title",
+    label: "Title",
+    group: "sale",
+    kind: "options",
+    options: [
+      { value: "salvage", label: "Salvage", chip: "Salvage title" },
+      { value: "clean", label: "Clean", chip: "Clean title" },
+      { value: "nonrepairable", label: "Non-repairable", chip: "Non-repairable title" },
+    ],
+  },
   {
     id: "sale_type",
     label: "Sale type",
@@ -103,15 +108,12 @@ export const FILTERS: Filter[] = [
     ],
   },
   { id: "buy_now", label: "Buy now available", group: "sale", kind: "toggle" },
-  { id: "retail", label: "Retail value", group: "sale", kind: "range", range: { min: "retail_min", max: "retail_max", unit: "$" } },
-  { id: "bin", label: "Buy now price", group: "sale", kind: "range", range: { max: "bin_max", unit: "$" } },
-  { id: "bid", label: "Current bid", group: "sale", kind: "range", range: { max: "bid_max", unit: "$" } },
   { id: "source", label: "Auction", group: "sale", kind: "options", name: auctionName, hideWhenSingle: true },
-  { id: "state", label: "State or province", group: "where", kind: "options" },
+  { id: "state", label: "State or province", group: "location", kind: "options" },
   {
     id: "location",
-    label: "Location",
-    group: "where",
+    label: "Yard or offsite",
+    group: "location",
     kind: "options",
     options: [
       { value: "yard", label: "At the yard" },
@@ -120,16 +122,17 @@ export const FILTERS: Filter[] = [
   },
 ];
 
+/** "All filters", in the order a dealer narrows a search: what the lot is, its shape, its price, its sale, where it is. */
 export const GROUPS: { id: Filter["group"]; label: string }[] = [
-  { id: "main", label: "Sale date, title and damage" },
-  { id: "car", label: "The car" },
+  { id: "vehicle", label: "Vehicle" },
   { id: "condition", label: "Condition" },
-  { id: "sale", label: "The sale" },
-  { id: "where", label: "Where" },
+  { id: "price", label: "Price" },
+  { id: "sale", label: "Sale" },
+  { id: "location", label: "Location" },
 ];
 
-/** The filters always in the bar, most important first; the others wait in "All filters". */
-export const PRIMARY = FILTERS.filter((filter) => filter.group === "main").map((filter) => filter.id);
+/** The filters always in the bar, most important first; the sidebar beside it leaves them out. */
+export const PRIMARY = ["sale", "title", "run", "damage"];
 /** Filters counted per option by the API: everything but the ranges. */
 export const COUNTED = FILTERS.filter((filter) => filter.kind !== "range").map((filter) => filter.id);
 
@@ -213,7 +216,7 @@ export function rememberable(query: Query): Query {
   return rest;
 }
 
-/** The filters with a value chosen, in the bar's order. */
+/** The filters with a value chosen. */
 export const activeIds = (query: Query) =>
   FILTERS.filter((filter) => paramsOf(filter).some((param) => query[param])).map((filter) => filter.id);
 

@@ -435,13 +435,17 @@ the server-rendered cards) work like this:
 - **All filters** is a sidebar on the left, under the search and beside the lots, there from
   `lg` up and sticky, scrolling on its own. Its "Hide filters" button puts it away and the lots
   take the whole width; "Show filters · n", before the count, brings it back (both one
-  `Collapsible`; open on every visit). It leaves out the bar's own group (sale date,
-  title, runs and drives, damage) and holds the rest: year (From and To selects, this year down to 1900), make, model, mileage, vehicle type,
-  keys, secondary damage, sale type, Buy now available, retail value, Buy now price, current
-  bid, auction (hidden while every lot has the same one), state and location. Each filter
+  `Collapsible`; open on every visit). Its groups follow how a dealer narrows a search, in
+  `FILTERS`' order: **Vehicle** (vehicle type, make, model, year — From and To selects, this
+  year down to 1900 — mileage), **Condition** (runs and drives, damage, secondary damage,
+  keys), **Price** (current bid, Buy now price, retail value), **Sale** (sale date, title — the
+  document the sale hands over — sale type, Buy now available, auction, hidden while every lot
+  has the same one) and **Location** (state or province, yard or offsite). The sidebar leaves
+  out the bar's own filters (`PRIMARY`: sale date, title, runs and drives, damage). Each filter
   folds away (`Collapsible`): folded at first, unfolded from the start while it holds a
   choice; a switch (Buy now available) has nothing to fold. Below `lg` it is a sheet (the
-  whole screen on a phone) behind the bar's "Filters · n", which holds the bar's group too,
+  whole screen on a phone) behind the bar's "Filters · n", which holds the bar's filters too,
+  each in its group,
   since the bar shows nothing else there.
 - **Counts**: once the list is shown, the sidebar asks for every filter's counts in one call
   (`lotCountsAction`), which the popovers and the sheet share; each filter's counts leave out

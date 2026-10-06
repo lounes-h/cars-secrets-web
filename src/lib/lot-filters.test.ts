@@ -24,7 +24,7 @@ describe("readQuery", () => {
   it("keeps what the list understands, in one order whatever the URL's", () => {
     const query = read("sort=sale&damage=SIDE&title=salvage&q=  2019   camry &damage=FRONT%20END&page=3&evil=1");
     expect(query).toEqual({ q: ["2019 camry"], title: ["salvage"], damage: ["SIDE", "FRONT END"], sort: ["sale"] });
-    expect(queryString(query)).toBe("q=2019+camry&title=salvage&damage=SIDE&damage=FRONT+END&sort=sale");
+    expect(queryString(query)).toBe("q=2019+camry&damage=SIDE&damage=FRONT+END&title=salvage&sort=sale");
   });
 
   it("reads Next's search params, single or repeated", () => {
@@ -71,7 +71,7 @@ describe("readQuery", () => {
 describe("edit", () => {
   it("sets and removes parameters, keeping the order", () => {
     const query = read("title=salvage&sort=sale");
-    expect(queryString(edit(query, { sort: null, q: ["rav4"], run: ["starts"] }))).toBe("q=rav4&title=salvage&run=starts");
+    expect(queryString(edit(query, { sort: null, q: ["rav4"], run: ["starts"] }))).toBe("q=rav4&run=starts&title=salvage");
     expect(edit(query, { title: [] })).toEqual({ sort: ["sale"] });
   });
 });
@@ -93,7 +93,7 @@ describe("rememberable", () => {
 
 describe("activeIds", () => {
   it("names the filters with a value chosen, ranges included", () => {
-    expect(activeIds(read("q=x&odometer_max=5&title=clean&sort=year"))).toEqual(["title", "mileage"]);
+    expect(activeIds(read("q=x&odometer_max=5&title=clean&sort=year"))).toEqual(["mileage", "title"]);
   });
 });
 
@@ -173,28 +173,28 @@ describe("chips", () => {
     );
     expect(chips(query).map((chip) => chip.label)).toEqual([
       "“hybrid”",
-      "Sells today",
-      "Salvage title",
-      "Engine starts only",
-      "Damage: SIDE",
-      "Year 2018–2021",
+      "Vehicle type: Automobile",
       "TOYOTA",
       "RAV4",
+      "Year 2018–2021",
       "Mileage up to 100,000 mi",
-      "Vehicle type: Automobile",
-      "Buy now available",
-      "Retail value from $5,000",
+      "Engine starts only",
+      "Damage: SIDE",
       "Current bid up to $900",
+      "Retail value from $5,000",
+      "Sells today",
+      "Salvage title",
+      "Buy now available",
     ]);
   });
 
   it("remove only their own value, a range's bounds together, and a make's model with it", () => {
     const query = read("title=salvage&title=clean&year_min=2018&year_max=2021&make=TOYOTA&model=RAV4&sort=sale");
     const without = Object.fromEntries(chips(query).map((chip) => [chip.key, queryString(chip.without)]));
-    expect(without["title:salvage"]).toBe("title=clean&year_min=2018&year_max=2021&make=TOYOTA&model=RAV4&sort=sale");
-    expect(without.year).toBe("title=salvage&title=clean&make=TOYOTA&model=RAV4&sort=sale");
-    expect(without["make:TOYOTA"]).toBe("title=salvage&title=clean&year_min=2018&year_max=2021&sort=sale");
-    expect(without["model:RAV4"]).toBe("title=salvage&title=clean&year_min=2018&year_max=2021&make=TOYOTA&sort=sale");
+    expect(without["title:salvage"]).toBe("make=TOYOTA&model=RAV4&year_min=2018&year_max=2021&title=clean&sort=sale");
+    expect(without.year).toBe("make=TOYOTA&model=RAV4&title=salvage&title=clean&sort=sale");
+    expect(without["make:TOYOTA"]).toBe("year_min=2018&year_max=2021&title=salvage&title=clean&sort=sale");
+    expect(without["model:RAV4"]).toBe("make=TOYOTA&year_min=2018&year_max=2021&title=salvage&title=clean&sort=sale");
   });
 
   it("are none for an order alone", () => {
