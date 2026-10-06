@@ -1,12 +1,20 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const navigation = vi.hoisted(() => ({ pathname: "/" }));
 vi.mock("next/navigation", () => ({ usePathname: () => navigation.pathname }));
-vi.mock("@/app/(auth)/actions", () => ({ logoutAction: vi.fn() }));
+const { logoutAction } = vi.hoisted(() => ({ logoutAction: vi.fn() }));
+vi.mock("@/app/(auth)/actions", () => ({ logoutAction }));
 
 const { AccountNav, initials } = await import("@/components/AccountNav");
+
+/** Opens the account menu, as clicking the initials does. */
+async function openMenu() {
+  const button = await screen.findByRole("button", { name: "Account menu" });
+  await act(async () => fireEvent.click(button));
+  return screen.getByRole("menu");
+}
 
 const LOUNES = { first_name: "Lounes", last_name: "Hammache", email: "l@example.com" };
 
@@ -68,22 +76,21 @@ describe("AccountNav", () => {
     const button = await screen.findByRole("button", { name: "Account menu" });
     expect(button.textContent).toBe("LH");
     expect(button.className).toContain("rounded-full");
-    expect(button.className).toContain("cursor-pointer");
-    expect(button.getAttribute("popovertarget")).toBe("account-menu");
-    expect(document.getElementById("account-menu")?.getAttribute("popover")).toBe("auto");
-    expect(screen.queryByText("Lounes")).toBeNull();
+    expect(button.getAttribute("aria-haspopup")).toBe("menu");
+    expect(screen.queryByText("Lounes Hammache")).toBeNull();
     expect(screen.queryByRole("link", { name: "Sign in" })).toBeNull();
+    await openMenu();
+    expect(button.getAttribute("aria-expanded")).toBe("true");
   });
 
   it("lists the dealer, Settings, Account and Log out in the menu", async () => {
     session(LOUNES);
     render(<AccountNav />);
-    await screen.findByRole("button", { name: "Account menu" });
-    const menu = document.getElementById("account-menu")!;
+    const menu = await openMenu();
     expect(menu.textContent).toContain("LH");
     expect(within(menu).getByText("Lounes Hammache")).toBeTruthy();
     expect(within(menu).getByText("l@example.com")).toBeTruthy();
-    expect([...menu.querySelectorAll("a, button")].map((item) => [item.textContent, item.getAttribute("href")])).toEqual([
+    expect(within(menu).getAllByRole("menuitem").map((item) => [item.textContent, item.getAttribute("href")])).toEqual([
       ["Settings", "/settings"],
       ["Account", "/account"],
       ["Log out", null],
@@ -91,24 +98,23 @@ describe("AccountNav", () => {
   });
 
   it("closes the menu when one of its links is followed, not on any click", async () => {
-    const hidePopover = vi.fn();
-    HTMLElement.prototype.hidePopover = hidePopover;
     session(LOUNES);
     render(<AccountNav />);
-    await screen.findByRole("button", { name: "Account menu" });
-    fireEvent.click(screen.getByText("Lounes Hammache"));
-    expect(hidePopover).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("link", { name: "Settings", hidden: true }));
-    expect(hidePopover).toHaveBeenCalledTimes(1);
+    await openMenu();
+    await act(async () => fireEvent.click(screen.getByText("Lounes Hammache")));
+    expect(screen.getByRole("menu")).toBeTruthy();
+    await act(async () => fireEvent.click(screen.getByRole("menuitem", { name: "Settings" })));
+    expect(screen.queryByRole("menu")).toBeNull();
   });
 
-  it("forgets the remembered email when the dealer logs out", async () => {
+  it("logs out, forgetting the remembered email", async () => {
     window.sessionStorage.setItem("cs_email", "dana@example.com");
     session(LOUNES);
     render(<AccountNav />);
-    await screen.findByRole("button", { name: "Account menu" });
-    fireEvent.submit(screen.getByRole("button", { name: "Log out", hidden: true }));
+    await openMenu();
+    await act(async () => fireEvent.click(screen.getByRole("menuitem", { name: "Log out" })));
     expect(window.sessionStorage.getItem("cs_email")).toBe(null);
+    expect(logoutAction).toHaveBeenCalledTimes(1);
   });
 
   it("falls back to signed out when the session cannot be read", async () => {
@@ -129,7 +135,7 @@ describe("AccountNav fallbacks", () => {
     session({ first_name: "", last_name: "", email: "dealer@example.com" });
     render(<AccountNav />);
     expect((await screen.findByRole("button", { name: "Account menu" })).textContent).toBe("D");
-    const menu = document.getElementById("account-menu")!;
+    const menu = await openMenu();
     expect(menu.querySelectorAll("p")).toHaveLength(1);
     expect(within(menu).getByText("dealer@example.com")).toBeTruthy();
   });

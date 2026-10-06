@@ -2,7 +2,8 @@
 
 import { useId, useState, type KeyboardEvent } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
-import { FieldError } from "@/components/auth/FieldError";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { PASSWORD_MAX, PASSWORD_RULES } from "@/lib/auth-schemas";
 
 type Props = {
@@ -30,17 +31,16 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
   const typed = requirementFor ?? "";
 
   return (
-    <div>
-      <label htmlFor={id}>{label}</label>
-      <div className="relative">
-        <input
+    <Field data-invalid={error ? true : undefined}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <InputGroup>
+        <InputGroupInput
           id={id}
           type={visible ? "text" : "password"}
           autoComplete={autoComplete}
           maxLength={PASSWORD_MAX}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className="pr-20"
           {...registration}
           onFocus={() => setFocused(true)}
           onKeyDown={checkCaps}
@@ -50,35 +50,31 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
             return registration.onBlur(event);
           }}
         />
-        <button
-          type="button"
-          aria-pressed={visible}
-          aria-controls={id}
-          aria-label={visible ? "Hide password" : "Show password"}
-          onClick={() => setVisible((v) => !v)}
-          className="btn btn-link absolute top-1/2 right-1 -translate-y-1/2"
-        >
-          {visible ? "Hide" : "Show"}
-        </button>
-      </div>
-      {capsLock && (
-        <p id={`${id}-caps`} className="hint mt-1">
-          Caps Lock is on.
-        </p>
-      )}
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton
+            aria-pressed={visible}
+            aria-controls={id}
+            aria-label={visible ? "Hide password" : "Show password"}
+            onClick={() => setVisible((v) => !v)}
+          >
+            {visible ? "Hide" : "Show"}
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
+      {capsLock && <FieldDescription id={`${id}-caps`}>Caps Lock is on.</FieldDescription>}
       {showRules && (
-        <ul id={`${id}-rules`} className="hint mt-1">
+        <ul id={`${id}-rules`} className="text-sm text-muted-foreground">
           {PASSWORD_RULES.map((rule) => {
             const met = rule.test(typed);
             return (
-              <li key={rule.text} className={met ? "font-medium text-ink" : undefined}>
+              <li key={rule.text} className={met ? "font-medium text-foreground" : undefined}>
                 {met ? "✓" : "•"} {rule.text}
               </li>
             );
           })}
         </ul>
       )}
-      <FieldError id={`${id}-error`} message={error} />
-    </div>
+      <FieldError id={`${id}-error`}>{error}</FieldError>
+    </Field>
   );
 }

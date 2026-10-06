@@ -1,3 +1,17 @@
+import {
+  CarIcon,
+  CheckIcon,
+  ClockIcon,
+  CogIcon,
+  DotIcon,
+  EngineIcon,
+  FuelIcon,
+  PaletteIcon,
+  TagIcon,
+  TriangleAlertIcon,
+  XIcon,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
@@ -5,6 +19,9 @@ import { DealCalculator } from "@/components/DealCalculator";
 import { GalleryTabs } from "@/components/GalleryTabs";
 import { DamageMap, DamageReport, Market, PremiumBadge, PremiumSummary } from "@/components/PremiumSections";
 import { LocalTime } from "@/components/LocalTime";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { badges, countdown, driveType, engineSpec, odometerStatus, titleType, vehicleType } from "@/lib/lot-signals";
 import {
   amount,
@@ -51,7 +68,7 @@ export default async function LotPage({ params }: { params: Params }) {
     return (
       <Shell heading={`Lot ${lotNumber}`}>
         <p className="mt-8">
-          <Link href="/login" className="btn btn-primary">
+          <Link href="/login" className={buttonVariants()}>
             Sign in to see this lot
           </Link>
         </p>
@@ -81,13 +98,13 @@ export default async function LotPage({ params }: { params: Params }) {
   const offsiteAt = offsiteAddress(lot);
 
   return (
-    <main className="flex-1 bg-white px-4 pt-8 pb-24 sm:px-6 lg:px-10">
+    <main className="flex-1 px-4 pt-8 pb-24 sm:px-6 lg:px-10">
       {/* 1. Summary */}
       <header>
         <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
           <div className="min-w-0">
             <h1>{title}</h1>
-            <p className="mt-1 flex flex-wrap items-center gap-x-4 font-mono text-sm text-muted">
+            <p className="mt-1 flex flex-wrap items-center gap-x-4 font-mono text-sm text-muted-foreground">
               <span className="break-all">
                 Lot {lot.lot_number} <CopyButton value={lot.lot_number} label="lot number" />
               </span>
@@ -100,31 +117,37 @@ export default async function LotPage({ params }: { params: Params }) {
           </div>
           <div className="sm:text-right">
             {left && (
-              <p className={`flex items-center gap-1.5 font-semibold sm:justify-end ${left.tone === "neutral" ? "text-muted" : ""}`} data-tone={left.tone}>
-                <Icon name="clock" />
+              <p
+                className="flex items-center gap-1.5 font-semibold data-[tone=bad]:text-bad data-[tone=neutral]:text-muted-foreground data-[tone=warn]:text-warn sm:justify-end"
+                data-tone={left.tone}
+              >
+                <ClockIcon aria-hidden="true" className="size-4" />
                 {left.label}
               </p>
             )}
             {/* No sale day yet is what Copart calls a future sale. */}
-            <p className="text-sm text-muted">
+            <p className="text-sm text-muted-foreground">
               {lot.sale_at ? <LocalTime value={lot.sale_at} format="sale" /> : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
             </p>
             {lot.listing_url && (
-              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline mt-2">
+              <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className={buttonVariants({ variant: "outline", className: "mt-2" })}>
                 View on {auction}
               </a>
             )}
-            <p className="hint mt-1">Bidding happens on {auction}&apos;s own site.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Bidding happens on {auction}&apos;s own site.</p>
           </div>
         </div>
-        {meta.length > 0 && <p className="mt-3 text-sm text-muted">{meta.join(" · ")}</p>}
+        {meta.length > 0 && <p className="mt-3 text-sm text-muted-foreground">{meta.join(" · ")}</p>}
         <ul aria-label="Deal breakers" className="mt-3 flex flex-wrap gap-2">
-          {badges(lot).map((badge) => (
-            <li key={badge.label} className="badge" data-tone={badge.tone}>
-              <span aria-hidden="true">{TONE_ICONS[badge.tone]}</span>
-              {badge.label}
-            </li>
-          ))}
+          {badges(lot).map((badge) => {
+            const Tone = TONE_ICONS[badge.tone];
+            return (
+              <Badge key={badge.label} render={<li />} variant="outline" data-tone={badge.tone} className={`h-6 px-2.5 text-sm ${TONE_COLORS[badge.tone]}`}>
+                <Tone aria-hidden="true" />
+                {badge.label}
+              </Badge>
+            );
+          })}
         </ul>
         <PremiumSummary className="mt-6" />
       </header>
@@ -137,23 +160,27 @@ export default async function LotPage({ params }: { params: Params }) {
         />
 
         {/* 3. Deal calculator: the one emphasised card on the page. */}
-        <section aria-labelledby="deal" className="card self-start border-2 border-ink">
-          <div className="flex flex-wrap items-center gap-3">
-            <PremiumBadge />
-            <h2 id="deal" className="text-lg font-semibold">Deal calculator</h2>
-          </div>
-          <p className="mt-3 font-semibold">
-            Likely final bid: {lot.predicted_final_price == null ? "Not available" : amount(lot.predicted_final_price, lot.currency)}
-          </p>
-          <DealCalculator />
-          <p className="mt-3 text-sm text-muted">
-            Current bid {amount(lot.high_bid, lot.currency)} · Retail value (ACV) {amount(lot.est_retail_value, lot.currency)}
-          </p>
-          {lot.listing_url && buyNow && (
-            <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className="btn btn-outline mt-4">
-              Buy now {buyNow}
-            </a>
-          )}
+        <section aria-labelledby="deal" className="self-start">
+          <Card className="ring-2 ring-foreground">
+            <CardHeader className="flex flex-wrap items-center gap-3">
+              <PremiumBadge />
+              <h2 id="deal" className="font-heading text-lg font-semibold">Deal calculator</h2>
+            </CardHeader>
+            <CardContent>
+              <p className="font-semibold">
+                Likely final bid: {lot.predicted_final_price == null ? "Not available" : amount(lot.predicted_final_price, lot.currency)}
+              </p>
+              <DealCalculator />
+              <p className="mt-3 text-sm text-muted-foreground">
+                Current bid {amount(lot.high_bid, lot.currency)} · Retail value (ACV) {amount(lot.est_retail_value, lot.currency)}
+              </p>
+              {lot.listing_url && buyNow && (
+                <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className={buttonVariants({ variant: "outline", className: "mt-4" })}>
+                  Buy now {buyNow}
+                </a>
+              )}
+            </CardContent>
+          </Card>
         </section>
       </div>
 
@@ -183,21 +210,21 @@ export default async function LotPage({ params }: { params: Params }) {
 
       {/* 7. Specs */}
       <section aria-labelledby="specs" className="mt-8">
-        <h2 id="specs" className="text-sm font-semibold text-muted">Specs</h2>
+        <h2 id="specs" className="text-sm font-semibold text-muted-foreground">Specs</h2>
         <ul className="mt-2 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-2">
-          {[
-            ["engine", "Engine", engineSpec(lot)],
-            ["transmission", "Transmission", lot.transmission],
-            ["fuel", "Fuel", lot.fuel_type],
-            ["color", "Color", lot.color],
-            ["body", "Body style", lot.body_style],
-            ["tag", "Vehicle type", vehicleType(lot)],
-            ["tag", "Model detail", lot.model_detail],
-          ].map(([icon, label, value]) => (
-            <li key={label} className="flex items-start gap-2 rounded border border-line p-2">
-              <Icon name={icon as IconName} />
+          {([
+            [EngineIcon, "Engine", engineSpec(lot)],
+            [CogIcon, "Transmission", lot.transmission],
+            [FuelIcon, "Fuel", lot.fuel_type],
+            [PaletteIcon, "Color", lot.color],
+            [CarIcon, "Body style", lot.body_style],
+            [TagIcon, "Vehicle type", vehicleType(lot)],
+            [TagIcon, "Model detail", lot.model_detail],
+          ] satisfies [LucideIcon, string, string | null][]).map(([Icon, label, value]) => (
+            <li key={label} className="flex items-start gap-2 rounded-lg border p-2">
+              <Icon aria-hidden="true" className="size-4 flex-none" />
               <span className="min-w-0">
-                <span className="block text-xs text-muted">{label}</span>
+                <span className="block text-xs text-muted-foreground">{label}</span>
                 <span className="block text-sm break-words">{value || "—"}</span>
               </span>
             </li>
@@ -207,8 +234,8 @@ export default async function LotPage({ params }: { params: Params }) {
 
       {/* 8. Sale info */}
       <section aria-labelledby="sale" className="mt-8">
-        <h2 id="sale" className="text-sm font-semibold text-muted">Sale info</h2>
-        <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted [&>div]:flex [&>div]:gap-1.5 [&_dd]:text-ink">
+        <h2 id="sale" className="text-sm font-semibold text-muted-foreground">Sale info</h2>
+        <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground [&>div]:flex [&>div]:gap-1.5 [&_dd]:text-foreground">
           {([
             ["Auction", auction],
             ["Seller", sellerName(lot)],
@@ -235,7 +262,7 @@ export default async function LotPage({ params }: { params: Params }) {
  */
 function Photos({ lot, images }: { lot: Lot; images: LotImage[] }) {
   const photos = images.filter((image) => image.full ?? image.thumb);
-  if (photos.length === 0) return <p className="hint">The auction has published no photos of this lot.</p>;
+  if (photos.length === 0) return <p className="text-sm text-muted-foreground">The auction has published no photos of this lot.</p>;
   const photoId = (index: number) => `photo-${index + 1}`;
   const describe = (index: number) => `${vehicle(lot)}, lot ${lot.lot_number}, photo ${index + 1} of ${photos.length}`;
   const tall = "h-[min(50vh,28rem)]";
@@ -251,13 +278,13 @@ function Photos({ lot, images }: { lot: Lot; images: LotImage[] }) {
                   src={photo.thumb ?? photo.full ?? ""}
                   alt={`Show photo ${index + 1}`}
                   loading="lazy"
-                  className="h-14 w-full rounded border border-line object-cover sm:h-16"
+                  className="h-14 w-full rounded-md border object-cover sm:h-16"
                 />
               </a>
             ))}
           </div>
         )}
-        <div className="flex flex-1 snap-x snap-mandatory overflow-x-auto rounded border border-line bg-ink">
+        <div className="flex flex-1 snap-x snap-mandatory overflow-x-auto rounded-lg border bg-foreground">
           {photos.map((photo, index) => (
             // eslint-disable-next-line @next/next/no-img-element -- as above
             <img
@@ -278,7 +305,7 @@ function Photos({ lot, images }: { lot: Lot; images: LotImage[] }) {
 
 function Shell({ heading, children }: { heading: string; children: React.ReactNode }) {
   return (
-    <main className="flex-1 bg-white px-4 py-10 sm:px-6 lg:px-10">
+    <main className="flex-1 px-4 py-10 sm:px-6 lg:px-10">
       <h1>{heading}</h1>
       {children}
     </main>
@@ -289,7 +316,7 @@ function Shell({ heading, children }: { heading: string; children: React.ReactNo
 function Details({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="min-w-0">
-      <h2 className="text-sm font-semibold text-muted">{title}</h2>
+      <h2 className="text-sm font-semibold text-muted-foreground">{title}</h2>
       <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">{children}</dl>
     </section>
   );
@@ -298,29 +325,17 @@ function Details({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, value }: { label: string; value: string | number | null }) {
   return (
     <>
-      <dt className="text-muted">{label}</dt>
+      <dt className="text-muted-foreground">{label}</dt>
       <dd className="break-words">{value || "—"}</dd>
     </>
   );
 }
 
-const TONE_ICONS = { good: "✓", warn: "!", bad: "✕", neutral: "•" } as const;
+const TONE_ICONS = { good: CheckIcon, warn: TriangleAlertIcon, bad: XIcon, neutral: DotIcon } as const;
 
-const ICONS = {
-  clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
-  engine: <><circle cx="12" cy="12" r="3" /><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" /></>,
-  transmission: <path d="M6 4v16M12 4v16M18 4v8M6 12h12" />,
-  fuel: <path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z" />,
-  color: <><circle cx="12" cy="12" r="9" /><path d="M12 3v18" /></>,
-  body: <path d="M3 16v-3l2-5h14l2 5v3zM7 16v2M17 16v2" />,
-  tag: <><path d="M3 12V3h9l9 9-9 9z" /><circle cx="7.5" cy="7.5" r="1" /></>,
-};
-type IconName = keyof typeof ICONS;
-
-function Icon({ name }: { name: IconName }) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 flex-none" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {ICONS[name]}
-    </svg>
-  );
-}
+const TONE_COLORS = {
+  good: "border-good/40 bg-good-bg text-good",
+  warn: "border-warn/40 bg-warn-bg text-warn",
+  bad: "border-bad/40 bg-bad-bg text-bad",
+  neutral: "bg-muted text-muted-foreground",
+} as const;

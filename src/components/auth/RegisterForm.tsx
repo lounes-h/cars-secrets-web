@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { registerAction } from "@/app/(auth)/actions";
-import { FieldError, FormError } from "@/components/auth/FieldError";
+import { FormError } from "@/components/auth/FormError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { PhoneField } from "@/components/auth/PhoneField";
@@ -13,6 +13,9 @@ import { SocialButtons } from "@/components/auth/SocialButtons";
 import { Turnstile } from "@/components/auth/Turnstile";
 import { EMAIL_MAX, NAME_MAX, registerSchema, type RegisterInput } from "@/lib/auth-schemas";
 import { VerifyEmailForm } from "@/components/auth/VerifyEmailForm";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { countryFromBrowser, type Country } from "@/lib/countries";
 
 type Props = { countries: Country[]; defaultCountry: string };
@@ -63,81 +66,83 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
 
   // The social buttons sit here, not on the page, so the code step replaces them too.
   return (
-    <>
+    <FieldGroup>
       <SocialButtons intent="Register" />
-      <p className="divider">or register with your email</p>
-      <form onSubmit={onSubmit} noValidate className="form-stack">
-        <FormError message={errors.root?.server?.message} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="first_name">First name</label>
-            <input
-              id="first_name"
-              autoComplete="given-name"
-              maxLength={NAME_MAX}
-              aria-invalid={errors.first_name ? true : undefined}
-              aria-describedby={errors.first_name ? "first_name-error" : undefined}
-              {...register("first_name")}
-            />
-            <FieldError id="first_name-error" message={errors.first_name?.message} />
+      <FieldSeparator>or register with your email</FieldSeparator>
+      <form onSubmit={onSubmit} noValidate>
+        <FieldGroup>
+          <FormError message={errors.root?.server?.message} />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field data-invalid={errors.first_name ? true : undefined}>
+              <FieldLabel htmlFor="first_name">First name</FieldLabel>
+              <Input
+                id="first_name"
+                autoComplete="given-name"
+                maxLength={NAME_MAX}
+                aria-invalid={errors.first_name ? true : undefined}
+                aria-describedby={errors.first_name ? "first_name-error" : undefined}
+                {...register("first_name")}
+              />
+              <FieldError id="first_name-error">{errors.first_name?.message}</FieldError>
+            </Field>
+            <Field data-invalid={errors.last_name ? true : undefined}>
+              <FieldLabel htmlFor="last_name">Last name</FieldLabel>
+              <Input
+                id="last_name"
+                autoComplete="family-name"
+                maxLength={NAME_MAX}
+                aria-invalid={errors.last_name ? true : undefined}
+                aria-describedby={errors.last_name ? "last_name-error" : undefined}
+                {...register("last_name")}
+              />
+              <FieldError id="last_name-error">{errors.last_name?.message}</FieldError>
+            </Field>
           </div>
-          <div>
-            <label htmlFor="last_name">Last name</label>
-            <input
-              id="last_name"
-              autoComplete="family-name"
-              maxLength={NAME_MAX}
-              aria-invalid={errors.last_name ? true : undefined}
-              aria-describedby={errors.last_name ? "last_name-error" : undefined}
-              {...register("last_name")}
+          <Field data-invalid={errors.email ? true : undefined}>
+            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              maxLength={EMAIL_MAX}
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              {...register("email")}
             />
-            <FieldError id="last_name-error" message={errors.last_name?.message} />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            inputMode="email"
-            maxLength={EMAIL_MAX}
-            aria-invalid={errors.email ? true : undefined}
-            aria-describedby={errors.email ? "email-error" : undefined}
-            {...register("email")}
+            <FieldError id="email-error">{errors.email?.message}</FieldError>
+          </Field>
+          <PhoneField
+            countries={countries}
+            country={register("phone_country")}
+            number={register("phone_number")}
+            defaultCountry={defaultCountry}
+            selected={phoneCountry}
+            error={errors.phone_number?.message}
           />
-          <FieldError id="email-error" message={errors.email?.message} />
-        </div>
-        <PhoneField
-          countries={countries}
-          country={register("phone_country")}
-          number={register("phone_number")}
-          defaultCountry={defaultCountry}
-          selected={phoneCountry}
-          error={errors.phone_number?.message}
-        />
-        <PasswordField
-          registration={register("password")}
-          autoComplete="new-password"
-          error={errors.password?.message}
-          requirementFor={password}
-        />
-        <Turnstile
-          action="register"
-          resetSignal={captchaReset}
-          onToken={(token) => setValue("captcha_token", token ?? "")}
-        />
-        <p className="hint">
-          By clicking on &ldquo;Agree and register&rdquo;, I agree to the Terms of Use and Privacy
-          Policy.
-        </p>
-        <button type="submit" disabled={isSubmitting} className="btn btn-primary w-full">
-          {isSubmitting ? "Creating your account…" : "Agree and register"}
-        </button>
-        <p className="hint text-center">
-          Already registered? <Link href="/login">Sign in</Link>
-        </p>
+          <PasswordField
+            registration={register("password")}
+            autoComplete="new-password"
+            error={errors.password?.message}
+            requirementFor={password}
+          />
+          <Turnstile
+            action="register"
+            resetSignal={captchaReset}
+            onToken={(token) => setValue("captcha_token", token ?? "")}
+          />
+          <FieldDescription>
+            By clicking on &ldquo;Agree and register&rdquo;, I agree to the Terms of Use and Privacy
+            Policy.
+          </FieldDescription>
+          <Button type="submit" disabled={isSubmitting} size="xl" className="w-full">
+            {isSubmitting ? "Creating your account…" : "Agree and register"}
+          </Button>
+          <FieldDescription className="text-center">
+            Already registered? <Link href="/login">Sign in</Link>
+          </FieldDescription>
+        </FieldGroup>
       </form>
-    </>
+    </FieldGroup>
   );
 }

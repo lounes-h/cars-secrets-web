@@ -4,9 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { resendVerificationAction, verifyEmailAction } from "@/app/(auth)/actions";
-import { FieldError, FormError } from "@/components/auth/FieldError";
+import { FormError } from "@/components/auth/FormError";
 import { showServerErrors } from "@/components/auth/form-helpers";
 import { Turnstile } from "@/components/auth/Turnstile";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { CODE_LENGTH, codeDigits, verifyEmailSchema, type VerifyEmailInput } from "@/lib/auth-schemas";
 import { forgetEmail, rememberEmail } from "@/lib/remembered-email";
 
@@ -95,59 +99,65 @@ export function VerifyEmailForm({ email, remember = false, onChangeEmail }: Prop
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="form-stack">
-      <p>
-        Enter the {CODE_LENGTH}-digit code we sent to <strong>{email}</strong>. It expires in 10 minutes.
-      </p>
-      <FormError message={errors.root?.server?.message} />
-      <div>
-        <label htmlFor="code">Confirmation code</label>
-        <input
-          id="code"
-          type="text"
-          className="code-input"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          pattern="[0-9]*"
-          // No maxLength: it would cut a pasted "123 456" before the spaces are dropped.
-          spellCheck={false}
-          aria-invalid={errors.code ? true : undefined}
-          aria-describedby={errors.code ? "code-error" : "code-hint"}
-          {...code}
-        />
-        <FieldError id="code-error" message={errors.code?.message} />
-        {!errors.code && (
-          <p id="code-hint" className="hint mt-1">
-            Can&rsquo;t find it? Check your spam or promotions folder.
-          </p>
+    <form onSubmit={onSubmit} noValidate>
+      <FieldGroup>
+        <p>
+          Enter the {CODE_LENGTH}-digit code we sent to <strong>{email}</strong>. It expires in 10 minutes.
+        </p>
+        <FormError message={errors.root?.server?.message} />
+        <Field data-invalid={errors.code ? true : undefined}>
+          <FieldLabel htmlFor="code">Confirmation code</FieldLabel>
+          <Input
+            id="code"
+            type="text"
+            // Six spaced digits, easy to check against the email.
+            className="text-center font-mono text-2xl tracking-[0.5em] tabular-nums md:text-2xl"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]*"
+            // No maxLength: it would cut a pasted "123 456" before the spaces are dropped.
+            spellCheck={false}
+            aria-invalid={errors.code ? true : undefined}
+            aria-describedby={errors.code ? "code-error" : "code-hint"}
+            {...code}
+          />
+          <FieldError id="code-error">{errors.code?.message}</FieldError>
+          {!errors.code && (
+            <FieldDescription id="code-hint">Can&rsquo;t find it? Check your spam or promotions folder.</FieldDescription>
+          )}
+        </Field>
+        <Button type="submit" disabled={isSubmitting} size="xl" className="w-full">
+          {isSubmitting ? "Confirming…" : "Confirm my email"}
+        </Button>
+        <div role="status" aria-live="polite">
+          {resent && (
+            // The live region around it announces it; an alert of its own would say it twice.
+            <Alert role="none">
+              <AlertDescription>We sent a new code to {email}. Use the newest one.</AlertDescription>
+            </Alert>
+          )}
+        </div>
+        {wait <= 0 && (
+          <Turnstile action="resend_verification" resetSignal={captchaReset} onToken={(token) => setCaptcha(token ?? "")} />
         )}
-      </div>
-      <button type="submit" disabled={isSubmitting} className="btn btn-primary w-full">
-        {isSubmitting ? "Confirming…" : "Confirm my email"}
-      </button>
-      <div role="status" aria-live="polite">
-        {resent && <p className="notice">We sent a new code to {email}. Use the newest one.</p>}
-      </div>
-      {wait <= 0 && (
-        <Turnstile action="resend_verification" resetSignal={captchaReset} onToken={(token) => setCaptcha(token ?? "")} />
-      )}
-      <p className="hint text-center">
-        {wait > 0 ? (
-          <>Didn&rsquo;t get it? You can ask for a new code in {wait} s.</>
-        ) : (
-          <button type="button" className="btn btn-link inline p-0 underline" disabled={resending} onClick={resend}>
-            {resending ? "Sending…" : "Send a new code"}
-          </button>
-        )}
-        {onChangeEmail && (
-          <>
-            {" · "}
-            <button type="button" className="btn btn-link inline p-0 underline" onClick={onChangeEmail}>
-              Use a different email
-            </button>
-          </>
-        )}
-      </p>
+        <FieldDescription className="text-center">
+          {wait > 0 ? (
+            <>Didn&rsquo;t get it? You can ask for a new code in {wait} s.</>
+          ) : (
+            <Button type="button" variant="link" className="h-auto p-0 underline" disabled={resending} onClick={resend}>
+              {resending ? "Sending…" : "Send a new code"}
+            </Button>
+          )}
+          {onChangeEmail && (
+            <>
+              {" · "}
+              <Button type="button" variant="link" className="h-auto p-0 underline" onClick={onChangeEmail}>
+                Use a different email
+              </Button>
+            </>
+          )}
+        </FieldDescription>
+      </FieldGroup>
     </form>
   );
 }

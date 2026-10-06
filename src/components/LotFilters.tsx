@@ -1,8 +1,18 @@
 "use client";
 
+import { ChevronDownIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useEffect, useRef, useState, useTransition } from "react";
+import { type ReactNode, useEffect, useState, useTransition } from "react";
 import { lotCountsAction, rememberLotFiltersAction } from "@/app/active-lots/actions";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   activeIds,
   chips,
@@ -55,21 +65,16 @@ export function LotFilters({
   const [pending, startTransition] = useTransition();
   const search = queryString(query);
   const keep = queryString(rememberable(query));
-  const [wanted, setWanted] = useState("");
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [counts, setCounts] = useState<{ search: string; facets: Facets; loaded: string[] } | null>(null);
-  const bar = useRef<HTMLDivElement>(null);
-  const panel = useRef<HTMLDialogElement>(null);
+  // The counts the open lists need: every filter's while "All filters" is open.
+  const wanted = (sheetOpen ? COUNTED : COUNTED.filter((id) => id === openMenu)).join(",");
 
   function apply(next: Query) {
     // The bar always sets an order, so a URL without parameters means "as I left it".
     const ordered = edit(next, { sort: next.sort ?? ["newest"] });
     startTransition(() => router.push(listPath(ordered), { scroll: false }));
-  }
-
-  /** The counts the open lists need: every filter's while "All filters" is open. */
-  function syncWanted() {
-    const menus = [...(bar.current?.querySelectorAll<HTMLElement>("details[open]") ?? [])];
-    setWanted((panel.current?.open ? COUNTED : menus.map((menu) => menu.dataset.facet ?? "")).filter(Boolean).join(","));
   }
 
   function countsOf(id: string): Counts {
@@ -112,21 +117,6 @@ export function LotFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    function close(event: Event) {
-      for (const menu of bar.current?.querySelectorAll("details[open]") ?? []) {
-        const escape = event instanceof KeyboardEvent && event.key === "Escape";
-        if (escape || (event.type === "click" && !menu.contains(event.target as Node))) menu.removeAttribute("open");
-      }
-    }
-    document.addEventListener("click", close);
-    document.addEventListener("keydown", close);
-    return () => {
-      document.removeEventListener("click", close);
-      document.removeEventListener("keydown", close);
-    };
-  }, []);
-
   const active = activeIds(query);
   const inBar = [...PRIMARY, ...promoted(usage)];
   const hidden = active.filter((id) => !inBar.includes(id)).length;
@@ -140,65 +130,86 @@ export function LotFilters({
 
   return (
     <div>
-      <form
-        role="search"
-        className="flex max-w-3xl gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const q = String(new FormData(event.currentTarget).get("q") ?? "").trim();
-          apply(edit(query, { q: q ? [q] : null }));
-        }}
-      >
-        <label htmlFor="lot-search" className="sr-only">
-          Search lots
-        </label>
-        <input
-          key={search}
-          id="lot-search"
-          name="q"
-          type="search"
-          defaultValue={query.q?.[0] ?? ""}
-          maxLength={200}
-          placeholder="Make, model, year, VIN, lot number or keyword"
-        />
-        <button type="submit" className="btn btn-primary">
-          Search
-        </button>
-      </form>
-
-      <div ref={bar} className="mt-3 flex flex-wrap items-center gap-2">
-        {inBar.map((id) => {
-          const filter = filterById(id);
-          return visible(filter) ? (
-            <Menu key={id} filter={filter} query={query} counts={countsOf(id)} apply={apply} onToggle={syncWanted} />
-          ) : null;
-        })}
-        <button
-          type="button"
-          className="btn btn-outline"
-          aria-haspopup="dialog"
-          onClick={() => {
-            panel.current?.showModal();
-            syncWanted();
+      {/* One line: the search on the left, up to 28rem, and the filters on the right; below lg the
+          search takes a line of its own. The order sits on the line below, with the count and the chips. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <form
+          role="search"
+          className="flex w-full gap-2 lg:w-auto lg:max-w-md lg:min-w-60 lg:flex-1"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const q = String(new FormData(event.currentTarget).get("q") ?? "").trim();
+            apply(edit(query, { q: q ? [q] : null }));
           }}
         >
-          <span className="lg:hidden">Filters{active.length > 0 && ` · ${active.length}`}</span>
-          <span className="hidden lg:inline">All filters{hidden > 0 && ` · ${hidden}`}</span>
-        </button>
-        <label className="mb-0 ml-auto flex items-center gap-2">
-          Sort
-          <select
-            className="w-auto"
-            value={query.sort?.[0] ?? "newest"}
-            onChange={(event) => apply(edit(query, { sort: [event.target.value] }))}
-          >
-            {SORTS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+          <Label htmlFor="lot-search" className="sr-only">
+            Search lots
+          </Label>
+          <Input
+            key={search}
+            id="lot-search"
+            name="q"
+            type="search"
+            defaultValue={query.q?.[0] ?? ""}
+            maxLength={200}
+            placeholder="Make, model, year, VIN, lot number or keyword"
+          />
+          {/* As tall as the input beside it (h-12). */}
+          <Button type="submit" className="h-12">
+            Search
+          </Button>
+        </form>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          {inBar.map((id) => {
+            const filter = filterById(id);
+            return visible(filter) ? (
+              <Menu
+                key={id}
+                filter={filter}
+                query={query}
+                counts={countsOf(id)}
+                apply={apply}
+                // Another menu may open before this one reports closing.
+                onOpenChange={(open) => setOpenMenu((current) => (open ? id : current === id ? null : current))}
+              />
+            ) : null;
+          })}
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetTrigger render={<Button variant="outline" />}>
+              <span className="lg:hidden">Filters{active.length > 0 && ` · ${active.length}`}</span>
+              <span className="hidden lg:inline">All filters{hidden > 0 && ` · ${hidden}`}</span>
+            </SheetTrigger>
+            {/* The whole screen on a phone. */}
+            <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
+              <SheetHeader className="border-b">
+                <SheetTitle className="text-xl font-semibold">All filters</SheetTitle>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto p-4">
+                {GROUPS.map((group) => {
+                  const shown = FILTERS.filter((filter) => filter.group === group.id && visible(filter));
+                  return (
+                    <section key={group.id} className="mb-6 flex flex-col gap-4">
+                      <h3 className="font-semibold">{group.label}</h3>
+                      {shown.map((filter) =>
+                        filter.kind === "toggle" ? (
+                          <Control key={filter.id} filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
+                        ) : (
+                          <FieldSet key={filter.id} className="gap-2">
+                            <FieldLegend variant="label">{filter.label}</FieldLegend>
+                            <Control filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
+                          </FieldSet>
+                        ),
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+              <SheetFooter className="border-t">
+                <SheetClose render={<Button className="w-full" />}>Show {lots(total)}</SheetClose>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -206,54 +217,37 @@ export function LotFilters({
           {lots(total)}
         </p>
         {found.map((chip) => (
-          <button key={chip.key} type="button" className="chip" aria-label={`Remove ${chip.label}`} onClick={() => apply(chip.without)}>
-            {chip.label} <span aria-hidden="true">✕</span>
-          </button>
+          <Button
+            key={chip.key}
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            aria-label={`Remove ${chip.label}`}
+            onClick={() => apply(chip.without)}
+          >
+            {chip.label} <XIcon aria-hidden="true" />
+          </Button>
         ))}
         {found.length > 0 && (
-          <button type="button" className="btn btn-link" onClick={() => apply(edit({}, { sort: query.sort ?? null }))}>
+          <Button type="button" variant="link" size="sm" onClick={() => apply(edit({}, { sort: query.sort ?? null }))}>
             Clear all
-          </button>
+          </Button>
         )}
+        <Label className="ml-auto font-normal">
+          Sort
+          <NativeSelect
+            value={query.sort?.[0] ?? "newest"}
+            onChange={(event) => apply(edit(query, { sort: [event.target.value] }))}
+          >
+            {SORTS.map((option) => (
+              <NativeSelectOption key={option.value} value={option.value}>
+                {option.label}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </Label>
       </div>
-
-      <dialog ref={panel} className="filters-panel" aria-labelledby="all-filters" onClose={syncWanted}>
-        <div className="flex items-center justify-between border-b border-line px-5 py-4">
-          <h2 id="all-filters" className="text-xl font-semibold">
-            All filters
-          </h2>
-          <button type="button" className="btn btn-ghost" aria-label="Close" onClick={() => panel.current?.close()}>
-            ✕
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {GROUPS.map((group) => {
-            const shown = FILTERS.filter((filter) => filter.group === group.id && visible(filter));
-            return (
-              <section key={group.id} className="mb-6">
-                <h3 className="mb-3 font-semibold">{group.label}</h3>
-                {shown.map((filter) =>
-                  filter.kind === "toggle" ? (
-                    <div key={filter.id} className="mb-4">
-                      <Control filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
-                    </div>
-                  ) : (
-                    <fieldset key={filter.id} className="mb-4">
-                      <legend>{filter.label}</legend>
-                      <Control filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
-                    </fieldset>
-                  ),
-                )}
-              </section>
-            );
-          })}
-        </div>
-        <div className="border-t border-line px-5 py-4">
-          <button type="button" className="btn btn-primary w-full" onClick={() => panel.current?.close()}>
-            Show {lots(total)}
-          </button>
-        </div>
-      </dialog>
 
       <div aria-busy={pending} className={pending ? "opacity-60" : undefined}>
         {children}
@@ -268,30 +262,26 @@ function Menu({
   query,
   counts,
   apply,
-  onToggle,
+  onOpenChange,
 }: {
   filter: Filter;
   query: Query;
   counts: Counts;
   apply: Apply;
-  onToggle: () => void;
+  onOpenChange: (open: boolean) => void;
 }) {
   const chosen = filter.range ? Number(paramsOf(filter).some((param) => query[param])) : (query[filter.id]?.length ?? 0);
   return (
-    <details
-      className="filter-menu hidden lg:block"
-      data-facet={COUNTED.includes(filter.id) ? filter.id : undefined}
-      onToggle={onToggle}
-    >
-      <summary className="btn btn-outline">
+    <Popover onOpenChange={onOpenChange}>
+      <PopoverTrigger render={<Button variant="outline" className="hidden lg:inline-flex" />}>
         {filter.label}
         {chosen > 0 && <span className="font-normal">· {chosen}</span>}
-        <span aria-hidden="true">▾</span>
-      </summary>
-      <div className="filter-menu-panel">
+        <ChevronDownIcon aria-hidden="true" />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="max-h-96 overflow-y-auto">
         <Control filter={filter} query={query} counts={counts} apply={apply} place="bar" />
-      </div>
-    </details>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -313,14 +303,9 @@ function Control({
   if (filter.range) return <Range filter={filter} query={query} apply={apply} id={id} />;
   if (filter.kind === "toggle") {
     return (
-      <Choice
-        id={id}
-        type="checkbox"
-        label={filter.label}
-        count={counts ? (counts.find((option) => option.value === "yes")?.count ?? 0) : undefined}
-        checked={!!query[filter.id]}
-        onChange={(on) => apply(edit(query, { [filter.id]: on ? ["1"] : null }))}
-      />
+      <Choice id={id} label={filter.label} count={counts ? (counts.find((option) => option.value === "yes")?.count ?? 0) : undefined}>
+        <Checkbox id={id} checked={!!query[filter.id]} onCheckedChange={(on) => apply(edit(query, { [filter.id]: on ? ["1"] : null }))} />
+      </Choice>
     );
   }
 
@@ -340,85 +325,95 @@ function Control({
 
   if (filter.kind === "select") {
     return (
-      <select
+      <NativeSelect
         id={id}
         aria-label={filter.label}
+        className="w-full"
         value={chosen[0] ?? ""}
         onChange={(event) => {
           const value = event.target.value;
           apply(edit(query, { [filter.id]: value ? [value] : null, ...(filter.id === "make" ? { model: null } : {}) }));
         }}
       >
-        <option value="">Any {filter.label.toLowerCase()}</option>
+        <NativeSelectOption value="">Any {filter.label.toLowerCase()}</NativeSelectOption>
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <NativeSelectOption key={option.value} value={option.value}>
             {option.label}
             {option.count !== undefined && ` (${count.format(option.count)})`}
-          </option>
+          </NativeSelectOption>
         ))}
-      </select>
+      </NativeSelect>
     );
   }
 
-  const single = filter.kind === "single";
+  const loading = !filter.options && counts === null && <p className="text-sm text-muted-foreground">Loading…</p>;
+  // Nothing to find there with the other filters: shown, so the list does not jump, but off.
+  const off = (option: (typeof options)[number], checked: boolean) => option.count === 0 && !checked;
+  // Encoded: a value can hold a space ("FRONT END"), which would split the aria-labelledby that
+  // names the box. Still one id per value, since the box keeps the label it was first given.
+  const optionId = (value: string) => `${id}-${encodeURIComponent(value)}`;
+
+  if (filter.kind === "single") {
+    return (
+      <RadioGroup value={chosen[0] ?? ""} onValueChange={(value) => apply(edit(query, { [filter.id]: value ? [value as string] : null }))}>
+        <Choice id={`${id}-any`} label="Any day">
+          <RadioGroupItem id={`${id}-any`} value="" />
+        </Choice>
+        {options.map((option) => (
+          <Choice key={option.value} id={optionId(option.value)} label={option.label} count={option.count} disabled={off(option, chosen.includes(option.value))}>
+            <RadioGroupItem id={optionId(option.value)} value={option.value} disabled={off(option, chosen.includes(option.value))} />
+          </Choice>
+        ))}
+        {loading}
+      </RadioGroup>
+    );
+  }
+
   return (
-    <ul className="flex flex-col gap-1">
-      {single && (
-        <li>
-          <Choice id={`${id}-any`} type="radio" name={id} label="Any day" checked={!chosen.length} onChange={() => apply(edit(query, { [filter.id]: null }))} />
-        </li>
-      )}
+    <div className="flex flex-col gap-2">
       {options.map((option) => {
         const checked = chosen.includes(option.value);
         return (
-          <li key={option.value}>
-            <Choice
-              id={`${id}-${option.value}`}
-              type={single ? "radio" : "checkbox"}
-              name={id}
-              label={option.label}
-              count={option.count}
+          <Choice key={option.value} id={optionId(option.value)} label={option.label} count={option.count} disabled={off(option, checked)}>
+            <Checkbox
+              id={optionId(option.value)}
               checked={checked}
-              // Nothing to find there with the other filters: shown, so the list does not jump, but off.
-              disabled={option.count === 0 && !checked}
-              onChange={(on) => {
-                const values = single ? [option.value] : on ? [...chosen, option.value] : chosen.filter((value) => value !== option.value);
-                apply(edit(query, { [filter.id]: values }));
-              }}
+              disabled={off(option, checked)}
+              onCheckedChange={(on) =>
+                apply(edit(query, { [filter.id]: on ? [...chosen, option.value] : chosen.filter((value) => value !== option.value) }))
+              }
             />
-          </li>
+          </Choice>
         );
       })}
-      {!filter.options && counts === null && <li className="hint">Loading…</li>}
-    </ul>
+      {loading}
+    </div>
   );
 }
 
+/** One option: its checkbox or radio, its words and, once loaded, how many lots have it. */
 function Choice({
   id,
-  type,
-  name,
   label,
   count: n,
-  checked,
   disabled = false,
-  onChange,
+  children,
 }: {
   id: string;
-  type: "checkbox" | "radio";
-  name?: string;
   label: string;
   count?: number;
-  checked: boolean;
   disabled?: boolean;
-  onChange: (on: boolean) => void;
+  children: ReactNode;
 }) {
   return (
-    <label htmlFor={id} className={`mb-0 flex items-center gap-2 font-normal ${disabled ? "text-muted" : ""}`}>
-      <input id={id} type={type} name={name} checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
-      <span className="flex-1">{label}</span>
-      {n !== undefined && <span className="text-sm text-muted tabular-nums">{count.format(n)}</span>}
-    </label>
+    <Field orientation="horizontal" data-disabled={disabled}>
+      {children}
+      {/* The count inside the label, so it is read out with the option. */}
+      <FieldLabel htmlFor={id} className="flex-1 font-normal">
+        {label}
+        {n !== undefined && <span className="ml-auto text-muted-foreground tabular-nums">{count.format(n)}</span>}
+      </FieldLabel>
+    </Field>
   );
 }
 
@@ -445,9 +440,11 @@ function Range({ filter, query, apply, id }: { filter: Filter; query: Query; app
       }}
     >
       {bounds.map(({ param, label }) => (
-        <label key={param} htmlFor={`${id}-${param}`} className="mb-0 font-normal">
-          {label}
-          <input
+        <Field key={param} className="w-32 gap-1">
+          <FieldLabel htmlFor={`${id}-${param}`} className="font-normal">
+            {label}
+          </FieldLabel>
+          <Input
             id={`${id}-${param}`}
             name={param}
             type="number"
@@ -455,13 +452,12 @@ function Range({ filter, query, apply, id }: { filter: Filter; query: Query; app
             min={0}
             step={1}
             defaultValue={query[param]?.[0] ?? ""}
-            className="mt-1 w-32"
           />
-        </label>
+        </Field>
       ))}
-      <button type="submit" className="btn btn-outline">
+      <Button type="submit" variant="outline">
         Apply
-      </button>
+      </Button>
     </form>
   );
 }

@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 /** Copies a value (a VIN, a lot number) so the dealer can paste it into the auction's search. */
 export function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <button
+    <Button
       type="button"
-      className="btn btn-link text-xs"
+      variant="link"
+      size="xs"
+      className="text-muted-foreground"
       aria-label={`Copy ${label}`}
       onClick={() =>
         navigator.clipboard.writeText(value).then(
@@ -18,6 +21,6 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
       }
     >
       {copied ? "Copied" : "Copy"}
-    </button>
+    </Button>
   );
 }

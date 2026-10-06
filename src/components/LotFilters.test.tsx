@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Query } from "@/lib/lot-filters";
 
 const { push, refresh, lotCountsAction, rememberLotFiltersAction } = vi.hoisted(() => ({
@@ -41,29 +41,23 @@ function show(query: Query = {}, { total = 145, usage = {}, remembered = "" }: {
   );
 }
 
-/** Opens a filter of the bar, as clicking its button does. */
+/** A filter's button in the bar. */
+const trigger = (label: RegExp) => screen.getByRole("button", { name: label });
+
+/** Opens a filter of the bar, as clicking its button does, and returns its options. */
 async function open(label: RegExp) {
-  const summary = screen.getAllByText(label).find((element) => element.closest("summary"))!.closest("summary")!;
-  const details = summary.parentElement as HTMLDetailsElement;
-  act(() => {
-    details.open = true;
-    details.dispatchEvent(new Event("toggle"));
-  });
-  return details;
+  await act(async () => fireEvent.click(trigger(label)));
+  return screen.getByRole("dialog");
 }
 
-const panel = () => screen.getByRole("dialog", { hidden: true });
+/** Opens "All filters". */
+async function openPanel() {
+  await act(async () => fireEvent.click(screen.getByRole("button", { name: /All filters/ })));
+  return panel();
+}
 
-beforeAll(() => {
-  // jsdom has no modal dialogs.
-  HTMLDialogElement.prototype.showModal = function () {
-    this.open = true;
-  };
-  HTMLDialogElement.prototype.close = function () {
-    this.open = false;
-    this.dispatchEvent(new Event("close"));
-  };
-});
+const panel = () => screen.getByRole("dialog", { name: "All filters" });
+const checked = (box: HTMLElement) => box.getAttribute("aria-checked") === "true";
 
 beforeEach(() => {
   lotCountsAction.mockImplementation(async (_search: string, names: string[]) =>
@@ -99,11 +93,24 @@ describe("the bar", () => {
   it("shows sale date, title, condition and damage, all filters and the order", () => {
     show();
     for (const label of ["Sale date", "Title", "Runs and drives", "Damage"]) {
-      expect(screen.getAllByText(label).some((element) => element.closest("summary"))).toBe(true);
+      expect(trigger(new RegExp(`^${label}`))).toBeTruthy();
     }
     expect(screen.getByRole("button", { name: /All filters/ })).toBeTruthy();
     expect((screen.getByRole("combobox", { name: "Sort" }) as HTMLSelectElement).value).toBe("newest");
     expect(screen.getByText("145 lots")).toBeTruthy();
+  });
+
+  it("puts the search on the filters' line, and the order on the count's", () => {
+    show();
+    const line = screen.getByRole("search").parentElement!;
+    // The filters together, after the search, so they can sit at the line's right end.
+    const filters = trigger(/^Title/).parentElement!;
+    expect(filters.parentElement).toBe(line);
+    expect(filters.contains(screen.getByRole("button", { name: /All filters/ }))).toBe(true);
+    expect(screen.getByRole("search").nextElementSibling).toBe(filters);
+    const sort = screen.getByRole("combobox", { name: "Sort" });
+    expect(line.contains(sort)).toBe(false);
+    expect(screen.getByText("145 lots").parentElement!.contains(sort)).toBe(true);
   });
 
   it("counts a title's options when it is opened, and takes a choice", async () => {
@@ -112,7 +119,7 @@ describe("the bar", () => {
     expect(lotCountsAction).toHaveBeenCalledWith("run=verified", ["title"]);
     const salvage = await screen.findByRole("checkbox", { name: /Salvage\s*70/ });
     // No non-repairable lot with the other filters: listed, but off.
-    expect((screen.getAllByRole("checkbox", { name: /Non-repairable\s*0/ })[0] as HTMLInputElement).disabled).toBe(true);
+    expect(screen.getByRole("checkbox", { name: /Non-repairable\s*0/ }).getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(salvage);
     expect(push).toHaveBeenCalledWith("/active-lots?title=salvage&run=verified&sort=newest", { scroll: false });
   });
@@ -125,13 +132,16 @@ describe("the bar", () => {
   });
 
   it("lists damage types as the counts find them, and keeps a choice no lot has any more", async () => {
+    let answer: (facets: object) => void = () => {};
+    lotCountsAction.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)));
     show({ damage: ["HAIL"] });
     const menu = await open(/^Damage/);
     expect(within(menu).getByText("Loading…")).toBeTruthy();
+    await act(async () => answer({ damage: COUNTS.damage }));
     await within(menu).findByRole("checkbox", { name: /FRONT END\s*47/ });
-    const labels = within(menu).getAllByRole("checkbox").map((box) => box.closest("label")!.textContent);
+    const labels = within(menu).getAllByRole("checkbox").map((box) => box.closest("[data-slot=field]")!.textContent);
     expect(labels).toEqual(["FRONT END47", "SIDE13", "HAIL0"]);
-    expect((within(menu).getByRole("checkbox", { name: /HAIL/ }) as HTMLInputElement).checked).toBe(true);
+    expect(checked(within(menu).getByRole("checkbox", { name: /HAIL/ }))).toBe(true);
   });
 
   it("chooses one sale date, or any", async () => {
@@ -151,36 +161,38 @@ describe("the bar", () => {
 
   it("moves the dealer's most used filters into the bar", () => {
     show({}, { usage: { state: 5 } });
-    expect(screen.getAllByText("State or province").some((element) => element.closest("summary"))).toBe(true);
+    expect(trigger(/^State or province/)).toBeTruthy();
   });
 
   it("promotes a range too, which has nothing to count", async () => {
     show({ year_min: ["2018"] }, { usage: { year_min: 4 } });
+    expect(trigger(/^Year/).textContent).toContain("· 1");
     const menu = await open(/^Year/);
-    expect(menu.dataset.facet).toBeUndefined();
-    expect(menu.querySelector("summary")!.textContent).toContain("· 1");
+    expect(within(menu).getByLabelText("From")).toBeTruthy();
     expect(lotCountsAction).not.toHaveBeenCalled();
   });
 
   it("shows how many filters are chosen, in the bar and behind All filters", () => {
     show({ title: ["clean", "salvage"], state: ["CA"], year_min: ["2018"] });
-    expect(screen.getAllByText(/· 2/).some((element) => element.closest("summary"))).toBe(true);
+    expect(trigger(/^Title/).textContent).toContain("· 2");
     expect(screen.getByRole("button", { name: /All filters · 2/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Filters · 3/ })).toBeTruthy();
   });
 
-  it("closes an open filter on a click elsewhere or Escape", async () => {
+  it("closes an open filter on Escape, and asks for no counts once closed", async () => {
     show();
     const menu = await open(/^Title/);
-    fireEvent.click(menu.querySelector("input")!);
-    expect(menu.open).toBe(true);
-    fireEvent.click(document.body);
-    expect(menu.open).toBe(false);
+    await act(async () => fireEvent.keyDown(menu, { key: "Escape" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(lotCountsAction).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps counting a filter opened while another closes", async () => {
+    show();
     await open(/^Title/);
-    fireEvent.keyDown(document, { key: "Enter" });
-    expect(menu.open).toBe(true);
-    fireEvent.keyDown(document, { key: "Escape" });
-    expect(menu.open).toBe(false);
+    await open(/^Damage/);
+    expect(lotCountsAction).toHaveBeenLastCalledWith("", ["damage"]);
+    expect(await screen.findByRole("checkbox", { name: /FRONT END\s*47/ })).toBeTruthy();
   });
 
   it("ignores counts that arrive after the filters changed", async () => {
@@ -218,8 +230,7 @@ describe("the chips", () => {
 describe("All filters", () => {
   it("opens with every filter grouped, and counts them all", async () => {
     show();
-    fireEvent.click(screen.getByRole("button", { name: /All filters/ }));
-    expect((panel() as HTMLDialogElement).open).toBe(true);
+    await openPanel();
     expect(lotCountsAction).toHaveBeenCalledWith("", expect.arrayContaining(["title", "damage", "state", "buy_now", "make"]));
     for (const group of ["Sale date, title and damage", "The car", "Condition", "The sale", "Where"]) {
       expect(within(panel()).getByRole("heading", { name: group, hidden: true })).toBeTruthy();
@@ -234,18 +245,18 @@ describe("All filters", () => {
   it("shows the auctions once there is a choice", async () => {
     lotCountsAction.mockResolvedValue({ source: [{ value: "copart", count: 9 }, { value: "iaa", count: 4 }] });
     show();
-    fireEvent.click(screen.getByRole("button", { name: /All filters/ }));
+    await openPanel();
     expect(await within(panel()).findByRole("checkbox", { name: /IAA\s*4/, hidden: true })).toBeTruthy();
   });
 
-  it("keeps a chosen auction listed", () => {
+  it("keeps a chosen auction listed", async () => {
     show({ source: ["copart"] });
-    expect(within(panel()).getByRole("checkbox", { name: /Copart/, hidden: true })).toBeTruthy();
+    expect(within(await openPanel()).getByRole("checkbox", { name: /Copart/, hidden: true })).toBeTruthy();
   });
 
   it("chooses a make, which drops a model of another, and then a model", async () => {
     show({ make: ["HONDA"], model: ["CIVIC"] });
-    fireEvent.click(screen.getByRole("button", { name: /All filters/ }));
+    await openPanel();
     const make = within(panel()).getByRole("combobox", { name: "Make", hidden: true });
     await within(make).findByRole("option", { name: "TOYOTA (20)", hidden: true });
     fireEvent.change(make, { target: { value: "TOYOTA" } });
@@ -256,8 +267,9 @@ describe("All filters", () => {
     expect(push).toHaveBeenLastCalledWith("/active-lots?sort=newest", { scroll: false });
   });
 
-  it("applies a range together, and clears a bound left empty", () => {
+  it("applies a range together, and clears a bound left empty", async () => {
     show({ year_max: ["2020"] });
+    await openPanel();
     const from = within(panel()).getByLabelText("From", { selector: "#panel-year-year_min" });
     fireEvent.change(from, { target: { value: "2016" } });
     fireEvent.change(within(panel()).getByLabelText("To", { selector: "#panel-year-year_max" }), { target: { value: "" } });
@@ -269,24 +281,27 @@ describe("All filters", () => {
     expect(push).toHaveBeenLastCalledWith("/active-lots?year_max=2020&odometer_max=90000&sort=newest", { scroll: false });
   });
 
-  it("switches Buy now on and off", () => {
+  it("switches Buy now on and off", async () => {
     const view = show();
-    fireEvent.click(within(panel()).getByRole("checkbox", { name: "Buy now available", hidden: true }));
+    await openPanel();
+    fireEvent.click(within(panel()).getByRole("checkbox", { name: /Buy now available/, hidden: true }));
     expect(push).toHaveBeenLastCalledWith("/active-lots?buy_now=1&sort=newest", { scroll: false });
     view.unmount();
     show({ buy_now: ["1"] });
-    fireEvent.click(within(panel()).getByRole("checkbox", { name: "Buy now available", hidden: true }));
+    await openPanel();
+    fireEvent.click(within(panel()).getByRole("checkbox", { name: /Buy now available/, hidden: true }));
     expect(push).toHaveBeenLastCalledWith("/active-lots?sort=newest", { scroll: false });
   });
 
-  it("closes from its button or its cross, and stops asking for counts", () => {
+  it("closes from its button or its cross, and stops asking for counts", async () => {
     show({}, { total: 1234 });
-    fireEvent.click(screen.getByRole("button", { name: /All filters/ }));
-    fireEvent.click(within(panel()).getByRole("button", { name: "Show 1,234 lots", hidden: true }));
-    expect((panel() as HTMLDialogElement).open).toBe(false);
-    fireEvent.click(screen.getByRole("button", { name: /All filters/ }));
-    fireEvent.click(within(panel()).getByRole("button", { name: "Close", hidden: true }));
-    expect((panel() as HTMLDialogElement).open).toBe(false);
+    await openPanel();
+    await act(async () => fireEvent.click(within(panel()).getByRole("button", { name: "Show 1,234 lots" })));
+    expect(screen.queryByRole("dialog", { name: "All filters" })).toBeNull();
+    await openPanel();
+    await act(async () => fireEvent.click(within(panel()).getByRole("button", { name: "Close" })));
+    expect(screen.queryByRole("dialog", { name: "All filters" })).toBeNull();
+    expect(lotCountsAction).toHaveBeenCalledTimes(2);
   });
 });
 

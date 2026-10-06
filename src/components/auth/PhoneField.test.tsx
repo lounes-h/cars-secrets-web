@@ -30,11 +30,12 @@ describe("PhoneField", () => {
         selected="FR"
       />,
     );
-    expect(container.querySelector(".phone-field-country")?.textContent).toContain("🇫🇷 +33");
+    expect(screen.getByText("🇫🇷 +33")).toBeTruthy();
     expect(screen.getByLabelText("Number").getAttribute("placeholder")).toBe("06 12 34 56 78");
     // One control: the picker and the number sit in the same bordered field.
-    expect(container.querySelector(".phone-field")?.contains(screen.getByLabelText("Country"))).toBe(true);
-    expect(container.querySelector(".phone-field")?.contains(screen.getByLabelText("Number"))).toBe(true);
+    const group = container.querySelector("[data-slot=input-group]");
+    expect(group?.contains(screen.getByLabelText("Country"))).toBe(true);
+    expect(group?.contains(screen.getByLabelText("Number"))).toBe(true);
   });
 
   it("shows its error under the number", () => {

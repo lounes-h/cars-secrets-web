@@ -4,9 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import type { FormState } from "@/app/(auth)/actions";
-import { FieldError, FormError } from "@/components/auth/FieldError";
+import { FormError } from "@/components/auth/FormError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { Turnstile } from "@/components/auth/Turnstile";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { EMAIL_MAX, emailSchema, type EmailInput } from "@/lib/auth-schemas";
 
 type Props = {
@@ -47,39 +51,43 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
   if (sentTo && next) return next(sentTo, () => setSentTo(null));
   if (sentTo) {
     return (
-      <div role="status" className="form-stack">
-        <p className="notice">{success?.(sentTo)}</p>
-        <p className="hint text-center">
+      <FieldGroup>
+        <Alert role="status">
+          <AlertDescription>{success?.(sentTo)}</AlertDescription>
+        </Alert>
+        <FieldDescription className="text-center">
           Wrong address?{" "}
-          <button type="button" className="btn btn-link inline p-0 underline" onClick={() => setSentTo(null)}>
+          <Button type="button" variant="link" className="h-auto p-0 underline" onClick={() => setSentTo(null)}>
             Try another one
-          </button>
-        </p>
-      </div>
+          </Button>
+        </FieldDescription>
+      </FieldGroup>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="form-stack">
-      <FormError message={errors.root?.server?.message} />
-      <div>
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          inputMode="email"
-          maxLength={EMAIL_MAX}
-          aria-invalid={errors.email ? true : undefined}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          {...register("email")}
-        />
-        <FieldError id="email-error" message={errors.email?.message} />
-      </div>
-      <Turnstile action={captchaAction} resetSignal={captchaReset} onToken={(token) => setValue("captcha_token", token ?? "")} />
-      <button type="submit" disabled={isSubmitting} className="btn btn-primary w-full">
-        {isSubmitting ? pendingLabel : submitLabel}
-      </button>
+    <form onSubmit={onSubmit} noValidate>
+      <FieldGroup>
+        <FormError message={errors.root?.server?.message} />
+        <Field data-invalid={errors.email ? true : undefined}>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            maxLength={EMAIL_MAX}
+            aria-invalid={errors.email ? true : undefined}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            {...register("email")}
+          />
+          <FieldError id="email-error">{errors.email?.message}</FieldError>
+        </Field>
+        <Turnstile action={captchaAction} resetSignal={captchaReset} onToken={(token) => setValue("captcha_token", token ?? "")} />
+        <Button type="submit" disabled={isSubmitting} size="xl" className="w-full">
+          {isSubmitting ? pendingLabel : submitLabel}
+        </Button>
+      </FieldGroup>
     </form>
   );
 }
