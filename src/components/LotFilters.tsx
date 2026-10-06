@@ -154,7 +154,10 @@ export function LotFilters({
             maxLength={200}
             placeholder="Make, model, year, VIN, lot number or keyword"
           />
-          <Button type="submit">Search</Button>
+          {/* As tall as the input beside it (h-12). */}
+          <Button type="submit" className="h-12">
+            Search
+          </Button>
         </form>
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {inBar.map((id) => {

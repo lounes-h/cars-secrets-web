@@ -83,7 +83,8 @@ See `docs/architecture.md` for details.
   radius, and focus only darkens their 1px border (`border-primary`), with no
   ring; an invalid one has a black border, also without a ring. The auth pages'
   buttons (submit, Google and Apple, "Sign out") are 55px (`size="xl"`, the one
-  size added to `button.tsx`); their inline text links are not. Keep that if a
+  size added to `button.tsx`); their inline text links are not. The lot list's
+  Search button is as tall as its input (`h-12`). Keep that if a
   component is re-added with `--overwrite`. A Base UI checkbox or radio is a
   `span` named through `aria-labelledby`, so its `id` must hold no whitespace
   (`LotFilters` encodes option values).
