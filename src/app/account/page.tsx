@@ -11,8 +11,8 @@ export default async function AccountPage() {
   const user = await currentUser();
   if (!user) redirect("/login");
   return (
-    <main className="flex flex-1 justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-10">
-      <div className="flex w-full max-w-md flex-col gap-5">
+    <main className="flex flex-1 justify-center px-4 py-8 sm:px-6 sm:py-16 lg:px-8">
+      <div className="flex w-full max-w-md flex-col gap-6">
         <h1>Your account</h1>
         <Card>
           <CardContent>
@@ -25,7 +25,7 @@ export default async function AccountPage() {
           </CardContent>
         </Card>
         <form action={logoutAction}>
-          <Button type="submit" variant="outline" size="xl">
+          <Button type="submit" variant="outline" size="lg">
             Sign out
           </Button>
         </form>

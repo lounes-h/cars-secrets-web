@@ -94,7 +94,7 @@ export function AccountNav() {
           </Link>
           <Link href="/register" className={buttonVariants({ className: "flex-col gap-0 leading-tight" })}>
             7 days free trial
-            <span className="text-[0.6875rem] font-normal opacity-90">No credit cards required</span>
+            <span className="text-xs font-normal opacity-90">No credit cards required</span>
           </Link>
         </nav>
       </>
@@ -136,7 +136,7 @@ function AccountMenu({ user }: { user: NonNullable<User> }) {
         <Avatar user={user} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
-        <div className="flex items-center gap-3 px-1.5 py-2">
+        <div className="flex items-center gap-3 px-2 py-2">
           <Avatar user={user} />
           <div className="min-w-0">
             {name && <p className="truncate text-sm">{name}</p>}

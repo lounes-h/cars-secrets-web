@@ -11,11 +11,21 @@ describe("buttonVariants", () => {
 });
 
 describe("the control scale", () => {
-  it("sizes buttons 32, 40, 48 and 55px, the 48px one as tall as a text field", () => {
+  it("sizes buttons 32, 40 and 48px, the 48px one as tall as a text field", () => {
     expect(buttonVariants({ size: "sm" })).toContain("h-8");
     expect(buttonVariants()).toContain("h-10");
     expect(buttonVariants({ size: "lg" })).toContain("h-12");
-    expect(buttonVariants({ size: "xl" })).toContain("h-[55px]");
     expect(buttonVariants({ size: "icon" })).toContain("size-10");
+  });
+
+  it("rounds a 32px button 6px and the others 8px, all on the radius scale", () => {
+    expect(buttonVariants({ size: "sm" }).split(" ")).toContain("rounded-md");
+    expect(buttonVariants().split(" ")).toContain("rounded-lg");
+  });
+
+  it("shows keyboard focus as a solid ring, not a faded one", () => {
+    const classes = buttonVariants().split(" ");
+    expect(classes).toContain("focus-visible:ring-ring");
+    expect(classes.some((name) => name.startsWith("focus-visible:ring-ring/"))).toBe(false);
   });
 });

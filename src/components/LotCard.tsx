@@ -41,12 +41,12 @@ export function LotCard({ lot }: { lot: Lot }) {
       <Link href={lotPath(lot)} tabIndex={-1} aria-hidden="true" className="relative flex-none bg-muted no-underline sm:min-h-48 sm:w-64">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it
-          <img src={photo} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover sm:absolute sm:inset-0 sm:aspect-auto sm:h-full" />
+          <img src={photo} alt="" loading="lazy" className="aspect-4/3 w-full object-cover sm:absolute sm:inset-0 sm:aspect-auto sm:h-full" />
         ) : (
-          <div className="grid aspect-[4/3] place-items-center text-muted-foreground sm:absolute sm:inset-0 sm:aspect-auto">No photo</div>
+          <div className="grid aspect-4/3 place-items-center text-muted-foreground sm:absolute sm:inset-0 sm:aspect-auto">No photo</div>
         )}
       </Link>
-      <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:flex-row md:gap-6">
+      <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:p-6 md:flex-row md:gap-6">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <h2 className="font-heading text-base leading-snug font-semibold">
             <Link href={lotPath(lot)} className="no-underline hover:underline">

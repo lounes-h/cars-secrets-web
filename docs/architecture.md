@@ -105,7 +105,11 @@ alone. The interface is built from shadcn/ui components (`src/components/ui`) an
 uses black, grey and white only, through shadcn's neutral theme tokens in
 `src/app/globals.css` (`--background`, `--foreground`, `--primary`, `--muted`,
 `--muted-foreground`, `--border`, …), Work Sans (loaded with `next/font/google` in
-the root layout, the system font stack behind it), and no dark mode. There is no
+the root layout, the system font stack behind it), and no dark mode. The same file
+sets the radius scale and the border and focus colours, on top of Tailwind's spacing
+and type scales; `AGENTS.md` lists them, and `src/components/ui/design-system.test.ts`
+fails on a value off them. The look is flat: borders separate, and only floating
+surfaces (popovers, menus, the sheet) have a shadow. There is no
 error colour: `--destructive` is the text colour, so errors read as bold text. The lot page's deal-breaker
 badges and sale countdown are the one exception: green, amber and red
 (`--good`, `--warn`, `--bad`), always with an icon and words as well. Add branding once a name and a

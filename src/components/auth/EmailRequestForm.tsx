@@ -84,7 +84,7 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
           <FieldError id="email-error">{errors.email?.message}</FieldError>
         </Field>
         <Turnstile action={captchaAction} resetSignal={captchaReset} onToken={(token) => setValue("captcha_token", token ?? "")} />
-        <Button type="submit" disabled={isSubmitting} size="xl" className="w-full">
+        <Button type="submit" disabled={isSubmitting} size="lg" className="w-full">
           {isSubmitting ? pendingLabel : submitLabel}
         </Button>
       </FieldGroup>

@@ -126,7 +126,7 @@ export function VerifyEmailForm({ email, remember = false, onChangeEmail }: Prop
             <FieldDescription id="code-hint">Can&rsquo;t find it? Check your spam or promotions folder.</FieldDescription>
           )}
         </Field>
-        <Button type="submit" disabled={isSubmitting} size="xl" className="w-full">
+        <Button type="submit" disabled={isSubmitting} size="lg" className="w-full">
           {isSubmitting ? "Confirming…" : "Confirm my email"}
         </Button>
         <div role="status" aria-live="polite">

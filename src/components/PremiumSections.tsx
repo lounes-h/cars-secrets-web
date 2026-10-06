@@ -1,7 +1,7 @@
 import { SparklesIcon } from "lucide-react";
 import { Fragment, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { range, SAMPLE, SAMPLE_NOTE, usd } from "@/lib/premium-sample";
 
@@ -18,7 +18,7 @@ export function PremiumBadge() {
 }
 
 /** A dashed card: the look of every premium section. */
-const DASHED = "border border-dashed ring-0";
+const DASHED = "border-dashed";
 
 /** A premium section: dashed, badged, and saying its figures are samples. */
 function PremiumCard({ title, className, children }: { title: string; className?: string; children: ReactNode }) {
@@ -28,7 +28,7 @@ function PremiumCard({ title, className, children }: { title: string; className?
       <Card className={DASHED}>
         <CardHeader className="flex flex-wrap items-center gap-3">
           <PremiumBadge />
-          <h2 id={id} className="font-heading text-base font-semibold">{title}</h2>
+          <CardTitle id={id}>{title}</CardTitle>
         </CardHeader>
         <CardContent>
           {children}
