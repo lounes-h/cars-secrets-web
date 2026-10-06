@@ -53,11 +53,11 @@ describe("lot page", () => {
     await show();
     for (const name of ["Summary", "Deal calculator", "Damage report", "Market"]) {
       const section = screen.getByRole("region", { name });
-      expect(section.textContent).toMatch(/^✦Premium/);
+      expect(section.textContent).toMatch(/^Premium/);
       expect(section.textContent).toMatch(/sample figures, the same on every lot/i);
     }
     expect(within(screen.getByRole("banner", { hidden: true })).getByRole("region", { name: "Summary" })).toBeTruthy();
-    const damageMap = document.getElementById("panel-damage-map")!;
+    const damageMap = screen.getAllByRole("tabpanel", { hidden: true })[1];
     expect(within(damageMap).getByRole("img", { hidden: true }).getAttribute("aria-label")).toBe("Damage map: 1 front left, 2 rear right");
     expect(damageMap.hidden).toBe(true); // the photos show first
     // Beside the existing sections, never in their place.
@@ -102,13 +102,15 @@ describe("lot page", () => {
     expect(header).not.toContain("Runs and drives, front end damage"); // no sentence repeating the badges
     const badges = within(screen.getByRole("list", { name: "Deal breakers" })).getAllByRole("listitem");
     expect(badges.map((badge) => [badge.textContent, badge.dataset.tone])).toEqual([
-      ["✓Runs and drives", "good"],
-      ["✓Keys", "good"],
-      ["!CA - Salvage Certificate", "warn"],
-      ["✕Mileage not real", "bad"],
-      ["✓Pure sale", "good"],
-      ["✓Insurance seller", "good"],
+      ["Runs and drives", "good"],
+      ["Keys", "good"],
+      ["CA - Salvage Certificate", "warn"],
+      ["Mileage not real", "bad"],
+      ["Pure sale", "good"],
+      ["Insurance seller", "good"],
     ]);
+    // Never colour alone: every badge carries an icon as well as its words.
+    expect(badges.every((badge) => badge.querySelector("svg[aria-hidden='true']"))).toBe(true);
     expect(screen.getByRole("button", { name: "Copy VIN" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Copy lot number" })).toBeTruthy();
   });
@@ -117,7 +119,7 @@ describe("lot page", () => {
     getLot.mockResolvedValue({ ...sampleLot, offsite_address: "645 W UNION ST", offsite_city: "ALLENTOWN", offsite_state: "PA", offsite_zip: "18101" });
     await show();
     const badges = within(screen.getByRole("list", { name: "Deal breakers" })).getAllByRole("listitem");
-    expect([badges.at(-1)?.textContent, badges.at(-1)?.dataset.tone]).toEqual(["!Offsite", "warn"]);
+    expect([badges.at(-1)?.textContent, badges.at(-1)?.dataset.tone]).toEqual(["Offsite", "warn"]);
     const pickup = screen.getByRole("heading", { name: "Pickup" }).parentElement?.textContent ?? "";
     expect(pickup).toContain("Offsite address645 W UNION ST, ALLENTOWN, PA 18101");
   });

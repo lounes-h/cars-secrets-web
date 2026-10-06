@@ -96,13 +96,13 @@ describe("sign-in page", () => {
     await show();
     expect(screen.getByRole("heading", { level: 1, name: "Sign in" })).toBeTruthy();
     expect(screen.queryByRole("alert")).toBeNull();
-    expect(screen.getByLabelText<HTMLInputElement>("Remember me").checked).toBe(false);
+    expect(screen.getByRole("checkbox", { name: "Remember me" }).getAttribute("aria-checked")).toBe("false");
   });
 
   it("ticks remember me when the last sign-in in this browser had it ticked", async () => {
     rememberedChoice.mockResolvedValueOnce(true);
     await show();
-    expect(screen.getByLabelText<HTMLInputElement>("Remember me").checked).toBe(true);
+    expect(screen.getByRole("checkbox", { name: "Remember me" }).getAttribute("aria-checked")).toBe("true");
   });
 });
 

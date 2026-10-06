@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LocalTime } from "@/components/LocalTime";
 import { LotFilters } from "@/components/LotFilters";
+import { buttonVariants } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listPath, type Query, queryString, readQuery, searched } from "@/lib/lot-filters";
 import {
   activityWindow,
@@ -40,7 +42,7 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
   return (
     <>
       {found?.activity && <ActivitySummary {...found.activity} />}
-      <main className="flex-1 bg-white px-4 py-10 sm:px-6 lg:px-10">
+      <main className="flex-1 px-4 py-10 sm:px-6 lg:px-10">
         {/* No visible title or lede: the search comes first. The heading stays for screen readers. */}
         <h1 className="sr-only">Active lots</h1>
         {found ? (
@@ -49,7 +51,7 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
           </LotFilters>
         ) : (
           <p>
-            <Link href="/login" className="btn btn-primary">
+            <Link href="/login" className={buttonVariants()}>
               Sign in to see the lots
             </Link>
           </p>
@@ -67,7 +69,7 @@ function ActivitySummary({ added, updated }: LotActivity) {
   return (
     <section
       aria-label="Lot activity"
-      className="flex flex-wrap gap-x-6 gap-y-1 border-b border-line bg-paper px-4 py-2.5 text-sm sm:px-6 lg:px-10"
+      className="flex flex-wrap gap-x-6 gap-y-1 border-b bg-muted px-4 py-2.5 text-sm sm:px-6 lg:px-10"
     >
       <p className="m-0">
         <strong>{count.format(fresh.count)}</strong> new {lots(fresh.count)} {fresh.words}
@@ -117,49 +119,46 @@ function Lots({ query, page, items, total }: { query: Query; page: number } & Lo
 
   return (
     <>
-      <div className="mt-6 overflow-x-auto">
-        <table className="w-full border-collapse text-[0.9375rem]">
-          <thead>
-            <tr className="border-b border-line text-left">
-              <th scope="col" className="py-2 pr-4 font-medium">Lot</th>
-              <th scope="col" className="py-2 pr-4 font-medium">Vehicle</th>
-              <th scope="col" className="py-2 pr-4 font-medium">Odometer</th>
-              <th scope="col" className="py-2 pr-4 font-medium">Damage</th>
-              <th scope="col" className="py-2 pr-4 font-medium">Title</th>
-              <th scope="col" className="py-2 pr-4 font-medium">Location</th>
-              <th scope="col" className="py-2 pr-4 font-medium">Sale</th>
-              <th scope="col" className="py-2 pr-4 text-right font-medium">Est. retail</th>
-              <th scope="col" className="py-2 text-right font-medium">High bid</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((lot) => (
-              <tr key={`${lot.source}-${lot.lot_number}`} className="border-b border-line align-top">
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  <Link href={lotPath(lot)}>{lot.lot_number}</Link>
-                </td>
-                <td className="py-2 pr-4">{vehicle(lot)}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">{odometer(lot.odometer)}</td>
-                <td className="py-2 pr-4">{lot.damage_primary ?? "—"}</td>
-                <td className="py-2 pr-4">{lot.title_type ?? "—"}</td>
-                <td className="py-2 pr-4">{place(lot)}{offsiteAddress(lot) && " · Offsite"}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  {lot.sale_at ? <LocalTime value={lot.sale_at} /> : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
-                </td>
-                <td className="py-2 pr-4 text-right whitespace-nowrap">
-                  {amount(lot.est_retail_value, lot.currency)}
-                </td>
-                <td className="py-2 text-right whitespace-nowrap">{amount(lot.high_bid, lot.currency)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Table className="mt-6 text-[0.9375rem]">
+        <TableHeader>
+          <TableRow>
+            <TableHead scope="col">Lot</TableHead>
+            <TableHead scope="col">Vehicle</TableHead>
+            <TableHead scope="col">Odometer</TableHead>
+            <TableHead scope="col">Damage</TableHead>
+            <TableHead scope="col">Title</TableHead>
+            <TableHead scope="col">Location</TableHead>
+            <TableHead scope="col">Sale</TableHead>
+            <TableHead scope="col" className="text-right">Est. retail</TableHead>
+            <TableHead scope="col" className="text-right">High bid</TableHead>
+          </TableRow>
+        </TableHeader>
+        {/* Cells keep to one line where a break would mislead (a number, a date), and wrap elsewhere. */}
+        <TableBody className="[&_td]:align-top">
+          {items.map((lot) => (
+            <TableRow key={`${lot.source}-${lot.lot_number}`}>
+              <TableCell>
+                <Link href={lotPath(lot)}>{lot.lot_number}</Link>
+              </TableCell>
+              <TableCell className="whitespace-normal">{vehicle(lot)}</TableCell>
+              <TableCell>{odometer(lot.odometer)}</TableCell>
+              <TableCell className="whitespace-normal">{lot.damage_primary ?? "—"}</TableCell>
+              <TableCell className="whitespace-normal">{lot.title_type ?? "—"}</TableCell>
+              <TableCell className="whitespace-normal">{place(lot)}{offsiteAddress(lot) && " · Offsite"}</TableCell>
+              <TableCell>
+                {lot.sale_at ? <LocalTime value={lot.sale_at} /> : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
+              </TableCell>
+              <TableCell className="text-right">{amount(lot.est_retail_value, lot.currency)}</TableCell>
+              <TableCell className="text-right">{amount(lot.high_bid, lot.currency)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
       <nav aria-label="Pagination" className="mt-6 flex items-center gap-4">
         <PageLink href={listPath(query, page - 1)} enabled={page > 1}>
           Previous
         </PageLink>
-        <p className="text-muted">
+        <p className="text-muted-foreground">
           {count.format(first)}–{count.format(first + items.length - 1)} of {count.format(total)}, page{" "}
           {count.format(page)} of {count.format(pages)}
         </p>
@@ -174,13 +173,13 @@ function Lots({ query, page, items, total }: { query: Query; page: number } & Lo
 function PageLink({ href, enabled, children }: { href: string; enabled: boolean; children: string }) {
   if (!enabled) {
     return (
-      <span aria-disabled="true" className="btn btn-outline opacity-50">
+      <span aria-disabled="true" className={buttonVariants({ variant: "outline", className: "opacity-50" })}>
         {children}
       </span>
     );
   }
   return (
-    <Link href={href} className="btn btn-outline">
+    <Link href={href} className={buttonVariants({ variant: "outline" })}>
       {children}
     </Link>
   );

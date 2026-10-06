@@ -4,8 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logoutAction } from "@/app/(auth)/actions";
-import { forgetEmail } from "@/lib/remembered-email";
 import type { SessionSummary } from "@/app/auth/session/route";
+import { Avatar as AvatarRoot, AvatarFallback } from "@/components/ui/avatar";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { forgetEmail } from "@/lib/remembered-email";
 
 type User = SessionSummary["user"];
 
@@ -31,7 +40,7 @@ function Menu({ items }: { items: typeof GUEST_MENU }) {
   return (
     <nav aria-label="Main" className="ml-6 hidden items-center gap-1 lg:flex">
       {items.map((item) => (
-        <Link key={item.href} href={item.href} className="btn btn-ghost font-medium">
+        <Link key={item.href} href={item.href} className={buttonVariants({ variant: "ghost" })}>
           {item.label}
         </Link>
       ))}
@@ -71,10 +80,10 @@ export function AccountNav() {
       <>
         <Menu items={GUEST_MENU} />
         <nav aria-label="Account" className="ml-auto flex items-center gap-2 sm:gap-3">
-          <Link href="/login" className="btn btn-ghost font-medium">
+          <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
             Sign in
           </Link>
-          <Link href="/register" className="btn btn-primary flex-col gap-0 font-medium leading-tight">
+          <Link href="/register" className={buttonVariants({ className: "h-auto flex-col gap-0 py-1 leading-tight" })}>
             7 days free trial
             <span className="text-[0.6875rem] font-normal opacity-90">No credit cards required</span>
           </Link>
@@ -100,53 +109,46 @@ export function initials(user: NonNullable<User>): string {
 
 function Avatar({ user }: { user: NonNullable<User> }) {
   return (
-    <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-line text-sm font-semibold text-ink">
-      {initials(user)}
-    </span>
+    <AvatarRoot aria-hidden="true" size="lg">
+      <AvatarFallback className="font-semibold text-foreground">{initials(user)}</AvatarFallback>
+    </AvatarRoot>
   );
 }
 
 /**
- * The round initials button and the menu it opens: who is signed in, Settings,
- * Account and Log out. A native popover, so a click outside or Escape closes it.
+ * The round initials button and the menu it opens: who is signed in, Settings, Account and
+ * Log out. A click outside, Escape or following one of its links closes it.
  */
 function AccountMenu({ user }: { user: NonNullable<User> }) {
   const name = `${user.first_name} ${user.last_name}`.trim();
   return (
-    <>
-      <button type="button" popoverTarget="account-menu" aria-label="Account menu" title={name || user.email} className="account-avatar cursor-pointer rounded-full">
+    <DropdownMenu>
+      <DropdownMenuTrigger aria-label="Account menu" title={name || user.email} className="rounded-full">
         <Avatar user={user} />
-      </button>
-      <div
-        id="account-menu"
-        popover="auto"
-        className="account-menu"
-        // A link moves within the app and the banner stays, so close the menu behind it.
-        onClick={(event) => (event.target as Element).closest("a") && event.currentTarget.hidePopover()}
-      >
-        <div className="flex items-center gap-3 px-5 py-4">
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-72">
+        <div className="flex items-center gap-3 px-1.5 py-2">
           <Avatar user={user} />
           <div className="min-w-0">
-            {name && <p className="m-0 truncate text-sm">{name}</p>}
-            <p className="m-0 truncate text-xs text-muted" title={user.email}>
+            {name && <p className="truncate text-sm">{name}</p>}
+            <p className="truncate text-xs text-muted-foreground" title={user.email}>
               {user.email}
             </p>
           </div>
         </div>
-        <div className="py-2">
-          <Link href="/settings" className="account-menu-item">
-            Settings
-          </Link>
-          <Link href="/account" className="account-menu-item">
-            Account
-          </Link>
-        </div>
-        <form action={logoutAction} onSubmit={forgetEmail} className="py-2">
-          <button type="submit" className="account-menu-item">
-            Log out
-          </button>
-        </form>
-      </div>
-    </>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href="/settings" />}>Settings</DropdownMenuItem>
+        <DropdownMenuItem render={<Link href="/account" />}>Account</DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => {
+            forgetEmail();
+            void logoutAction();
+          }}
+        >
+          Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

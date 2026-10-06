@@ -8,10 +8,12 @@ read `docs/project-specification.md`
 
 - Next.js 16 (App Router) with React 19 and TypeScript, server-rendered and
   statically prerendered.
-- Tailwind CSS 4. Design tokens are CSS variables in `src/app/globals.css`.
-- No design system yet: black, grey and white only, in Work Sans
-  (`next/font/google`, self-hosted at build time, set on `<html>` in the root
-  layout and put first in `--font-sans` in `src/app/globals.css`).
+- Tailwind CSS 4 and shadcn/ui (the `base-nova` style: Base UI primitives,
+  lucide icons, `cn` for class merging; `components.json`). Its components are
+  copied into `src/components/ui` and its theme tokens are CSS variables in
+  `src/app/globals.css`. Black, grey and white only (shadcn's `neutral`), in
+  Work Sans (`next/font/google`, self-hosted at build time, set on `<html>` in
+  the root layout and put first in `--font-sans` in `src/app/globals.css`).
 - Yarn 4 through Corepack (`packageManager` in `package.json`), with the
   `node-modules` linker.
 - Vitest with Testing Library for unit tests, V8 coverage with a 95 % minimum.
@@ -65,26 +67,36 @@ See `docs/architecture.md` for details.
 - The layout is full width: no centered `max-w-*` page container. Sections
   span the viewport with side padding (`px-4 sm:px-6 lg:px-10`), and only
   running text is capped at a readable measure (`max-w-[65ch]`). Auth pages
-  are the exception: their form sits in one centered `.auth-panel` column
-  (28rem) inside `.auth-main`, which fills the viewport with white, because a
-  full-width form is hard to fill in.
-- There is no design system, favicon or share image yet, and no dark mode.
+  are the exception: their form sits in a `Card` in one centered 28rem column
+  (`max-w-md`), because a full-width form is hard to fill in.
+- Every control is a shadcn/ui component from `src/components/ui`: `Button`
+  (a link styled as one is `<Link className={buttonVariants(...)}>`, which stays
+  a real link — Base UI's `render` would give it `role="button"`), `Input`,
+  `Field` (label, description, error), `InputGroup` (password show/hide, phone
+  country and number), `Checkbox`, `RadioGroup`, `NativeSelect`, `Card`,
+  `Alert`, `Badge`, `Table`, `Tabs`, `Slider`, `Popover`, `Sheet`,
+  `DropdownMenu`, `Avatar` and `Separator`; icons come from `lucide-react`. Add
+  one with `npx shadcn@latest add <name>`, then delete the exports nothing uses
+  (coverage counts them). Style with Tailwind utilities on the theme tokens;
+  there are no hand-written component classes. A Base UI checkbox or radio is a
+  `span` named through `aria-labelledby`, so its `id` must hold no whitespace
+  (`LotFilters` encodes option values).
+- There is no favicon or share image yet, and no dark mode (`globals.css` keeps
+  the `dark` variant on a `.dark` class nothing sets, so the components' `dark:`
+  styles never apply).
   The one logo is the CarBidInsight wordmark in the banner (`public/logo.png`,
   384×64, shown at 192×32 and served as is, unoptimized); its navy and green
   are the logo's own, not tokens. The interface uses black, grey and white
-  only: `--ink`, `--muted`, `--line`, `--paper` and `--surface` in `src/app/globals.css`. `--ink` carries
-  buttons, links, checkboxes and focus rings; errors read as bold text rather
-  than a colour, since there is no error colour. The one exception is the lot
+  only, through shadcn's tokens (`--background`, `--foreground`, `--primary`,
+  `--muted`, `--muted-foreground`, `--border`, …) in `src/app/globals.css`.
+  There is no error colour: `--destructive` is the text colour, so errors
+  (`FieldError`, `FormError`) read as bold text. The one exception is the lot
   page's deal-breaker badges and sale countdown: `--good`, `--warn` and `--bad`
-  (with `-bg` variants) colour them green, amber and red, and every badge also
-  carries an icon and words, never colour alone. Basic styling lives on those
-  tokens: base styles for headings, labels, inputs, selects, checkboxes, links
-  and alerts, plus a few classes (`btn`, `btn-primary`, `btn-outline`,
-  `btn-ghost`, `btn-link`, `card`, `auth-main`, `auth-panel`, `form-stack`,
-  `phone-field`, `divider`, `hint`, `notice`, `badge`, and for the lot list's filters
-  `filter-menu`, `filter-menu-panel`, `filters-panel`, `chip`, and for the banner's account
-  menu `account-menu`, `account-menu-item`). Reuse them rather than adding
-  one-off styles, and add no further branding until a design exists.
+  (with `-bg` variants, as `text-good`, `bg-good-bg`, …) colour them green,
+  amber and red, and every badge also carries an icon and words, never colour
+  alone. The base layer styles only `h1` and running-text links (an `<a>`
+  without a `data-slot`; button-styled links drop the underline). Add no
+  further branding until a design exists.
 - The top banner (`src/components/SiteBanner.tsx`) is rendered by the root
   layout on every page and links home with the logo. Its navigation
   (`src/components/AccountNav.tsx`) is a client component that asks
@@ -92,9 +104,10 @@ See `docs/architecture.md` for details.
   account side: Active lots, VIN Lookup, then How It Works and Pricing
   with "Sign in" and the "7 days free trial" button for visitors, or Saved and
   Alerts with the dealer's initials in a round button once signed in. That
-  button opens the account menu, a native popover (a click outside or Escape
+  button opens the account menu, a `DropdownMenu` (a click outside or Escape
   closes it, and so does following one of its links): the initials, the full
-  name and the email, then Settings, Account and Log out. A language selector
+  name and the email, then Settings, Account and Log out, which calls
+  `logoutAction` directly. A language selector
   ("English") belongs there too but is not built yet. Best Buys is
   left out of the menu for now, though its page exists. The menu is
   hidden below `lg`. On `/register` and `/login` the navigation renders
@@ -247,7 +260,7 @@ and the empty placeholders the banner menu links to: `/vin-lookup`,
 leaves out for now — blank white
 pages with metadata only, so they have no `h1` until there is something to put
 on them.
-Styling stays basic until a design system exists. `/` is the home page: the
+Styling stays on shadcn/ui's defaults until a design exists. `/` is the home page: the
 centred title "Everything You Need to Know Before Buying a Car at Auction" and
 nothing else yet. Add no other pages until the user asks.
 
@@ -259,7 +272,7 @@ the user asks for the name there. The repository and the API keep their
 `cars-secrets-*` names, and so does the `cars-secrets.test` origin the tests
 run against. Invent no slogan.
 
-In place: the Next.js, Yarn 4, Tailwind and Vitest setup; the root layout
+In place: the Next.js, Yarn 4, Tailwind, shadcn/ui and Vitest setup; the root layout
 (grayscale tokens and the full-width top banner); the SEO builders (metadata,
 sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; security
 headers; the deal calculation in `src/lib/deal.ts`; and the banner's logo.
@@ -343,7 +356,7 @@ share, so a dash for a missing value looks the same on each; `lots-fixture.ts`
 is the complete lot the tests build on. The lot's photos come from
 `GET /api/lots/{source}/{lot}/images` (`getLotImages`), which the API fills from
 the auction; each photo carries a `thumb` and a `full` URL. The detail page shows
-them as a gallery in the left column's Photos tab (`src/components/GalleryTabs.tsx`), beside the deal calculator: one full-size photo at a
+them as a gallery in the left column's Photos tab (`src/components/GalleryTabs.tsx`, shadcn `Tabs` with both panels kept mounted), beside the deal calculator: one full-size photo at a
 time in a scroll-snapping strip, with a column of thumbnails beside it linking to
 `#photo-N`. Scrolling and the jumps are the browser's own, so the page stays a
 Server Component; its only JavaScript is the copy buttons (`src/components/CopyButton.tsx`),
@@ -353,7 +366,7 @@ is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
 The premium sections (`src/components/PremiumSections.tsx`, and `DealCalculator`) carry a
-grey "✦ Premium" badge and show sample figures (see the invented-figures rule) to every
+grey "Premium" badge with a sparkles icon and show sample figures (see the invented-figures rule) to every
 signed-in dealer, since there are no plans yet: a Summary under the badges; the gallery's
 Damage map tab, the car drawn from above with each damaged area numbered and a legend in
 words; the Deal calculator; then a Damage report (primary and secondary damage, the
@@ -368,7 +381,7 @@ the server-rendered table) work like this:
   it names (`interpretSearch`): a lot number or VIN of exactly one lot opens that lot; a make,
   model or years ("2018-2021 toyota rav4") become those filters and removable chips; the words
   left over are keywords, matched against trim, model detail, colour, body, fuel and drive.
-- **The bar** shows the main filters as dropdowns: Sale date (Today, Tomorrow, This week,
+- **The bar** shows the main filters as popovers: Sale date (Today, Tomorrow, This week,
   Next week, Future sale, in the dealer's own zone), Title (Copart's salvage, clean and
   non-repairable groups), Runs and drives and Damage. **All filters** (a side sheet, the whole
   screen below `lg`, where the bar is only "Filters · n") holds every filter: year, make,
@@ -376,7 +389,7 @@ the server-rendered table) work like this:
   value, Buy now price, current bid, auction (hidden while every lot has the same one), state
   and location. Up to two filters the dealer has set at least three times move into the bar
   (`promoted`). Sort: newest listed, sale soonest, year, mileage, retail value.
-- **Counts**: an opened dropdown, or the sheet, asks for its options' counts
+- **Counts**: an opened popover, or the sheet, asks for its options' counts
   (`lotCountsAction`); each filter's counts leave out its own choice. An option with no lot is
   shown disabled, and a choice no lot has any more stays listed. Counts are never part of the
   page render, because counting costs a scan per filter.

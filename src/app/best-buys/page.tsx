@@ -4,5 +4,5 @@ export const metadata = metadataForRoute("/best-buys");
 
 /** Blank on purpose: the page is a placeholder until the feature behind it exists. */
 export default function BestBuysPage() {
-  return <main className="flex-1 bg-white" />;
+  return <main className="flex-1" />;
 }

@@ -4,5 +4,5 @@ export const metadata = metadataForRoute("/pricing");
 
 /** Blank on purpose: the page is a placeholder until the feature behind it exists. */
 export default function PricingPage() {
-  return <main className="flex-1 bg-white" />;
+  return <main className="flex-1" />;
 }

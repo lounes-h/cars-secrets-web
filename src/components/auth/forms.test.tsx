@@ -181,7 +181,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
     expect(screen.getByLabelText("Email").getAttribute("type")).toBe("email");
     expect(screen.getByLabelText("Password").getAttribute("autocomplete")).toBe("current-password");
-    expect(screen.getByLabelText("Remember me").getAttribute("type")).toBe("checkbox");
+    expect(screen.getByRole("checkbox", { name: "Remember me" }).getAttribute("aria-checked")).toBe("false");
     expect(screen.getByRole("link", { name: "Forgot your password?" }).getAttribute("href")).toBe("/forgot-password");
   });
 
@@ -204,7 +204,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
     type("Email", "dana@example.com");
     type("Password", "whatever-password");
-    fireEvent.click(screen.getByLabelText("Remember me"));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Remember me" }));
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
     expect(await screen.findByText("Confirm your email address to finish signing in.")).toBeTruthy();
     type("Confirmation code", "123456");

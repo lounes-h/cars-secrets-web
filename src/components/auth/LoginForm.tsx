@@ -3,13 +3,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { loginAction } from "@/app/(auth)/actions";
-import { FieldError, FormError } from "@/components/auth/FieldError";
+import { FormError } from "@/components/auth/FormError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Turnstile } from "@/components/auth/Turnstile";
 import { VerifyEmailForm } from "@/components/auth/VerifyEmailForm";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { EMAIL_MAX, loginSchema, type LoginInput } from "@/lib/auth-schemas";
 
 /** `remember` ticks the box when the last sign-in in this browser had it ticked. */
@@ -23,7 +28,7 @@ export function LoginForm({ remember = false }: { remember?: boolean }) {
     mode: "onTouched",
     defaultValues: { email: "", password: "", remember, captcha_token: "" },
   });
-  const { register, handleSubmit, setValue, formState } = form;
+  const { register, handleSubmit, setValue, control, formState } = form;
   const { errors, isSubmitting } = formState;
   useRememberedEmail(form, "email", "password");
 
@@ -47,55 +52,71 @@ export function LoginForm({ remember = false }: { remember?: boolean }) {
 
   if (unconfirmed) {
     return (
-      <div className="form-stack">
-        <p className="notice">Confirm your email address to finish signing in.</p>
+      <FieldGroup>
+        <Alert>
+          <AlertDescription>Confirm your email address to finish signing in.</AlertDescription>
+        </Alert>
         <VerifyEmailForm
           email={unconfirmed.email}
           remember={unconfirmed.remember}
           onChangeEmail={() => setUnconfirmed(null)}
         />
-      </div>
+      </FieldGroup>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="form-stack">
-      <FormError message={errors.root?.server?.message} />
-      <div>
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          inputMode="email"
-          maxLength={EMAIL_MAX}
-          aria-invalid={errors.email ? true : undefined}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          {...register("email")}
-        />
-        <FieldError id="email-error" message={errors.email?.message} />
-      </div>
-      <PasswordField registration={register("password")} autoComplete="current-password" error={errors.password?.message} />
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <input id="remember" type="checkbox" {...register("remember")} />
-          <label htmlFor="remember" className="mb-0 font-normal">
-            Remember me
-          </label>
+    <form onSubmit={onSubmit} noValidate>
+      <FieldGroup>
+        <FormError message={errors.root?.server?.message} />
+        <Field data-invalid={errors.email ? true : undefined}>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            maxLength={EMAIL_MAX}
+            aria-invalid={errors.email ? true : undefined}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            {...register("email")}
+          />
+          <FieldError id="email-error">{errors.email?.message}</FieldError>
+        </Field>
+        <PasswordField registration={register("password")} autoComplete="current-password" error={errors.password?.message} />
+        <div className="flex items-center justify-between gap-4">
+          <Field orientation="horizontal" className="w-auto">
+            <Controller
+              name="remember"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="remember"
+                  name={field.name}
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  inputRef={field.ref}
+                />
+              )}
+            />
+            <FieldLabel htmlFor="remember" className="font-normal">
+              Remember me
+            </FieldLabel>
+          </Field>
+          <Link href="/forgot-password" className="text-sm">
+            Forgot your password?
+          </Link>
         </div>
-        <Link href="/forgot-password" className="text-sm">
-          Forgot your password?
-        </Link>
-      </div>
-      {captchaRequired && (
-        <Turnstile action="login" resetSignal={captchaReset} onToken={(token) => setValue("captcha_token", token ?? "")} />
-      )}
-      <button type="submit" disabled={isSubmitting} className="btn btn-primary w-full">
-        {isSubmitting ? "Signing in…" : "Sign in"}
-      </button>
-      <p className="hint text-center">
-        New here? <Link href="/register">Create an account</Link>
-      </p>
+        {captchaRequired && (
+          <Turnstile action="login" resetSignal={captchaReset} onToken={(token) => setValue("captcha_token", token ?? "")} />
+        )}
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? "Signing in…" : "Sign in"}
+        </Button>
+        <FieldDescription className="text-center">
+          New here? <Link href="/register">Create an account</Link>
+        </FieldDescription>
+      </FieldGroup>
     </form>
   );
 }

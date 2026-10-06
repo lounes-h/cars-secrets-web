@@ -1,6 +1,8 @@
 import type { ChangeEvent } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
-import { FieldError } from "@/components/auth/FieldError";
+import { ChevronDownIcon } from "lucide-react";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { formatNational, type Country } from "@/lib/countries";
 
 type Props = {
@@ -30,19 +32,29 @@ export function PhoneField({ countries, country, number, defaultCountry, selecte
   };
 
   return (
-    <div>
-      <label htmlFor="phone_number">
-        Phone number <span className="hint font-normal">(optional)</span>
-      </label>
-      <div className="phone-field" data-invalid={error ? true : undefined}>
-        <span className="phone-field-country">
+    <Field data-invalid={error ? true : undefined}>
+      <FieldLabel htmlFor="phone_number">
+        Phone number <span className="font-normal text-muted-foreground">(optional)</span>
+      </FieldLabel>
+      <InputGroup>
+        <span className="relative flex h-full items-center gap-1 pl-2.5 text-sm whitespace-nowrap">
           <span aria-hidden="true">
             {current.flag} +{current.dialCode}
           </span>
+          <ChevronDownIcon aria-hidden="true" className="size-4 text-muted-foreground" />
           <label htmlFor="phone_country" className="sr-only">
             Country
           </label>
-          <select id="phone_country" autoComplete="tel-country-code" defaultValue={defaultCountry} {...country}>
+          {/* The native picker, laid over the flag and calling code so only they show. Its slot
+              lets the group draw the focus ring around both parts. */}
+          <select
+            id="phone_country"
+            data-slot="input-group-control"
+            autoComplete="tel-country-code"
+            defaultValue={defaultCountry}
+            className="absolute inset-0 cursor-pointer opacity-0"
+            {...country}
+          >
             {countries.map((c) => (
               <option key={c.code} value={c.code}>
                 {c.flag} {c.name} (+{c.dialCode})
@@ -53,7 +65,7 @@ export function PhoneField({ countries, country, number, defaultCountry, selecte
         <label htmlFor="phone_number" className="sr-only">
           Number
         </label>
-        <input
+        <InputGroupInput
           id="phone_number"
           type="tel"
           inputMode="tel"
@@ -66,8 +78,8 @@ export function PhoneField({ countries, country, number, defaultCountry, selecte
           {...number}
           onChange={format}
         />
-      </div>
-      <FieldError id="phone_number-error" message={error} />
-    </div>
+      </InputGroup>
+      <FieldError id="phone_number-error">{error}</FieldError>
+    </Field>
   );
 }
