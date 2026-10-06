@@ -1,15 +1,11 @@
 import {
   CarIcon,
-  CheckIcon,
   ClockIcon,
   CogIcon,
-  DotIcon,
   EngineIcon,
   FuelIcon,
   PaletteIcon,
   TagIcon,
-  TriangleAlertIcon,
-  XIcon,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -19,10 +15,10 @@ import { DealCalculator } from "@/components/DealCalculator";
 import { GalleryTabs } from "@/components/GalleryTabs";
 import { DamageMap, DamageReport, Market, PremiumBadge, PremiumSummary } from "@/components/PremiumSections";
 import { LocalTime } from "@/components/LocalTime";
-import { Badge } from "@/components/ui/badge";
+import { LotBadges } from "@/components/LotBadges";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { badges, countdown, driveType, engineSpec, odometerStatus, titleType, vehicleType } from "@/lib/lot-signals";
+import { countdown, driveType, engineSpec, odometerStatus, titleType, vehicleType } from "@/lib/lot-signals";
 import {
   amount,
   auctionName,
@@ -138,17 +134,7 @@ export default async function LotPage({ params }: { params: Params }) {
           </div>
         </div>
         {meta.length > 0 && <p className="mt-3 text-sm text-muted-foreground">{meta.join(" · ")}</p>}
-        <ul aria-label="Deal breakers" className="mt-3 flex flex-wrap gap-2">
-          {badges(lot).map((badge) => {
-            const Tone = TONE_ICONS[badge.tone];
-            return (
-              <Badge key={badge.label} render={<li />} variant="outline" data-tone={badge.tone} className={`h-6 px-2.5 text-sm ${TONE_COLORS[badge.tone]}`}>
-                <Tone aria-hidden="true" />
-                {badge.label}
-              </Badge>
-            );
-          })}
-        </ul>
+        <LotBadges lot={lot} className="mt-3" badgeClassName="h-6 px-2.5 text-sm" />
         <PremiumSummary className="mt-6" />
       </header>
 
@@ -330,12 +316,3 @@ function Field({ label, value }: { label: string; value: string | number | null 
     </>
   );
 }
-
-const TONE_ICONS = { good: CheckIcon, warn: TriangleAlertIcon, bad: XIcon, neutral: DotIcon } as const;
-
-const TONE_COLORS = {
-  good: "border-good/40 bg-good-bg text-good",
-  warn: "border-warn/40 bg-warn-bg text-warn",
-  bad: "border-bad/40 bg-bad-bg text-bad",
-  neutral: "bg-muted text-muted-foreground",
-} as const;

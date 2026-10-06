@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronDownIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState, useTransition } from "react";
 import { lotCountsAction, rememberLotFiltersAction } from "@/app/active-lots/actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Field, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,8 +44,10 @@ type Apply = (next: Query) => void;
 
 /**
  * The lot list's search, filters, order and chips, around the server-rendered results. Every
- * change is a new URL, so the server lists the lots and a list can be shared. Option counts are
- * asked for only when a list is opened, since counting is the slow part.
+ * change is a new URL, so the server lists the lots and a list can be shared. The search runs
+ * along the top; below it, the filters sit in a sidebar on the left, always there on a wide
+ * screen and behind "Filters" on a narrow one, each folding away. Option counts come after the
+ * list, since counting is the slow part.
  */
 export function LotFilters({
   query,
@@ -65,11 +68,7 @@ export function LotFilters({
   const [pending, startTransition] = useTransition();
   const search = queryString(query);
   const keep = queryString(rememberable(query));
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [counts, setCounts] = useState<{ search: string; facets: Facets; loaded: string[] } | null>(null);
-  // The counts the open lists need: every filter's while "All filters" is open.
-  const wanted = (sheetOpen ? COUNTED : COUNTED.filter((id) => id === openMenu)).join(",");
+  const [counts, setCounts] = useState<{ search: string; facets: Facets } | null>(null);
 
   function apply(next: Query) {
     // The bar always sets an order, so a URL without parameters means "as I left it".
@@ -78,29 +77,20 @@ export function LotFilters({
   }
 
   function countsOf(id: string): Counts {
-    if (counts?.search !== search || !counts.loaded.includes(id)) return null;
-    return counts.facets[id] ?? [];
+    return counts?.search === search ? (counts.facets[id] ?? []) : null;
   }
 
+  // The sidebar shows every filter, so every filter is counted, once per list.
+  // ponytail: phones count too, sidebar or not; ask only once it is seen if that load matters.
   useEffect(() => {
-    if (!wanted) return;
     let live = true;
-    const names = wanted.split(",");
-    void lotCountsAction(search, names).then((facets) => {
-      if (!live) return;
-      setCounts((last) => {
-        const same = last?.search === search;
-        return {
-          search,
-          facets: { ...(same ? last.facets : {}), ...facets },
-          loaded: [...new Set([...(same ? last.loaded : []), ...names])],
-        };
-      });
+    void lotCountsAction(search, COUNTED).then((facets) => {
+      if (live) setCounts({ search, facets });
     });
     return () => {
       live = false;
     };
-  }, [search, wanted]);
+  }, [search]);
 
   useEffect(() => {
     if (keep !== remembered) void rememberLotFiltersAction(keep);
@@ -119,7 +109,6 @@ export function LotFilters({
 
   const active = activeIds(query);
   const inBar = [...PRIMARY, ...promoted(usage)];
-  const hidden = active.filter((id) => !inBar.includes(id)).length;
   const found = chips(query);
 
   function visible(filter: Filter): boolean {
@@ -128,10 +117,28 @@ export function LotFilters({
     return (countsOf(filter.id)?.length ?? 0) > 1;
   }
 
+  // Every filter, grouped, each folding away: in the sidebar, which leaves out the bar's own
+  // filters beside it, and in the sheet that stands in for both below lg.
+  const groups = (place: "side" | "sheet") =>
+    GROUPS.filter((group) => place === "sheet" || group.id !== "main").map((group) => (
+      <section key={group.id} className="mb-6">
+        <h3 className="mb-1 font-semibold">{group.label}</h3>
+        {FILTERS.filter((filter) => filter.group === group.id && visible(filter)).map((filter) =>
+          filter.kind === "toggle" ? (
+            <div key={filter.id} className="border-b py-2.5">
+              <Control filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place={place} />
+            </div>
+          ) : (
+            <Fold key={filter.id} filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place={place} />
+          ),
+        )}
+      </section>
+    ));
+
   return (
     <div>
-      {/* One line: the search on the left, up to 28rem, and the filters on the right; below lg the
-          search takes a line of its own. The order sits on the line below, with the count and the chips. */}
+      {/* Along the top: the search at the far left, up to 28rem, and the bar on the right; below lg
+          the search takes a line of its own. The order sits above the lots, with the count and the chips. */}
       <div className="flex flex-wrap items-center gap-2">
         <form
           role="search"
@@ -162,48 +169,18 @@ export function LotFilters({
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {inBar.map((id) => {
             const filter = filterById(id);
-            return visible(filter) ? (
-              <Menu
-                key={id}
-                filter={filter}
-                query={query}
-                counts={countsOf(id)}
-                apply={apply}
-                // Another menu may open before this one reports closing.
-                onOpenChange={(open) => setOpenMenu((current) => (open ? id : current === id ? null : current))}
-              />
-            ) : null;
+            return visible(filter) ? <Menu key={id} filter={filter} query={query} counts={countsOf(id)} apply={apply} /> : null;
           })}
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger render={<Button variant="outline" />}>
-              <span className="lg:hidden">Filters{active.length > 0 && ` · ${active.length}`}</span>
-              <span className="hidden lg:inline">All filters{hidden > 0 && ` · ${hidden}`}</span>
+          <Sheet>
+            <SheetTrigger render={<Button variant="outline" className="lg:hidden" />}>
+              Filters{active.length > 0 && ` · ${active.length}`}
             </SheetTrigger>
             {/* The whole screen on a phone. */}
             <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
               <SheetHeader className="border-b">
                 <SheetTitle className="text-xl font-semibold">All filters</SheetTitle>
               </SheetHeader>
-              <div className="flex-1 overflow-y-auto p-4">
-                {GROUPS.map((group) => {
-                  const shown = FILTERS.filter((filter) => filter.group === group.id && visible(filter));
-                  return (
-                    <section key={group.id} className="mb-6 flex flex-col gap-4">
-                      <h3 className="font-semibold">{group.label}</h3>
-                      {shown.map((filter) =>
-                        filter.kind === "toggle" ? (
-                          <Control key={filter.id} filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
-                        ) : (
-                          <FieldSet key={filter.id} className="gap-2">
-                            <FieldLegend variant="label">{filter.label}</FieldLegend>
-                            <Control filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place="panel" />
-                          </FieldSet>
-                        ),
-                      )}
-                    </section>
-                  );
-                })}
-              </div>
+              <div className="flex-1 overflow-y-auto p-4">{groups("sheet")}</div>
               <SheetFooter className="border-t">
                 <SheetClose render={<Button className="w-full" />}>Show {lots(total)}</SheetClose>
               </SheetFooter>
@@ -212,47 +189,102 @@ export function LotFilters({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <p aria-live="polite" className="mr-2 font-semibold">
-          {lots(total)}
-        </p>
-        {found.map((chip) => (
-          <Button
-            key={chip.key}
-            type="button"
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            aria-label={`Remove ${chip.label}`}
-            onClick={() => apply(chip.without)}
-          >
-            {chip.label} <XIcon aria-hidden="true" />
-          </Button>
-        ))}
-        {found.length > 0 && (
-          <Button type="button" variant="link" size="sm" onClick={() => apply(edit({}, { sort: query.sort ?? null }))}>
-            Clear all
-          </Button>
-        )}
-        <Label className="ml-auto font-normal">
-          Sort
-          <NativeSelect
-            value={query.sort?.[0] ?? "newest"}
-            onChange={(event) => apply(edit(query, { sort: [event.target.value] }))}
-          >
-            {SORTS.map((option) => (
-              <NativeSelectOption key={option.value} value={option.value}>
-                {option.label}
-              </NativeSelectOption>
+      {/* The sidebar can be put away, and the lots then take the whole width. A closed panel leaves
+          the page, so the second column is there only while the sidebar is. */}
+      <Collapsible defaultOpen className="mt-6 lg:grid lg:items-start lg:gap-8 lg:has-[>aside]:grid-cols-[18rem_minmax(0,1fr)]">
+        {/* Stays in view, scrolling on its own, while the lots scroll past. */}
+        <CollapsibleContent
+          render={<aside />}
+          aria-labelledby="all-filters"
+          className="hidden lg:sticky lg:top-6 lg:block lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:pr-2"
+        >
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 id="all-filters" className="text-xl font-semibold">
+              All filters
+            </h2>
+            <CollapsibleTrigger render={<Button variant="ghost" size="icon" aria-label="Hide filters" />}>
+              <PanelLeftCloseIcon aria-hidden="true" />
+            </CollapsibleTrigger>
+          </div>
+          {groups("side")}
+        </CollapsibleContent>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Brings the sidebar back; only while it is put away, and only where there is one. */}
+            <CollapsibleTrigger render={<Button variant="outline" className="hidden lg:inline-flex lg:data-[panel-open]:hidden" />}>
+              <PanelLeftOpenIcon aria-hidden="true" />
+              Show filters{active.length > 0 && ` · ${active.length}`}
+            </CollapsibleTrigger>
+            <p aria-live="polite" className="mr-2 font-semibold">
+              {lots(total)}
+            </p>
+            {found.map((chip) => (
+              <Button
+                key={chip.key}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                aria-label={`Remove ${chip.label}`}
+                onClick={() => apply(chip.without)}
+              >
+                {chip.label} <XIcon aria-hidden="true" />
+              </Button>
             ))}
-          </NativeSelect>
-        </Label>
-      </div>
+            {found.length > 0 && (
+              <Button type="button" variant="link" size="sm" onClick={() => apply(edit({}, { sort: query.sort ?? null }))}>
+                Clear all
+              </Button>
+            )}
+            <Label className="ml-auto font-normal">
+              Sort
+              <NativeSelect
+                value={query.sort?.[0] ?? "newest"}
+                onChange={(event) => apply(edit(query, { sort: [event.target.value] }))}
+              >
+                {SORTS.map((option) => (
+                  <NativeSelectOption key={option.value} value={option.value}>
+                    {option.label}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Label>
+          </div>
 
-      <div aria-busy={pending} className={pending ? "opacity-60" : undefined}>
-        {children}
-      </div>
+          <div aria-busy={pending} className={pending ? "opacity-60" : undefined}>
+            {children}
+          </div>
+        </div>
+      </Collapsible>
     </div>
+  );
+}
+
+/** How many values of a filter are chosen; a range counts as one. */
+function chosenCount(filter: Filter, query: Query): number {
+  return filter.range ? Number(paramsOf(filter).some((param) => query[param])) : (query[filter.id]?.length ?? 0);
+}
+
+/** One filter of the sidebar or the sheet: folded away until opened, and open from the start while it holds a choice. */
+function Fold({ filter, query, counts, apply, place }: { filter: Filter; query: Query; counts: Counts; apply: Apply; place: string }) {
+  const chosen = chosenCount(filter, query);
+  return (
+    <Collapsible defaultOpen={chosen > 0} className="border-b">
+      <CollapsibleTrigger
+        render={<Button variant="ghost" className="h-11 w-full justify-between px-0 hover:bg-transparent aria-expanded:bg-transparent [&[data-panel-open]>svg]:rotate-180" />}
+      >
+        {/* One string, so the name keeps its spaces: "Auction · 1". */}
+        {chosen > 0 ? `${filter.label} · ${chosen}` : filter.label}
+        <ChevronDownIcon aria-hidden="true" className="transition-transform" />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pb-3">
+        {/* The open button names the section; the legend names the options for a screen reader. */}
+        <FieldSet className="gap-2">
+          <FieldLegend className="sr-only">{filter.label}</FieldLegend>
+          <Control filter={filter} query={query} counts={counts} apply={apply} place={place} />
+        </FieldSet>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -262,17 +294,15 @@ function Menu({
   query,
   counts,
   apply,
-  onOpenChange,
 }: {
   filter: Filter;
   query: Query;
   counts: Counts;
   apply: Apply;
-  onOpenChange: (open: boolean) => void;
 }) {
-  const chosen = filter.range ? Number(paramsOf(filter).some((param) => query[param])) : (query[filter.id]?.length ?? 0);
+  const chosen = chosenCount(filter, query);
   return (
-    <Popover onOpenChange={onOpenChange}>
+    <Popover>
       <PopoverTrigger render={<Button variant="outline" className="hidden lg:inline-flex" />}>
         {filter.label}
         {chosen > 0 && <span className="font-normal">· {chosen}</span>}

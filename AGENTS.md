@@ -74,7 +74,7 @@ See `docs/architecture.md` for details.
   a real link — Base UI's `render` would give it `role="button"`), `Input`,
   `Field` (label, description, error), `InputGroup` (password show/hide, phone
   country and number), `Checkbox`, `RadioGroup`, `NativeSelect`, `Card`,
-  `Alert`, `Badge`, `Table`, `Tabs`, `Slider`, `Popover`, `Sheet`,
+  `Alert`, `Badge`, `Table`, `Tabs`, `Slider`, `Popover`, `Sheet`, `Collapsible`,
   `DropdownMenu`, `Avatar` and `Separator`; icons come from `lucide-react`. Add
   one with `npx shadcn@latest add <name>`, then delete the exports nothing uses
   (coverage counts them). Style with Tailwind utilities on the theme tokens;
@@ -84,8 +84,9 @@ See `docs/architecture.md` for details.
   ring; an invalid one has a black border, also without a ring. The auth pages'
   buttons (submit, Google and Apple, "Sign out") are 55px (`size="xl"`, the one
   size added to `button.tsx`); their inline text links are not. The lot list's
-  Search button is as tall as its input (`h-12`). Keep that if a
-  component is re-added with `--overwrite`. A Base UI checkbox or radio is a
+  Search button is as tall as its input (`h-12`). `buttonVariants` returns its classes
+  merged through `cn`, so an outline link keeps its border (otherwise the base's
+  `border-transparent` wins). Keep these if a component is re-added with `--overwrite`. A Base UI checkbox or radio is a
   `span` named through `aria-labelledby`, so its `id` must hold no whitespace
   (`LotFilters` encodes option values).
 - There is no favicon or share image yet, and no dark mode (`globals.css` keeps
@@ -97,8 +98,9 @@ See `docs/architecture.md` for details.
   only, through shadcn's tokens (`--background`, `--foreground`, `--primary`,
   `--muted`, `--muted-foreground`, `--border`, …) in `src/app/globals.css`.
   There is no error colour: `--destructive` is the text colour, so errors
-  (`FieldError`, `FormError`) read as bold text. The one exception is the lot
-  page's deal-breaker badges and sale countdown: `--good`, `--warn` and `--bad`
+  (`FieldError`, `FormError`) read as bold text. The one exception is the
+  deal-breaker badges (`LotBadges`, on the lot page and each lot card) and the lot page's
+  sale countdown: `--good`, `--warn` and `--bad`
   (with `-bg` variants, as `text-good`, `bg-good-bg`, …) colour them green,
   amber and red, and every badge also carries an icon and words, never colour
   alone. The base layer styles only `h1` and running-text links (an `<a>`
@@ -300,7 +302,8 @@ Policy themselves do not exist yet.
 
 In place for lots: `/active-lots` ("Active lots" in the menu and as its visually hidden `h1`; the
 path was `/auctions`, which redirects here permanently) lists active lots, the most recently listed
-first unless the dealer picks another order, 20 to a page (`?page=`), with search and filters
+first unless the dealer picks another order, 20 to a page (`?page=`), each as a card
+(`src/components/LotCard.tsx`, answering "is this lot worth opening?"), with search and filters
 (below), under a light grey strip that says how many lots were added and updated today — or in
 the last 3 or 7 days when today has fewer than 1,000 (`activityWindow`) — and `/active-lots/[source]/[lotNumber]` shows one lot —
 every column the ingest keeps for it, every photo of it, and a way to the lot on the
@@ -317,7 +320,7 @@ Deal calculator, the one emphasised card, which took the all-in cost card's plac
 `predicted_final_price` as "Likely final bid" in its currency ("Not available" when null),
 then sample costs and profit (explicitly labeled), a max bid slider that reruns `analyzeDeal`,
 then the lot's real current bid and ACV, and a "Buy now" button only when the auction offers it; condition, paperwork and pickup, where an offsite lot also shows its "Offsite address"
-(`offsiteAddress`: Copart's offsite columns, filled for about 1 % of lots; the list marks their location "· Offsite");
+(`offsiteAddress`: Copart's offsite columns, filled for about 1 % of lots; the lot card has the same "Offsite" badge);
 then specs as tiles and sale info as one light row, both always visible. Sale info's times
 are Copart's last update of the lot ("Updated on Copart", `source_updated_at`), when the
 ingest first saw it ("Added to this site", `first_seen_at`) and when it last saw it change
@@ -372,6 +375,17 @@ The photos are not tagged by the auction, so there are no Damage/Exterior/Interi
 is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
+The lot cards are horizontal, one per line (stacked, photo on top, on a phone). Each reads,
+left to right: the photo (the export's `thumbnail_url` is 144px wide, so the card shows its
+`_ful` twin, as the API does; https only; "No photo" without one); then the title (year, make,
+model, trim, linking to the lot, and stretched over the whole card), "Lot N · auction · place",
+mileage and primary damage, the deal-breaker badges and the sale time; then, in a column on
+the right, the real figures only — current bid, likely final bid (`predicted_final_price`),
+retail value (ACV) and Buy now when offered, never the calculator's samples — and a "View
+details" button under them. The button only shows what a click anywhere on the card does: it
+is out of the tab order and hidden from screen readers, which get the title's link. The API
+lists cars (vehicle type `V`) before every other type, whatever the order.
+
 The premium sections (`src/components/PremiumSections.tsx`, and `DealCalculator`) carry a
 grey "Premium" badge with a sparkles icon and show sample figures (see the invented-figures rule) to every
 signed-in dealer, since there are no plans yet: a Summary under the badges; the gallery's
@@ -382,24 +396,33 @@ total) and Market (value and how the lot sells) above Condition, which they sit 
 rather than replace. Severity is words, not colour, like the rest of the grayscale page.
 
 The lot list's search and filters (`src/components/LotFilters.tsx`, a client component around
-the server-rendered table) work like this:
+the server-rendered cards) work like this:
 
 - **Search** takes a make, model, year, VIN, lot number or keywords. The page asks the API what
   it names (`interpretSearch`): a lot number or VIN of exactly one lot opens that lot; a make,
   model or years ("2018-2021 toyota rav4") become those filters and removable chips; the words
   left over are keywords, matched against trim, model detail, colour, body, fuel and drive.
-- **The bar** shares the search's line, on its right (below `lg` the search has a line of its own),
-  and shows the main filters as popovers: Sale date (Today, Tomorrow, This week,
-  Next week, Future sale, in the dealer's own zone), Title (Copart's salvage, clean and
-  non-repairable groups), Runs and drives and Damage. **All filters** (a side sheet, the whole
-  screen below `lg`, where the bar is only "Filters · n") holds every filter: year, make,
-  model, mileage, vehicle type, keys, secondary damage, sale type, Buy now available, retail
-  value, Buy now price, current bid, auction (hidden while every lot has the same one), state
-  and location. Up to two filters the dealer has set at least three times move into the bar
-  (`promoted`). Sort, on the line below with the count and the chips: newest listed, sale
+- **The search** is at the far left of the line above the sidebar and the lots, and **the bar**
+  on its right (below `lg` the search has a line of its own). From `lg` up the bar shows the
+  main filters as popovers: Sale date (Today, Tomorrow, This week, Next week, Future sale, in
+  the dealer's own zone), Title (Copart's salvage, clean and non-repairable groups), Runs and
+  drives and Damage. Up to two filters the dealer has set at least three times move into the
+  bar (`promoted`). Sort, above the lots with the count and the chips: newest listed, sale
   soonest, year, mileage, retail value.
-- **Counts**: an opened popover, or the sheet, asks for its options' counts
-  (`lotCountsAction`); each filter's counts leave out its own choice. An option with no lot is
+- **All filters** is a sidebar on the left, under the search and beside the lots, there from
+  `lg` up and sticky, scrolling on its own. Its "Hide filters" button puts it away and the lots
+  take the whole width; "Show filters · n", before the count, brings it back (both one
+  `Collapsible`; open on every visit). It leaves out the bar's own group (sale date,
+  title, runs and drives, damage) and holds the rest: year, make, model, mileage, vehicle type,
+  keys, secondary damage, sale type, Buy now available, retail value, Buy now price, current
+  bid, auction (hidden while every lot has the same one), state and location. Each filter
+  folds away (`Collapsible`): folded at first, unfolded from the start while it holds a
+  choice; a switch (Buy now available) has nothing to fold. Below `lg` it is a sheet (the
+  whole screen on a phone) behind the bar's "Filters · n", which holds the bar's group too,
+  since the bar shows nothing else there.
+- **Counts**: once the list is shown, the sidebar asks for every filter's counts in one call
+  (`lotCountsAction`), which the popovers and the sheet share; each filter's counts leave out
+  its own choice. An option with no lot is
   shown disabled, and a choice no lot has any more stays listed. Counts are never part of the
   page render, because counting costs a scan per filter.
 - **Chips** show every chosen value with the result count; each removes its own, and

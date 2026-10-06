@@ -23,7 +23,9 @@ src/
     auth/              Auth forms (React Hook Form), PasswordField, PhoneField, Turnstile, SocialButtons,
                        form-helpers (server errors on fields, remembered email)
     LocalTime.tsx      A time in the reader's own time zone: server text, rewritten before paint
-    LotFilters.tsx     The lot list's search box, filter bar, All filters sheet, chips and order
+    LotFilters.tsx     The lot list's search box, filter bar, All filters sidebar, chips and order
+    LotCard.tsx        One lot in the list: photo, title, real figures, badges, sale time
+    LotBadges.tsx      A lot's deal-breaker badges, shared by the lot page and the lot card
   lib/
     site.ts            Site identity (URL, language, description) and URL resolution
     routes.ts          Registry of every public page
@@ -72,9 +74,10 @@ equal URLs. The page, for a signed-in dealer:
    twice. The list stands without the strip when the API cannot give it.
 
 `LotFilters` turns every change into a new URL (`router.push`, no scroll), so Back undoes a
-filter. It asks for option counts (`/api/lots/counts`, through `lotCountsAction`) only for the
-popover or sheet that is open, since each filter's counts are a scan of the lots, and drops
-an answer that arrives after the filters changed. After each change it stores the filters and
+filter. Its sidebar and bar show every filter between them, so it asks for every filter's option counts
+(`/api/lots/counts`, through `lotCountsAction`) once per list, after the list has rendered,
+since each filter's counts are a scan of the lots; it drops an answer that arrives after the
+filters changed. After each change it stores the filters and
 order (not the search's words) through `rememberLotFiltersAction`, unless they equal what the
 page read; the API counts how often each parameter is set, and the most used move into the bar.
 

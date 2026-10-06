@@ -8,6 +8,7 @@ const { ApiError } = await import("@/lib/api");
 const {
   ACTIVITY_MIN,
   activityWindow,
+  amount,
   auctionName,
   countLots,
   getLotActivity,
@@ -175,6 +176,14 @@ describe("getLot", () => {
   it("lets any other failure through, so the page does not claim the lot is gone", async () => {
     api.mockRejectedValue(new ApiError(0, "unavailable", "down"));
     await expect(getLot("copart", "1", "token-abc")).rejects.toThrow("down");
+  });
+});
+
+describe("amount", () => {
+  it("shows the lot's own currency, falls back to dollars for a junk code, and is a dash for none", () => {
+    expect(amount(8119, "CAD")).toBe("CA$8,119");
+    expect(amount(8119, "n/a")).toBe("$8,119");
+    expect(amount(null, "USD")).toBe("—");
   });
 });
 
