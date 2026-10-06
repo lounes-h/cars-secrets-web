@@ -22,6 +22,16 @@ describe("lot card", () => {
     expect(card.textContent).toContain("Lot 41633106 · Copart · VALLEJO, CA");
   });
 
+  it("offers a View details button to the lot, left out of the tab order and of what a screen reader reads", () => {
+    show();
+    const details = screen.getByText("View details").closest("a")!;
+    expect(details.getAttribute("href")).toBe("/active-lots/copart/41633106");
+    expect(details.tabIndex).toBe(-1);
+    expect(details.getAttribute("aria-hidden")).toBe("true");
+    // The title stays the one link a keyboard or a screen reader finds.
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+  });
+
   it("shows the real money figures, and Buy now only when the auction offers it", () => {
     show();
     expect(prices()).toEqual({ "Current bid": "$0", "Likely final bid": "$3,175", "Retail value (ACV)": "$8,119" });

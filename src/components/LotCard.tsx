@@ -1,7 +1,8 @@
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 import { LocalTime } from "@/components/LocalTime";
 import { LotBadges } from "@/components/LotBadges";
+import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { amount, auctionName, type Lot, lotPath, odometer, place, saleDate } from "@/lib/lots";
 
@@ -59,14 +60,22 @@ export function LotCard({ lot }: { lot: Lot }) {
             {lot.sale_at ? <LocalTime value={lot.sale_at} format="sale" /> : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
           </p>
         </div>
-        <dl className="grid flex-none grid-cols-2 content-start gap-x-4 gap-y-2 md:w-48 md:grid-cols-1 md:border-l md:pl-6">
-          {prices.map(([label, value]) => (
-            <div key={label}>
-              <dt className="text-xs text-muted-foreground">{label}</dt>
-              <dd className="font-semibold tabular-nums">{amount(value, lot.currency)}</dd>
-            </div>
-          ))}
-        </dl>
+        <div className="flex flex-none flex-col gap-4 md:w-48 md:border-l md:pl-6">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-1">
+            {prices.map(([label, value]) => (
+              <div key={label}>
+                <dt className="text-xs text-muted-foreground">{label}</dt>
+                <dd className="font-semibold tabular-nums">{amount(value, lot.currency)}</dd>
+              </div>
+            ))}
+          </dl>
+          {/* What the whole card does, said out loud. The title is the link a keyboard or a screen
+              reader uses, so this one is left out of both rather than read twice. */}
+          <Link href={lotPath(lot)} tabIndex={-1} aria-hidden="true" className={buttonVariants({ variant: "outline", className: "mt-auto" })}>
+            View details
+            <ChevronRightIcon aria-hidden="true" />
+          </Link>
+        </div>
       </div>
     </Card>
   );

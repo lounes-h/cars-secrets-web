@@ -31,6 +31,7 @@ const COUNTS = {
   ],
   model: [{ value: "RAV4", count: 5 }],
   buy_now: [{ value: "yes", count: 19 }],
+  keys: [{ value: "no", count: 12 }],
   sale: [{ value: "next_week", count: 40 }],
 };
 
@@ -42,8 +43,8 @@ function show(query: Query = {}, { total = 145, usage = {}, remembered = "" }: {
   );
 }
 
-/** A filter's button in the bar. */
-const trigger = (label: RegExp) => screen.getByRole("button", { name: label });
+/** A filter's button in the bar, on the search's line (the sidebar has buttons of the same names). */
+const trigger = (label: RegExp) => within(screen.getByRole("search").parentElement!).getByRole("button", { name: label });
 
 /** Opens a filter of the bar, as clicking its button does, and returns its options. */
 async function open(label: RegExp) {
@@ -51,13 +52,18 @@ async function open(label: RegExp) {
   return screen.getByRole("dialog");
 }
 
-/** The sidebar with every filter, always open. */
+/** The sidebar of filters, always there. */
 const panel = () => screen.getByRole("complementary", { name: "All filters" });
 
 /** The sidebar once the counts it asked for are in. */
 async function counted() {
   await act(async () => {});
   return panel();
+}
+
+/** Unfolds one of the sidebar's filters, as clicking its name does. */
+async function unfold(label: RegExp) {
+  await act(async () => fireEvent.click(within(panel()).getByRole("button", { name: label })));
 }
 const checked = (box: HTMLElement) => box.getAttribute("aria-checked") === "true";
 
@@ -199,7 +205,7 @@ describe("the bar", () => {
     );
     await act(async () => answer({ title: [{ value: "clean", count: 999 }] }));
     expect(screen.queryByText("999")).toBeNull();
-    await within(panel()).findByRole("checkbox", { name: /Salvage\s*70/ });
+    await screen.findByRole("checkbox", { name: /Salvage\s*70/ });
   });
 });
 
@@ -220,16 +226,23 @@ describe("the chips", () => {
 });
 
 describe("All filters", () => {
-  it("is always open on the left, every filter grouped and counted at once", async () => {
-    const { container } = show();
-    expect(container.firstElementChild!.firstElementChild).toBe(panel());
+  it("is always there, on the left under the search, every filter grouped and counted at once", async () => {
+    show();
+    // The search first, at the far left; the sidebar and the lots below it, side by side.
+    expect(screen.getByRole("search").compareDocumentPosition(panel()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(panel().nextElementSibling!.contains(screen.getByRole("table", { name: "Lots" }))).toBe(true);
     expect(within(panel()).getByRole("heading", { level: 2, name: "All filters" })).toBeTruthy();
     await counted();
     expect(lotCountsAction).toHaveBeenCalledTimes(1);
     expect(lotCountsAction).toHaveBeenCalledWith("", expect.arrayContaining(["title", "damage", "state", "buy_now", "make"]));
-    for (const group of ["Sale date, title and damage", "The car", "Condition", "The sale", "Where"]) {
-      expect(within(panel()).getByRole("heading", { name: group })).toBeTruthy();
-    }
+    expect(within(panel()).getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent)).toEqual([
+      "The car",
+      "Condition",
+      "The sale",
+      "Where",
+    ]);
+    // Sale date, title, runs and drives and damage are the bar's, beside the sidebar.
+    expect(within(panel()).queryByRole("button", { name: /^(Sale date|Title|Runs and drives|Damage)/ })).toBeNull();
     await within(panel()).findByRole("checkbox", { name: /Buy now available\s*19/ });
     // Every lot comes from one auction: nothing to choose.
     expect(within(panel()).queryByText("Auction")).toBeNull();
@@ -240,12 +253,45 @@ describe("All filters", () => {
   it("shows the auctions once there is a choice", async () => {
     lotCountsAction.mockResolvedValue({ source: [{ value: "copart", count: 9 }, { value: "iaa", count: 4 }] });
     show();
-    expect(await within(await counted()).findByRole("checkbox", { name: /IAA\s*4/ })).toBeTruthy();
+    await counted();
+    await unfold(/^Auction/);
+    expect(await within(panel()).findByRole("checkbox", { name: /IAA\s*4/ })).toBeTruthy();
   });
 
-  it("keeps a chosen auction listed", async () => {
+  it("keeps a chosen auction listed, unfolded from the start", async () => {
     show({ source: ["copart"] });
+    expect(within(panel()).getByRole("button", { name: "Auction · 1" }).getAttribute("aria-expanded")).toBe("true");
     expect(within(await counted()).getByRole("checkbox", { name: /Copart/ })).toBeTruthy();
+  });
+
+  it("can be put away, giving the lots the whole width, and brought back", async () => {
+    show({ title: ["clean"] });
+    await counted();
+    const reopen = screen.getByRole("button", { name: "Show filters · 1" });
+    expect(reopen.getAttribute("aria-expanded")).toBe("true");
+    await act(async () => fireEvent.click(within(panel()).getByRole("button", { name: "Hide filters" })));
+    expect(screen.queryByRole("complementary", { name: "All filters" })).toBeNull();
+    expect(reopen.getAttribute("aria-expanded")).toBe("false");
+    await act(async () => fireEvent.click(reopen));
+    expect(panel()).toBeTruthy();
+    // The list itself never moved: only the sidebar came and went.
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("folds each filter away until it is opened, and folds it again", async () => {
+    show();
+    await counted();
+    const keys = within(panel()).getByRole("button", { name: "Keys" });
+    expect(keys.getAttribute("aria-expanded")).toBe("false");
+    expect(within(panel()).queryByRole("checkbox", { name: /No keys/ })).toBeNull();
+    await unfold(/^Keys/);
+    expect(keys.getAttribute("aria-expanded")).toBe("true");
+    // The options are named as a group, for a screen reader.
+    expect(within(panel()).getByRole("group", { name: "Keys" })).toBeTruthy();
+    fireEvent.click(within(panel()).getByRole("checkbox", { name: /No keys/ }));
+    expect(push).toHaveBeenLastCalledWith("/active-lots?keys=no&sort=newest", { scroll: false });
+    await unfold(/^Keys/);
+    expect(within(panel()).queryByRole("checkbox", { name: /No keys/ })).toBeNull();
   });
 
   it("chooses a make, which drops a model of another, and then a model", async () => {
@@ -269,6 +315,7 @@ describe("All filters", () => {
     fireEvent.change(within(panel()).getByLabelText("To", { selector: "#side-year-year_max" }), { target: { value: "" } });
     fireEvent.submit(from.closest("form")!);
     expect(push).toHaveBeenCalledWith("/active-lots?year_min=2016&sort=newest", { scroll: false });
+    await unfold(/^Mileage/);
     const miles = within(panel()).getByLabelText("Up to (miles)");
     fireEvent.change(miles, { target: { value: "90000" } });
     fireEvent.submit(miles.closest("form")!);
@@ -293,8 +340,11 @@ describe("All filters", () => {
       await act(async () => fireEvent.click(screen.getByRole("button", { name: "Filters" })));
       return screen.getByRole("dialog", { name: "All filters" });
     };
-    // Not the sidebar's ids, so a label in the sheet works its own box.
     const opened = await sheet();
+    // Every filter, the bar's too, since the bar shows only "Filters" on a narrow screen.
+    expect(within(opened).getByRole("heading", { name: "Sale date, title and damage" })).toBeTruthy();
+    // Not the sidebar's ids, so a label in the sheet works its own box.
+    await act(async () => fireEvent.click(within(opened).getByRole("button", { name: "Year" })));
     expect(within(opened).getByLabelText("From", { selector: "#sheet-year-year_min" })).toBeTruthy();
     await act(async () => fireEvent.click(within(opened).getByRole("button", { name: "Show 1,234 lots" })));
     expect(screen.queryByRole("dialog", { name: "All filters" })).toBeNull();

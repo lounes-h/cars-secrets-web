@@ -74,7 +74,7 @@ equal URLs. The page, for a signed-in dealer:
    twice. The list stands without the strip when the API cannot give it.
 
 `LotFilters` turns every change into a new URL (`router.push`, no scroll), so Back undoes a
-filter. Its sidebar shows every filter, so it asks for every filter's option counts
+filter. Its sidebar and bar show every filter between them, so it asks for every filter's option counts
 (`/api/lots/counts`, through `lotCountsAction`) once per list, after the list has rendered,
 since each filter's counts are a scan of the lots; it drops an answer that arrives after the
 filters changed. After each change it stores the filters and
