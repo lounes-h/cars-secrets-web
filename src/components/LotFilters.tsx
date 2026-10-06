@@ -450,6 +450,10 @@ function Choice({
 
 const UNITS = { year: "", mi: " (miles)", $: " ($)" };
 
+/** The years a range offers, newest first: this year down to 1900. */
+const THIS_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: THIS_YEAR - 1899 }, (_, i) => String(THIS_YEAR - i));
+
 /** A range: whole numbers, applied together. */
 function Range({ filter, query, apply, id }: { filter: Filter; query: Query; apply: Apply; id: string }) {
   const { min, max, unit } = filter.range!;
@@ -475,15 +479,26 @@ function Range({ filter, query, apply, id }: { filter: Filter; query: Query; app
           <FieldLabel htmlFor={`${id}-${param}`} className="font-normal">
             {label}
           </FieldLabel>
-          <Input
-            id={`${id}-${param}`}
-            name={param}
-            type="number"
-            inputMode="numeric"
-            min={0}
-            step={1}
-            defaultValue={query[param]?.[0] ?? ""}
-          />
+          {unit === "year" ? (
+            <NativeSelect id={`${id}-${param}`} name={param} className="w-full" defaultValue={query[param]?.[0] ?? ""}>
+              <NativeSelectOption value="">Any</NativeSelectOption>
+              {YEARS.map((year) => (
+                <NativeSelectOption key={year} value={year}>
+                  {year}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          ) : (
+            <Input
+              id={`${id}-${param}`}
+              name={param}
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              defaultValue={query[param]?.[0] ?? ""}
+            />
+          )}
         </Field>
       ))}
       <Button type="submit" variant="outline" size="lg">
