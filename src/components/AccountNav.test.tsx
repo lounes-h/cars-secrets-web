@@ -46,6 +46,30 @@ describe("AccountNav", () => {
     expect(trial.textContent).toContain("No credit cards required");
   });
 
+  it.each([
+    ["/active-lots", "Active lots", "page"],
+    ["/active-lots/copart/41633106", "Active lots", "true"], // a lot's page is in Active lots
+    ["/pricing", "Pricing", "page"],
+  ])("marks the item of %s as the current one", async (pathname, label, current) => {
+    navigation.pathname = pathname;
+    session(null);
+    render(<AccountNav />);
+    const menu = await screen.findByRole("navigation", { name: "Main" });
+    const marked = [...menu.querySelectorAll("[aria-current]")];
+    expect(marked.map((link) => [link.textContent, link.getAttribute("aria-current")])).toEqual([[label, current]]);
+  });
+
+  it("marks no item on a page outside the menu, or one that only starts like an item", async () => {
+    for (const pathname of ["/", "/pricing-old"]) {
+      navigation.pathname = pathname;
+      session(null);
+      render(<AccountNav />);
+      const menu = await screen.findByRole("navigation", { name: "Main" });
+      expect(menu.querySelector("[aria-current]")).toBeNull();
+      cleanup();
+    }
+  });
+
   it("shows the visitor menu", async () => {
     session(null);
     render(<AccountNav />);
