@@ -22,6 +22,26 @@ describe("lot card", () => {
     expect(card.textContent).toContain("Lot 41633106 · Copart · VALLEJO, CA");
   });
 
+  it("opens the lot from the photo, the title and View details only, not from the rest of the card", () => {
+    const card = show();
+    const links = [...card.querySelectorAll("a")];
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(Array(3).fill("/active-lots/copart/41633106"));
+    expect(links[0].contains(card.querySelector("img"))).toBe(true);
+    expect(links[1].textContent).toBe("2013 ACURA TSX TECH");
+    expect(links[2].textContent).toBe("View details");
+    // The title no longer covers the card, so the figures and badges sit outside every link.
+    expect(links[1].className).not.toContain("after:absolute");
+    expect(links.some((link) => link.contains(card.querySelector("dl")))).toBe(false);
+    // The photo is a way in for a mouse, not another stop for a keyboard or a screen reader.
+    expect(links[0].tabIndex).toBe(-1);
+    expect(links[0].getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("opens the lot from the No photo box too when there is no photo", () => {
+    const card = show({ thumbnail_url: null });
+    expect(card.querySelector("a")!.textContent).toBe("No photo");
+  });
+
   it("offers a View details button to the lot, left out of the tab order and of what a screen reader reads", () => {
     show();
     const details = screen.getByText("View details").closest("a")!;

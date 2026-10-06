@@ -380,12 +380,13 @@ photo *listing* endpoint, not an image: it never goes in an `<img>`.
 The lot cards are horizontal, one per line (stacked, photo on top, on a phone). Each reads,
 left to right: the photo (the export's `thumbnail_url` is 144px wide, so the card shows its
 `_ful` twin, as the API does; https only; "No photo" without one); then the title (year, make,
-model, trim, linking to the lot, and stretched over the whole card), "Lot N · auction · place",
+model, trim, linking to the lot), "Lot N · auction · place",
 mileage and primary damage, the deal-breaker badges and the sale time; then, in a column on
 the right, the real figures only — current bid, likely final bid (`predicted_final_price`),
 retail value (ACV) and Buy now when offered, never the calculator's samples — and a "View
-details" button under them. The button only shows what a click anywhere on the card does: it
-is out of the tab order and hidden from screen readers, which get the title's link. The API
+details" button under them. Only the photo, the title and View details open the lot; the rest
+of the card is text, to read and select. The photo and the button are out of the tab order and
+hidden from screen readers, which get the title's link once rather than three times. The API
 lists cars (vehicle type `V`) before every other type, whatever the order.
 
 The premium sections (`src/components/PremiumSections.tsx`, and `DealCalculator`) carry a
