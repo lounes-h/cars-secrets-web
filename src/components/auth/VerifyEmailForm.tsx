@@ -111,7 +111,7 @@ export function VerifyEmailForm({ email, remember = false, onChangeEmail }: Prop
             id="code"
             type="text"
             // Six spaced digits, easy to check against the email.
-            className="h-12 text-center font-mono text-2xl tracking-[0.5em] tabular-nums md:text-2xl"
+            className="text-center font-mono text-2xl tracking-[0.5em] tabular-nums md:text-2xl"
             inputMode="numeric"
             autoComplete="one-time-code"
             pattern="[0-9]*"

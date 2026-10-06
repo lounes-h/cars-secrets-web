@@ -78,7 +78,11 @@ See `docs/architecture.md` for details.
   `DropdownMenu`, `Avatar` and `Separator`; icons come from `lucide-react`. Add
   one with `npx shadcn@latest add <name>`, then delete the exports nothing uses
   (coverage counts them). Style with Tailwind utilities on the theme tokens;
-  there are no hand-written component classes. A Base UI checkbox or radio is a
+  there are no hand-written component classes. Text inputs (`input.tsx`, and
+  `input-group.tsx` for the password and phone fields) are 48px tall with a 5px
+  radius, and focus only darkens their 1px border (`border-primary`), with no
+  ring; an invalid one has a black border, also without a ring. Keep that if a
+  component is re-added with `--overwrite`. A Base UI checkbox or radio is a
   `span` named through `aria-labelledby`, so its `id` must hold no whitespace
   (`LotFilters` encodes option values).
 - There is no favicon or share image yet, and no dark mode (`globals.css` keeps
