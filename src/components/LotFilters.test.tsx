@@ -310,7 +310,12 @@ describe("All filters", () => {
   it("applies a range together, and clears a bound left empty", async () => {
     show({ year_max: ["2020"] });
     await counted();
-    const from = within(panel()).getByLabelText("From", { selector: "#side-year-year_min" });
+    const from = within(panel()).getByLabelText<HTMLSelectElement>("From", { selector: "#side-year-year_min" });
+    const years = [...from.options].map((option) => option.value);
+    expect(years[0]).toBe("");
+    expect(years[1]).toBe(String(new Date().getFullYear()));
+    expect(years.at(-1)).toBe("1900");
+    expect(years).toHaveLength(new Date().getFullYear() - 1900 + 2);
     fireEvent.change(from, { target: { value: "2016" } });
     fireEvent.change(within(panel()).getByLabelText("To", { selector: "#side-year-year_max" }), { target: { value: "" } });
     fireEvent.submit(from.closest("form")!);

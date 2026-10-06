@@ -436,7 +436,7 @@ the server-rendered cards) work like this:
   `lg` up and sticky, scrolling on its own. Its "Hide filters" button puts it away and the lots
   take the whole width; "Show filters · n", before the count, brings it back (both one
   `Collapsible`; open on every visit). It leaves out the bar's own group (sale date,
-  title, runs and drives, damage) and holds the rest: year, make, model, mileage, vehicle type,
+  title, runs and drives, damage) and holds the rest: year (From and To selects, this year down to 1900), make, model, mileage, vehicle type,
   keys, secondary damage, sale type, Buy now available, retail value, Buy now price, current
   bid, auction (hidden while every lot has the same one), state and location. Each filter
   folds away (`Collapsible`): folded at first, unfolded from the start while it holds a
