@@ -1,26 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LocalTime } from "@/components/LocalTime";
+import { LotCard } from "@/components/LotCard";
 import { LotFilters } from "@/components/LotFilters";
 import { buttonVariants } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listPath, type Query, queryString, readQuery, searched } from "@/lib/lot-filters";
 import {
   activityWindow,
-  amount,
   getLotActivity,
   getLotPreferences,
   interpretSearch,
   listLots,
   lotPath,
-  odometer,
-  offsiteAddress,
   pageCount,
   pageNumber,
   PAGE_SIZE,
-  place,
-  saleDate,
-  vehicle,
   type LotActivity,
   type LotPage,
 } from "@/lib/lots";
@@ -119,41 +112,13 @@ function Lots({ query, page, items, total }: { query: Query; page: number } & Lo
 
   return (
     <>
-      <Table className="mt-6 text-[0.9375rem]">
-        <TableHeader>
-          <TableRow>
-            <TableHead scope="col">Lot</TableHead>
-            <TableHead scope="col">Vehicle</TableHead>
-            <TableHead scope="col">Odometer</TableHead>
-            <TableHead scope="col">Damage</TableHead>
-            <TableHead scope="col">Title</TableHead>
-            <TableHead scope="col">Location</TableHead>
-            <TableHead scope="col">Sale</TableHead>
-            <TableHead scope="col" className="text-right">Est. retail</TableHead>
-            <TableHead scope="col" className="text-right">High bid</TableHead>
-          </TableRow>
-        </TableHeader>
-        {/* Cells keep to one line where a break would mislead (a number, a date), and wrap elsewhere. */}
-        <TableBody className="[&_td]:align-top">
-          {items.map((lot) => (
-            <TableRow key={`${lot.source}-${lot.lot_number}`}>
-              <TableCell>
-                <Link href={lotPath(lot)}>{lot.lot_number}</Link>
-              </TableCell>
-              <TableCell className="whitespace-normal">{vehicle(lot)}</TableCell>
-              <TableCell>{odometer(lot.odometer)}</TableCell>
-              <TableCell className="whitespace-normal">{lot.damage_primary ?? "—"}</TableCell>
-              <TableCell className="whitespace-normal">{lot.title_type ?? "—"}</TableCell>
-              <TableCell className="whitespace-normal">{place(lot)}{offsiteAddress(lot) && " · Offsite"}</TableCell>
-              <TableCell>
-                {lot.sale_at ? <LocalTime value={lot.sale_at} /> : lot.sale_date ? saleDate(lot.sale_date) : "Future sale"}
-              </TableCell>
-              <TableCell className="text-right">{amount(lot.est_retail_value, lot.currency)}</TableCell>
-              <TableCell className="text-right">{amount(lot.high_bid, lot.currency)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <ul aria-label="Lots" className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-4">
+        {items.map((lot) => (
+          <li key={`${lot.source}-${lot.lot_number}`}>
+            <LotCard lot={lot} />
+          </li>
+        ))}
+      </ul>
       <nav aria-label="Pagination" className="mt-6 flex items-center gap-4">
         <PageLink href={listPath(query, page - 1)} enabled={page > 1}>
           Previous

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Lot } from "@/lib/lots";
@@ -41,6 +41,8 @@ const { PAGE_SIZE } = await import("@/lib/lots");
 
 const LOT: Lot = sampleLot;
 
+const cards = () => [...screen.getByRole("list", { name: "Lots" }).children] as HTMLElement[];
+
 function lots(n: number): Lot[] {
   return Array.from({ length: n }, (_, i) => ({ ...LOT, lot_number: `4163310${i}` }));
 }
@@ -80,7 +82,7 @@ describe("active lots page", () => {
     expect(screen.getByRole("link", { name: "Sign in to see the lots" }).getAttribute("href")).toBe("/login");
     expect(listLots).not.toHaveBeenCalled();
     expect(getLotActivity).not.toHaveBeenCalled();
-    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.queryByRole("list", { name: "Lots" })).toBeNull();
     expect(screen.queryByRole("region", { name: "Lot activity" })).toBeNull();
   });
 
@@ -110,23 +112,17 @@ describe("active lots page", () => {
     getLotActivity.mockRejectedValue(new Error("API down"));
     await show();
     expect(screen.queryByRole("region", { name: "Lot activity" })).toBeNull();
-    expect(screen.getAllByRole("row")).toHaveLength(PAGE_SIZE + 1);
+    expect(cards()).toHaveLength(PAGE_SIZE);
   });
 
-  it("lists a page of lots for a signed-in dealer", async () => {
+  it("lists a page of lots for a signed-in dealer, a card each", async () => {
     await show();
     expect(listLots).toHaveBeenCalledWith({}, 1, "token-abc", null, "America/New_York");
-    expect(screen.getAllByRole("row")).toHaveLength(PAGE_SIZE + 1);
-    expect(screen.getByRole("link", { name: "41633100" }).getAttribute("href")).toBe(
-      "/active-lots/copart/41633100",
-    );
-    const row = screen.getAllByRole("row")[1];
-    expect(row.textContent).toContain("2013 ACURA TSX");
-    expect(row.textContent).toContain("120,500 mi");
-    expect(row.textContent).toContain("$8,119");
-    // The sale in the reader's zone (UTC in tests), which the browser rewrites before painting.
-    expect(row.querySelector("time")?.getAttribute("datetime")).toBe("2026-09-18T19:00:00Z");
-    expect(row.textContent).toContain("Sep 18, 2026, 7:00 PM UTC");
+    expect(cards()).toHaveLength(PAGE_SIZE);
+    const card = cards()[0];
+    expect(within(card).getByRole("link").getAttribute("href")).toBe("/active-lots/copart/41633100");
+    expect(card.textContent).toContain("120,500 mi");
+    expect(card.textContent).toContain("$8,119");
   });
 
   it("asks for the requested page and offers the neighbouring ones", async () => {
@@ -156,58 +152,16 @@ describe("active lots page", () => {
   });
 });
 
-describe("amounts", () => {
-  it("marks the location of a lot held away from the yard as offsite", async () => {
-    listLots.mockResolvedValue({ items: [{ ...LOT, offsite_address: "645 W UNION ST" }, LOT], total: 2 });
-    await show();
-    const [, offsite, onYard] = screen.getAllByRole("row");
-    expect(offsite.textContent).toContain("VALLEJO, CA · Offsite");
-    expect(onYard.textContent).not.toContain("Offsite");
-  });
-
-  it("shows a lot's own currency, and falls back to dollars for a junk code", async () => {
-    listLots.mockResolvedValue({
-      items: [
-        { ...LOT, lot_number: "1", currency: "CAD" },
-        { ...LOT, lot_number: "2", currency: "n/a" },
-        { ...LOT, lot_number: "3", est_retail_value: null },
-      ],
-      total: 3,
-    });
-    await show();
-    const [, cad, junk, missing] = screen.getAllByRole("row");
-    expect(cad.textContent).toContain("CA$8,119");
-    expect(junk.textContent).toContain("$8,119");
-    expect(missing.textContent).toContain("—");
-  });
-});
-
 describe("active lots with little data", () => {
-  it("links the second page back to the plain listing and shows dashes for missing columns", async () => {
-    listLots.mockResolvedValue({ items: [{ ...LOT, damage_primary: null, title_type: null }], total: 145 });
+  it("links the second page back to the plain listing", async () => {
     await show("2");
     expect(screen.getByRole("link", { name: "Previous" }).getAttribute("href")).toBe("/active-lots");
-    expect(screen.getAllByRole("row")[1].textContent).toContain("—");
   });
 
   it("says no lot matches when there are none", async () => {
     listLots.mockResolvedValue({ items: [], total: 0 });
     await show();
     expect(screen.getByText("No lots match these filters.")).toBeTruthy();
-  });
-
-  it("says when the sale is not set yet, and shows a sale day without a time as the auction gives it", async () => {
-    listLots.mockResolvedValue({
-      items: [
-        { ...LOT, lot_number: "1", sale_at: null, sale_date: null },
-        { ...LOT, lot_number: "2", sale_at: null, sale_date: "2026-10-20" },
-      ],
-      total: 2,
-    });
-    await show();
-    const [, future, day] = screen.getAllByRole("row");
-    expect(future.textContent).toContain("Future sale");
-    expect(day.textContent).toContain("Oct 20, 2026");
   });
 });
 

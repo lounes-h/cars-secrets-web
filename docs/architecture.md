@@ -24,6 +24,8 @@ src/
                        form-helpers (server errors on fields, remembered email)
     LocalTime.tsx      A time in the reader's own time zone: server text, rewritten before paint
     LotFilters.tsx     The lot list's search box, filter bar, All filters sheet, chips and order
+    LotCard.tsx        One lot in the list: photo, title, real figures, badges, sale time
+    LotBadges.tsx      A lot's deal-breaker badges, shared by the lot page and the lot card
   lib/
     site.ts            Site identity (URL, language, description) and URL resolution
     routes.ts          Registry of every public page

@@ -97,8 +97,9 @@ See `docs/architecture.md` for details.
   only, through shadcn's tokens (`--background`, `--foreground`, `--primary`,
   `--muted`, `--muted-foreground`, `--border`, …) in `src/app/globals.css`.
   There is no error colour: `--destructive` is the text colour, so errors
-  (`FieldError`, `FormError`) read as bold text. The one exception is the lot
-  page's deal-breaker badges and sale countdown: `--good`, `--warn` and `--bad`
+  (`FieldError`, `FormError`) read as bold text. The one exception is the
+  deal-breaker badges (`LotBadges`, on the lot page and each lot card) and the lot page's
+  sale countdown: `--good`, `--warn` and `--bad`
   (with `-bg` variants, as `text-good`, `bg-good-bg`, …) colour them green,
   amber and red, and every badge also carries an icon and words, never colour
   alone. The base layer styles only `h1` and running-text links (an `<a>`
@@ -300,7 +301,8 @@ Policy themselves do not exist yet.
 
 In place for lots: `/active-lots` ("Active lots" in the menu and as its visually hidden `h1`; the
 path was `/auctions`, which redirects here permanently) lists active lots, the most recently listed
-first unless the dealer picks another order, 20 to a page (`?page=`), with search and filters
+first unless the dealer picks another order, 20 to a page (`?page=`), each as a card
+(`src/components/LotCard.tsx`, answering "is this lot worth opening?"), with search and filters
 (below), under a light grey strip that says how many lots were added and updated today — or in
 the last 3 or 7 days when today has fewer than 1,000 (`activityWindow`) — and `/active-lots/[source]/[lotNumber]` shows one lot —
 every column the ingest keeps for it, every photo of it, and a way to the lot on the
@@ -317,7 +319,7 @@ Deal calculator, the one emphasised card, which took the all-in cost card's plac
 `predicted_final_price` as "Likely final bid" in its currency ("Not available" when null),
 then sample costs and profit (explicitly labeled), a max bid slider that reruns `analyzeDeal`,
 then the lot's real current bid and ACV, and a "Buy now" button only when the auction offers it; condition, paperwork and pickup, where an offsite lot also shows its "Offsite address"
-(`offsiteAddress`: Copart's offsite columns, filled for about 1 % of lots; the list marks their location "· Offsite");
+(`offsiteAddress`: Copart's offsite columns, filled for about 1 % of lots; the lot card has the same "Offsite" badge);
 then specs as tiles and sale info as one light row, both always visible. Sale info's times
 are Copart's last update of the lot ("Updated on Copart", `source_updated_at`), when the
 ingest first saw it ("Added to this site", `first_seen_at`) and when it last saw it change
@@ -372,6 +374,13 @@ The photos are not tagged by the auction, so there are no Damage/Exterior/Interi
 is an empty list and never an error. A lot's own `image_url` is the auction's
 photo *listing* endpoint, not an image: it never goes in an `<img>`.
 
+Each lot card, in a grid as wide as the page, reads: the photo (the export's `thumbnail_url` is
+144px wide, so the card shows its `_ful` twin, as the API does; https only; "No photo" without
+one), the title (year, make, model, trim, linking to the lot, and stretched over the whole
+card), "Lot N · auction · place", the real figures only — current bid, likely final bid
+(`predicted_final_price`), retail value (ACV) and Buy now when offered, never the calculator's
+samples — then mileage and primary damage, the deal-breaker badges and the sale time.
+
 The premium sections (`src/components/PremiumSections.tsx`, and `DealCalculator`) carry a
 grey "Premium" badge with a sparkles icon and show sample figures (see the invented-figures rule) to every
 signed-in dealer, since there are no plans yet: a Summary under the badges; the gallery's
@@ -382,7 +391,7 @@ total) and Market (value and how the lot sells) above Condition, which they sit 
 rather than replace. Severity is words, not colour, like the rest of the grayscale page.
 
 The lot list's search and filters (`src/components/LotFilters.tsx`, a client component around
-the server-rendered table) work like this:
+the server-rendered cards) work like this:
 
 - **Search** takes a make, model, year, VIN, lot number or keywords. The page asks the API what
   it names (`interpretSearch`): a lot number or VIN of exactly one lot opens that lot; a make,
