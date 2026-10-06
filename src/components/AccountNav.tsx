@@ -36,11 +36,20 @@ const MEMBER_MENU = [
 // Sign-up and sign-in show the logo alone, so nothing pulls the dealer off the form.
 const LOGO_ONLY = new Set(["/register", "/login"]);
 
-function Menu({ items }: { items: typeof GUEST_MENU }) {
+/**
+ * The current page's item is marked: "page" on the page itself, "true" on a page under it (a
+ * lot's page is in Active lots), and drawn as the ghost button's hover, kept on.
+ */
+function Menu({ items, pathname }: { items: typeof GUEST_MENU; pathname: string }) {
   return (
     <nav aria-label="Main" className="ml-6 hidden items-center gap-1 lg:flex">
       {items.map((item) => (
-        <Link key={item.href} href={item.href} className={buttonVariants({ variant: "ghost" })}>
+        <Link
+          key={item.href}
+          href={item.href}
+          aria-current={pathname === item.href ? "page" : pathname.startsWith(`${item.href}/`) ? "true" : undefined}
+          className={buttonVariants({ variant: "ghost", className: "aria-[current]:bg-muted" })}
+        >
           {item.label}
         </Link>
       ))}
@@ -78,7 +87,7 @@ export function AccountNav() {
   if (user === null) {
     return (
       <>
-        <Menu items={GUEST_MENU} />
+        <Menu items={GUEST_MENU} pathname={pathname} />
         <nav aria-label="Account" className="ml-auto flex items-center gap-2 sm:gap-3">
           <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
             Sign in
@@ -93,7 +102,7 @@ export function AccountNav() {
   }
   return (
     <>
-      <Menu items={MEMBER_MENU} />
+      <Menu items={MEMBER_MENU} pathname={pathname} />
       <nav aria-label="Account" className="ml-auto flex items-center">
         <AccountMenu user={user} />
       </nav>

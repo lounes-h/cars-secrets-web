@@ -118,7 +118,9 @@ See `docs/architecture.md` for details.
   name and the email, then Settings, Account and Log out, which calls
   `logoutAction` directly. A language selector
   ("English") belongs there too but is not built yet. Best Buys is
-  left out of the menu for now, though its page exists. The menu is
+  left out of the menu for now, though its page exists. The current page's
+  item is marked (`aria-current`, the ghost button's grey hover kept on), on
+  the pages under it too: a lot's page marks Active lots. The menu is
   hidden below `lg`. On `/register` and `/login` the navigation renders
   nothing, so the banner is the logo alone. Never read the session in the root
   layout: it would make every page dynamic.
