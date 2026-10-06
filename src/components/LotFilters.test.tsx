@@ -238,6 +238,8 @@ describe("All filters", () => {
     expect(screen.getByRole("search").compareDocumentPosition(panel()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(panel().nextElementSibling!.contains(screen.getByRole("table", { name: "Lots" }))).toBe(true);
     expect(within(panel()).getByRole("heading", { level: 2, name: "All filters" })).toBeTruthy();
+    // Room below the last group, so it can scroll up off the screen's edge.
+    expect(panel().className).toContain("lg:pb-12");
     await counted();
     expect(lotCountsAction).toHaveBeenCalledTimes(1);
     expect(lotCountsAction).toHaveBeenCalledWith("", expect.arrayContaining(["title", "damage", "state", "buy_now", "make"]));
