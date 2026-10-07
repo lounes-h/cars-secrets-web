@@ -337,9 +337,9 @@ describe("All filters", () => {
     const from = within(panel()).getByLabelText<HTMLSelectElement>("From", { selector: "#side-year-year_min" });
     const years = [...from.options].map((option) => option.value);
     expect(years[0]).toBe("");
-    expect(years[1]).toBe(String(new Date().getFullYear()));
+    expect(years[1]).toBe(String(new Date().getFullYear() + 1));
     expect(years.at(-1)).toBe("1900");
-    expect(years).toHaveLength(new Date().getFullYear() - 1900 + 2);
+    expect(years).toHaveLength(new Date().getFullYear() - 1900 + 3);
     fireEvent.change(from, { target: { value: "2016" } });
     fireEvent.change(within(panel()).getByLabelText("To", { selector: "#side-year-year_max" }), { target: { value: "" } });
     fireEvent.submit(from.closest("form")!);
