@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { badges, copartCase, countdown, driveType, engineSpec, odometerStatus, sellerType, titleType, vehicleType } from "@/lib/lot-signals";
 import { sampleLot } from "@/lib/lots-fixture";
+import { en } from "@/messages/en";
 
 const lot = (fields: Partial<typeof sampleLot>) => ({ ...sampleLot, ...fields });
 
 describe("badges", () => {
   it("lists the deal breakers in a fixed order, in plain words", () => {
-    expect(badges(sampleLot)).toEqual([
+    expect(badges(sampleLot, en)).toEqual([
       { label: "Runs and drives", tone: "good" },
       { label: "Keys", tone: "good" },
       { label: "CA - Salvage Certificate", tone: "warn" },
@@ -17,7 +18,7 @@ describe("badges", () => {
   });
 
   it("always shows the sale status, a pure sale included, just before the seller", () => {
-    const last = (sale_status: string | null) => badges(lot({ sale_status })).at(-2);
+    const last = (sale_status: string | null) => badges(lot({ sale_status }), en).at(-2);
     expect(last("On Minimum Bid")).toEqual({ label: "Minimum bid", tone: "warn" });
     expect(last("On Approval")).toEqual({ label: "Seller must approve", tone: "warn" });
     expect(last("Pure Sale")).toEqual({ label: "Pure sale", tone: "good" });
@@ -25,7 +26,7 @@ describe("badges", () => {
   });
 
   it("colours each code by how much it should worry a buyer", () => {
-    const tones = (fields: Partial<typeof sampleLot>) => badges(lot(fields)).map((b) => b.tone);
+    const tones = (fields: Partial<typeof sampleLot>) => badges(lot(fields), en).map((b) => b.tone);
     expect(tones({ runs_drives: "Vehicle Starts", has_keys: "NO", title_type: "CD", title_state: "FL", odometer_brand: "E" })).toEqual([
       "warn",
       "warn",
@@ -43,42 +44,42 @@ describe("badges", () => {
   });
 
   it("ends with an offsite badge when the lot is held away from the yard, and none at the yard", () => {
-    expect(badges(lot({ offsite_address: "645 W UNION ST", offsite_city: "ALLENTOWN", offsite_state: "PA", offsite_zip: "18101" })).at(-1)).toEqual({ label: "Offsite", tone: "warn" });
-    expect(badges(lot({ offsite_city: "ALLENTOWN" })).at(-1)).toEqual({ label: "Offsite", tone: "warn" });
-    expect(badges(sampleLot).map((badge) => badge.label)).not.toContain("At the yard");
+    expect(badges(lot({ offsite_address: "645 W UNION ST", offsite_city: "ALLENTOWN", offsite_state: "PA", offsite_zip: "18101" }), en).at(-1)).toEqual({ label: "Offsite", tone: "warn" });
+    expect(badges(lot({ offsite_city: "ALLENTOWN" }), en).at(-1)).toEqual({ label: "Offsite", tone: "warn" });
+    expect(badges(sampleLot, en).map((badge) => badge.label)).not.toContain("At the yard");
   });
 
   it("shows an unknown code as it came, neutral, rather than guessing", () => {
-    expect(odometerStatus(lot({ odometer_brand: " ZZ " }))).toEqual({ label: "ZZ", tone: "neutral" });
-    expect(odometerStatus(lot({ odometer_brand: null })).label).toBe("Mileage status not stated");
+    expect(odometerStatus(lot({ odometer_brand: " ZZ " }), en)).toEqual({ label: "ZZ", tone: "neutral" });
+    expect(odometerStatus(lot({ odometer_brand: null }), en).label).toBe("Mileage status not stated");
   });
 });
 
 describe("titleType", () => {
   it("reads as copart.com shows it: the state, then Copart's wording for that state's code", () => {
     // Lot 63059096 on copart.com: "OR - Lien Papers Salvage"; the export says only "OR", "LS".
-    expect(titleType(lot({ title_type: "LS", title_state: "OR" }))).toEqual({ label: "OR - Lien Papers Salvage", tone: "warn" });
-    expect(titleType(lot({ title_type: " sc ", title_state: " wv " })).label).toBe("WV - Salvage Certificate");
+    expect(titleType(lot({ title_type: "LS", title_state: "OR" }), en)).toEqual({ label: "OR - Lien Papers Salvage", tone: "warn" });
+    expect(titleType(lot({ title_type: " sc ", title_state: " wv " }), en).label).toBe("WV - Salvage Certificate");
   });
 
   it("words and colours a code by its state, since Copart does", () => {
-    expect(titleType(lot({ title_type: "DV", title_state: "OH" }))).toEqual({ label: "OH - Dis/dlr/exp Only Clean Title", tone: "good" });
-    expect(titleType(lot({ title_type: "DV", title_state: "FL" }))).toEqual({ label: "FL - Derelict Vehicle Certificate", tone: "bad" });
+    expect(titleType(lot({ title_type: "DV", title_state: "OH" }), en)).toEqual({ label: "OH - Dis/dlr/exp Only Clean Title", tone: "good" });
+    expect(titleType(lot({ title_type: "DV", title_state: "FL" }), en)).toEqual({ label: "FL - Derelict Vehicle Certificate", tone: "bad" });
   });
 
   it("shows a pair it has no wording for as the code, neutral", () => {
-    expect(titleType(lot({ title_type: "ZZ", title_state: "OR" }))).toEqual({ label: "OR - ZZ", tone: "neutral" });
-    expect(titleType(lot({ title_type: "LS", title_state: null }))).toEqual({ label: "LS", tone: "neutral" });
+    expect(titleType(lot({ title_type: "ZZ", title_state: "OR" }), en)).toEqual({ label: "OR - ZZ", tone: "neutral" });
+    expect(titleType(lot({ title_type: "LS", title_state: null }), en)).toEqual({ label: "LS", tone: "neutral" });
   });
 
   it("says so when the auction gives no title code", () => {
-    expect(titleType(lot({ title_type: null }))).toEqual({ label: "Title not stated", tone: "neutral" });
-    expect(titleType(lot({ title_type: "  " })).label).toBe("Title not stated");
+    expect(titleType(lot({ title_type: null }), en)).toEqual({ label: "Title not stated", tone: "neutral" });
+    expect(titleType(lot({ title_type: "  " }), en).label).toBe("Title not stated");
   });
 });
 
 describe("sellerType", () => {
-  const seller = (seller_name: string | null) => sellerType(lot({ seller_name }));
+  const seller = (seller_name: string | null) => sellerType(lot({ seller_name }), en);
 
   it("marks an insurer, named with the word or by its brand", () => {
     // Seller names seen in Copart's export and on copart.com.
@@ -95,15 +96,15 @@ describe("sellerType", () => {
 
   it("gives no badge when the auction names no seller", () => {
     for (const seller_name of [null, "  "]) {
-      expect(sellerType(lot({ seller_name }))).toEqual({ label: "Seller not stated", tone: "neutral", badge: false });
-      expect(badges(lot({ seller_name })).map((badge) => badge.label)).not.toContain("Seller not stated");
+      expect(sellerType(lot({ seller_name }), en)).toEqual({ label: "Seller not stated", tone: "neutral", badge: false });
+      expect(badges(lot({ seller_name }), en).map((badge) => badge.label)).not.toContain("Seller not stated");
     }
   });
 });
 
 describe("vehicleType", () => {
   it("words Copart's one-letter codes as copart.com does", () => {
-    const type = (vehicle_type: string | null) => vehicleType(lot({ vehicle_type }));
+    const type = (vehicle_type: string | null) => vehicleType(lot({ vehicle_type }), en);
     expect(type("V")).toBe("Automobile");
     expect(type(" k ")).toBe("Medium duty / box truck");
     expect(type("R")).toBe("Recreational vehicle (RV)");
@@ -111,9 +112,9 @@ describe("vehicleType", () => {
   });
 
   it("shows a code it does not know as it came, and nothing for none", () => {
-    expect(vehicleType(lot({ vehicle_type: " Z " }))).toBe("Z");
-    expect(vehicleType(lot({ vehicle_type: " " }))).toBeNull();
-    expect(vehicleType(lot({ vehicle_type: null }))).toBeNull();
+    expect(vehicleType(lot({ vehicle_type: " Z " }), en)).toBe("Z");
+    expect(vehicleType(lot({ vehicle_type: " " }), en)).toBeNull();
+    expect(vehicleType(lot({ vehicle_type: null }), en)).toBeNull();
   });
 });
 
@@ -130,30 +131,30 @@ describe("countdown", () => {
   const now = new Date("2026-09-20T12:00:00Z");
 
   it("is neutral with more than a day to go", () => {
-    expect(countdown("2026-09-22T15:30:00Z", now)).toEqual({ label: "Sells in 2d 3h", tone: "neutral" });
+    expect(countdown("2026-09-22T15:30:00Z", now, en)).toEqual({ label: "Sells in 2d 3h", tone: "neutral" });
   });
 
   it("turns amber under a day and red under an hour", () => {
-    expect(countdown("2026-09-21T11:00:00Z", now)).toEqual({ label: "Sells in 23h 0m", tone: "warn" });
-    expect(countdown("2026-09-20T12:45:00Z", now)).toEqual({ label: "Sells in 0h 45m", tone: "bad" });
+    expect(countdown("2026-09-21T11:00:00Z", now, en)).toEqual({ label: "Sells in 23h 0m", tone: "warn" });
+    expect(countdown("2026-09-20T12:45:00Z", now, en)).toEqual({ label: "Sells in 0h 45m", tone: "bad" });
   });
 
   it("says when the sale time has passed, and ignores a time it cannot read", () => {
-    expect(countdown("2026-09-20T11:00:00Z", now)?.label).toBe("Sale time has passed");
-    expect(countdown("soon", now)).toBeNull();
+    expect(countdown("2026-09-20T11:00:00Z", now, en)?.label).toBe("Sale time has passed");
+    expect(countdown("soon", now, en)).toBeNull();
   });
 });
 
 describe("engineSpec", () => {
   it("merges displacement and cylinders", () => {
-    expect(engineSpec(sampleLot)).toBe("2.4L 4-cyl");
-    expect(engineSpec(lot({ engine: "3.5L", cylinders: "6" }))).toBe("3.5L 6-cyl");
+    expect(engineSpec(sampleLot, en)).toBe("2.4L 4-cyl");
+    expect(engineSpec(lot({ engine: "3.5L", cylinders: "6" }), en)).toBe("3.5L 6-cyl");
   });
 
   it("uses whichever half the auction published", () => {
-    expect(engineSpec(lot({ cylinders: null }))).toBe("2.4L 4");
-    expect(engineSpec(lot({ engine: null }))).toBe("4-cyl");
-    expect(engineSpec(lot({ engine: null, cylinders: null }))).toBe("—");
+    expect(engineSpec(lot({ cylinders: null }), en)).toBe("2.4L 4");
+    expect(engineSpec(lot({ engine: null }), en)).toBe("4-cyl");
+    expect(engineSpec(lot({ engine: null, cylinders: null }), en)).toBe("—");
   });
 });
 

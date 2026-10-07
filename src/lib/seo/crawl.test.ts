@@ -1,18 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { fixtureRoutes } from "@/lib/seo/fixtures";
+import { fixturePages, fixtureRoutes } from "@/lib/seo/fixtures";
 import { buildLlmsTxt } from "@/lib/seo/llms";
 import { buildRobots } from "@/lib/seo/robots";
 import { buildSitemap } from "@/lib/seo/sitemap";
 
 describe("sitemap", () => {
-  it("lists every route once, with absolute URLs and its priority", () => {
+  it("lists every route once per language, with absolute URLs and its priority", () => {
     const entries = buildSitemap(fixtureRoutes);
     expect(entries.map((entry) => entry.url)).toEqual([
       "https://cars-secrets.test/",
+      "https://cars-secrets.test/es",
       "https://cars-secrets.test/guides/max-bid",
+      "https://cars-secrets.test/es/guides/max-bid",
       "https://cars-secrets.test/terms",
+      "https://cars-secrets.test/es/terms",
     ]);
-    expect(entries[1]).toMatchObject({ changeFrequency: "monthly", priority: 0.8 });
+    expect(entries[3]).toMatchObject({ changeFrequency: "monthly", priority: 0.8 });
+  });
+
+  it("names each page's other languages", () => {
+    expect(buildSitemap(fixtureRoutes)[1].alternates).toEqual({
+      languages: {
+        "en-US": "https://cars-secrets.test/",
+        "es-US": "https://cars-secrets.test/es",
+        "x-default": "https://cars-secrets.test/",
+      },
+    });
   });
 
   it("leaves noindex pages out", () => {
@@ -38,7 +51,7 @@ describe("llms.txt", () => {
   });
 
   it("links only the routes flagged for llms.txt", () => {
-    const text = buildLlmsTxt(fixtureRoutes);
+    const text = buildLlmsTxt(fixtureRoutes, fixturePages);
     expect(text).toContain("## Key pages");
     expect(text).toContain("- [Home](https://cars-secrets.test/): Home page description.");
     expect(text).toContain("(https://cars-secrets.test/guides/max-bid)");

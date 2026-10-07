@@ -12,7 +12,7 @@ const actions = vi.hoisted(() => ({
   forgotPasswordAction: vi.fn(),
   resendVerificationAction: vi.fn(),
 }));
-vi.mock("@/app/(auth)/actions", () => actions);
+vi.mock("@/app/[lang]/(auth)/actions", () => actions);
 
 const { RegisterForm } = await import("@/components/auth/RegisterForm");
 const { LoginForm } = await import("@/components/auth/LoginForm");
@@ -21,6 +21,8 @@ const { SocialButtons } = await import("@/components/auth/SocialButtons");
 const { ResetPasswordForm } = await import("@/components/auth/ResetPasswordForm");
 const { VerifyEmailForm, RESEND_SECONDS } = await import("@/components/auth/VerifyEmailForm");
 const { ResendVerificationForm } = await import("@/components/auth/ResendVerificationForm");
+const { I18nProvider } = await import("@/components/I18nProvider");
+const { es } = await import("@/messages/es");
 
 const COUNTRIES = countries().filter((c) => ["US", "FR", "GB"].includes(c.code));
 
@@ -239,9 +241,31 @@ describe("remembered email", () => {
   });
 });
 
+describe("in Spanish", () => {
+  const spanish = (form: React.ReactNode) => render(<I18nProvider value={{ locale: "es", m: es }}>{form}</I18nProvider>);
+
+  it("labels the sign-in form and links its pages under /es", () => {
+    spanish(<LoginForm />);
+    expect(screen.getByLabelText(es.auth.email).getAttribute("type")).toBe("email");
+    expect(screen.getByRole("checkbox", { name: es.auth.login.remember })).toBeTruthy();
+    expect(screen.getByRole("link", { name: es.auth.login.forgot }).getAttribute("href")).toBe("/es/forgot-password");
+    expect(screen.getByRole("link", { name: es.auth.login.createAccount }).getAttribute("href")).toBe("/es/register");
+  });
+
+  it("validates in Spanish, the password checklist included", async () => {
+    spanish(<RegisterForm countries={COUNTRIES} defaultCountry="US" />);
+    fireEvent.click(screen.getByRole("button", { name: es.auth.register.submit }));
+    expect(await screen.findByText(es.auth.validation.firstNameRequired)).toBeTruthy();
+    expect(screen.getByText(es.auth.validation.emailRequired)).toBeTruthy();
+    fireEvent.focus(screen.getByLabelText(es.auth.password));
+    expect(screen.getByText(/Al menos 8 caracteres/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: es.auth.social.register.google })).toBeTruthy();
+  });
+});
+
 describe("SocialButtons", () => {
   it("offers Google and Apple", () => {
-    render(<SocialButtons intent="Register" />);
+    render(<SocialButtons intent="register" />);
     expect(screen.getByRole("button", { name: "Register with Google" }).getAttribute("value")).toBe("google");
     expect(screen.getByRole("button", { name: "Register with Apple" }).getAttribute("value")).toBe("apple");
   });

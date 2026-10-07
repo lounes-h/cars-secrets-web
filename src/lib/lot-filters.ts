@@ -5,144 +5,97 @@
  * filter bar shares it.
  */
 
-import { auctionName, SIGNALS, VEHICLE_TYPES } from "@/lib/lot-words";
+import { fill, type I18n, LOCALES } from "@/lib/i18n";
+import { auctionName, vehicleTypeName, type Word } from "@/lib/lot-words";
+import type { Messages } from "@/messages/en";
 
 /** Each parameter's values, valid and in a fixed order, so equal filters make equal URLs. */
 export type Query = Record<string, string[]>;
 
-export type Option = { value: string; label: string; chip?: string };
+/** A fixed option. Its words are the code's (`signal`, shared with the lot page) or the filter's own, in `filters.options`. */
+export type Option = { value: string; signal?: Word };
 
 export type Filter = {
-  /** Its URL parameter, and the name the API counts it by; a range uses `range` instead. */
-  id: string;
-  label: string;
+  /** Its URL parameter, and the name the API counts it by; a range uses `range` instead. Its label is `filters.labels[id]`. */
+  id: keyof Messages["filters"]["labels"];
   /** Its heading in "All filters"; the table's order is the order there. */
-  group: "vehicle" | "condition" | "price" | "sale" | "location";
+  group: (typeof GROUPS)[number];
   /** Several options, one option, one value of a long list, a range, or a switch. */
   kind: "options" | "single" | "select" | "range" | "toggle";
   /** Fixed options. Without them, the options are what the counts find. */
   options?: Option[];
   /** How a value without a fixed option reads ("V" is "Automobile"); the value itself otherwise. */
-  name?: (value: string) => string;
+  name?: (value: string, m: Messages) => string;
   range?: { min?: string; max?: string; unit: "year" | "mi" | "$" };
   /** Hidden while every lot has the same value, as the auction does while Copart is the only one. */
   hideWhenSingle?: boolean;
 };
 
-const signal = (kind: keyof typeof SIGNALS, code: string) => SIGNALS[kind][code].label;
-
 export const FILTERS: Filter[] = [
-  {
-    id: "vehicle_type",
-    label: "Vehicle type",
-    group: "vehicle",
-    kind: "options",
-    name: (code) => VEHICLE_TYPES[code.toUpperCase()] ?? code,
-  },
-  { id: "make", label: "Make", group: "vehicle", kind: "select" },
-  { id: "model", label: "Model", group: "vehicle", kind: "select" },
-  { id: "year", label: "Year", group: "vehicle", kind: "range", range: { min: "year_min", max: "year_max", unit: "year" } },
-  { id: "mileage", label: "Mileage", group: "vehicle", kind: "range", range: { max: "odometer_max", unit: "mi" } },
+  { id: "vehicle_type", group: "vehicle", kind: "options", name: vehicleTypeName },
+  { id: "make", group: "vehicle", kind: "select" },
+  { id: "model", group: "vehicle", kind: "select" },
+  { id: "year", group: "vehicle", kind: "range", range: { min: "year_min", max: "year_max", unit: "year" } },
+  { id: "mileage", group: "vehicle", kind: "range", range: { max: "odometer_max", unit: "mi" } },
   {
     id: "run",
-    label: "Runs and drives",
     group: "condition",
     kind: "options",
     options: [
-      { value: "verified", label: signal("run", "RUN & DRIVE VERIFIED") },
-      { value: "starts", label: signal("run", "VEHICLE STARTS") },
-      { value: "unverified", label: signal("run", "DEFAULT") },
+      { value: "verified", signal: "runsAndDrives" },
+      { value: "starts", signal: "startsOnly" },
+      { value: "unverified", signal: "notVerified" },
     ],
   },
-  { id: "damage", label: "Damage", group: "condition", kind: "options" },
-  { id: "damage2", label: "Secondary damage", group: "condition", kind: "options" },
+  { id: "damage", group: "condition", kind: "options" },
+  { id: "damage2", group: "condition", kind: "options" },
   {
     id: "keys",
-    label: "Keys",
     group: "condition",
     kind: "options",
     options: [
-      { value: "yes", label: signal("keys", "YES") },
-      { value: "no", label: signal("keys", "NO") },
-      { value: "exempt", label: signal("keys", "EXM") },
+      { value: "yes", signal: "keys" },
+      { value: "no", signal: "noKeys" },
+      { value: "exempt", signal: "keysExempt" },
     ],
   },
-  { id: "bid", label: "Current bid", group: "price", kind: "range", range: { max: "bid_max", unit: "$" } },
-  { id: "bin", label: "Buy now price", group: "price", kind: "range", range: { max: "bin_max", unit: "$" } },
-  { id: "retail", label: "Retail value", group: "price", kind: "range", range: { min: "retail_min", max: "retail_max", unit: "$" } },
+  { id: "bid", group: "price", kind: "range", range: { max: "bid_max", unit: "$" } },
+  { id: "bin", group: "price", kind: "range", range: { max: "bin_max", unit: "$" } },
+  { id: "retail", group: "price", kind: "range", range: { min: "retail_min", max: "retail_max", unit: "$" } },
   {
     id: "sale",
-    label: "Sale date",
     group: "sale",
     kind: "single",
-    options: [
-      { value: "today", label: "Today", chip: "Sells today" },
-      { value: "tomorrow", label: "Tomorrow", chip: "Sells tomorrow" },
-      { value: "this_week", label: "This week", chip: "Sells this week" },
-      { value: "next_week", label: "Next week", chip: "Sells next week" },
-      // Copart's own name for a lot it has given no sale day yet, as the lot page says.
-      { value: "future", label: "Future sale" },
-    ],
+    options: [{ value: "today" }, { value: "tomorrow" }, { value: "this_week" }, { value: "next_week" }, { value: "future" }],
   },
-  {
-    // The document the sale hands over, so it sits with the sale.
-    id: "title",
-    label: "Title",
-    group: "sale",
-    kind: "options",
-    options: [
-      { value: "salvage", label: "Salvage", chip: "Salvage title" },
-      { value: "clean", label: "Clean", chip: "Clean title" },
-      { value: "nonrepairable", label: "Non-repairable", chip: "Non-repairable title" },
-    ],
-  },
+  // The document the sale hands over, so it sits with the sale.
+  { id: "title", group: "sale", kind: "options", options: [{ value: "salvage" }, { value: "clean" }, { value: "nonrepairable" }] },
   {
     id: "sale_type",
-    label: "Sale type",
     group: "sale",
     kind: "options",
     options: [
-      { value: "pure", label: signal("sale", "PURE SALE") },
-      { value: "minimum", label: signal("sale", "ON MINIMUM BID") },
-      { value: "approval", label: signal("sale", "ON APPROVAL") },
+      { value: "pure", signal: "pureSale" },
+      { value: "minimum", signal: "minimumBid" },
+      { value: "approval", signal: "sellerApproval" },
     ],
   },
-  { id: "buy_now", label: "Buy now available", group: "sale", kind: "toggle" },
-  { id: "source", label: "Auction", group: "sale", kind: "options", name: auctionName, hideWhenSingle: true },
-  { id: "state", label: "State or province", group: "location", kind: "options" },
-  {
-    id: "location",
-    label: "Yard or offsite",
-    group: "location",
-    kind: "options",
-    options: [
-      { value: "yard", label: "At the yard" },
-      { value: "offsite", label: "Offsite" },
-    ],
-  },
+  { id: "buy_now", group: "sale", kind: "toggle" },
+  { id: "source", group: "sale", kind: "options", name: auctionName, hideWhenSingle: true },
+  { id: "state", group: "location", kind: "options" },
+  { id: "location", group: "location", kind: "options", options: [{ value: "yard" }, { value: "offsite" }] },
 ];
 
 /** "All filters", in the order a dealer narrows a search: what the lot is, its shape, its price, its sale, where it is. */
-export const GROUPS: { id: Filter["group"]; label: string }[] = [
-  { id: "vehicle", label: "Vehicle" },
-  { id: "condition", label: "Condition" },
-  { id: "price", label: "Price" },
-  { id: "sale", label: "Sale" },
-  { id: "location", label: "Location" },
-];
+export const GROUPS = ["vehicle", "condition", "price", "sale", "location"] as const;
 
 /** The filters always in the bar, most important first; the sidebar beside it leaves them out. */
-export const PRIMARY = ["sale", "title", "run", "damage"];
+export const PRIMARY = ["sale", "title", "run", "damage", "buy_now"];
 /** Filters counted per option by the API: everything but the ranges. */
 export const COUNTED = FILTERS.filter((filter) => filter.kind !== "range").map((filter) => filter.id);
 
-export const SORTS: Option[] = [
-  { value: "newest", label: "Newest listed" },
-  { value: "sale", label: "Sale soonest" },
-  { value: "year", label: "Year, newest first" },
-  { value: "mileage", label: "Mileage, lowest first" },
-  { value: "retail", label: "Retail value, lowest first" },
-];
+/** The orders, each worded in `filters.sorts`. */
+export const SORTS = ["newest", "sale", "year", "mileage", "retail"] as const;
 
 export const filterById = (id: string) => FILTERS.find((filter) => filter.id === id)!;
 
@@ -185,7 +138,7 @@ export function readQuery(input: URLSearchParams | Record<string, string | strin
     }
   }
   const sort = params.get("sort");
-  if (SORTS.some((option) => option.value === sort)) query.sort = [sort!];
+  if (SORTS.some((option) => option === sort)) query.sort = [sort!];
   return query;
 }
 
@@ -235,9 +188,10 @@ export function searched(
 /** A dealer's filters set this often move up into the bar, up to two of them. */
 export const PROMOTE_AFTER = 3;
 
-/** The filters from "All filters" the dealer sets most, which earn a place in the bar. */
+/** The filters from "All filters" the dealer sets most, which earn a place in the bar. A make
+    (and the model that belongs to it) never does: the search beside the bar already takes one. */
 export function promoted(usage: Record<string, number>): string[] {
-  return FILTERS.filter((filter) => !PRIMARY.includes(filter.id) && filter.id !== "model")
+  return FILTERS.filter((filter) => !PRIMARY.includes(filter.id) && filter.id !== "make" && filter.id !== "model")
     .map((filter) => ({ id: filter.id, uses: Math.max(0, ...paramsOf(filter).map((param) => usage[param] ?? 0)) }))
     .filter(({ uses }) => uses >= PROMOTE_AFTER)
     .sort((a, b) => b.uses - a.uses)
@@ -245,42 +199,57 @@ export function promoted(usage: Record<string, number>): string[] {
     .map(({ id }) => id);
 }
 
-const count = new Intl.NumberFormat("en-US");
-const dollars = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-
-export function amountIn(unit: "year" | "mi" | "$", value: string): string {
+export function amountIn(unit: "year" | "mi" | "$", value: string, { locale, m }: I18n): string {
   const number = Number(value);
-  return unit === "$" ? dollars.format(number) : unit === "mi" ? `${count.format(number)} mi` : value;
+  const tag = LOCALES[locale].tag;
+  if (unit === "$") return new Intl.NumberFormat(tag, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(number);
+  return unit === "mi" ? fill(m.lot.miles, { miles: new Intl.NumberFormat(tag).format(number) }) : value;
+}
+
+type OptionWords = { label: string; chip?: string };
+
+/** A fixed option's words: the code's for a signal, otherwise the filter's own. */
+function optionWords(m: Messages, filter: Filter, option: Option): OptionWords {
+  if (option.signal) return { label: m.signals[option.signal] };
+  return (m.filters.options as Record<string, Record<string, OptionWords>>)[filter.id][option.value];
 }
 
 /** How one of a filter's values reads in its list. */
-export function valueLabel(filter: Filter, value: string): string {
-  return filter.options?.find((option) => option.value === value)?.label ?? filter.name?.(value) ?? value;
+export function valueLabel(m: Messages, filter: Filter, value: string): string {
+  const option = filter.options?.find((one) => one.value === value);
+  return option ? optionWords(m, filter, option).label : (filter.name?.(value, m) ?? value);
 }
 
 export type Chip = { key: string; label: string; without: Query };
 
 /** One removable chip per chosen value (one per range), and the query without it. */
-export function chips(query: Query): Chip[] {
+export function chips(query: Query, i18n: I18n): Chip[] {
+  const { m } = i18n;
+  const words = m.filters;
   const found: Chip[] = [];
-  if (query.q) found.push({ key: "q", label: `“${query.q[0]}”`, without: edit(query, { q: null }) });
+  if (query.q) found.push({ key: "q", label: fill(words.chipSearch, { q: query.q[0] }), without: edit(query, { q: null }) });
   for (const filter of FILTERS) {
+    const name = words.labels[filter.id];
     if (filter.range) {
       const { min, max, unit } = filter.range;
       const [low, high] = [min && query[min]?.[0], max && query[max]?.[0]];
       if (!low && !high) continue;
-      const span = low && high ? `${amountIn(unit, low)}–${amountIn(unit, high)}` : low ? `from ${amountIn(unit, low)}` : `up to ${amountIn(unit, high!)}`;
+      const span =
+        low && high ? fill(words.spanBoth, { low: amountIn(unit, low, i18n), high: amountIn(unit, high, i18n) })
+        : low ? fill(words.spanFrom, { low: amountIn(unit, low, i18n) })
+        : fill(words.spanUpTo, { high: amountIn(unit, high!, i18n) });
       const without = edit(query, Object.fromEntries(paramsOf(filter).map((param) => [param, null])));
-      found.push({ key: filter.id, label: `${filter.label} ${span}`, without });
+      found.push({ key: filter.id, label: fill(words.chipRange, { label: name, span }), without });
       continue;
     }
     for (const value of query[filter.id] ?? []) {
       const option = filter.options?.find((one) => one.value === value);
+      const own = option && optionWords(m, filter, option);
       const label =
-        filter.kind === "toggle" ? filter.label
-        : option ? (option.chip ?? option.label)
+        filter.kind === "toggle" ? name
+        : own ? (own.chip ?? own.label)
         : filter.kind === "select" ? value
-        : `${filter.label}: ${valueLabel(filter, value)}`;
+        : fill(words.chipValue, { label: name, value: valueLabel(m, filter, value) });
       const rest = query[filter.id].filter((one) => one !== value);
       // A model belongs to its make, so it goes with it.
       const without = edit(query, { [filter.id]: rest, ...(filter.id === "make" ? { model: null } : {}) });

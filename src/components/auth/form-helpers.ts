@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useWatch, type FieldValues, type Path, type UseFormReturn } from "react-hook-form";
-import type { FormState } from "@/app/(auth)/actions";
+import type { FormState } from "@/app/[lang]/(auth)/actions";
 import { readRememberedEmail, rememberEmail } from "@/lib/remembered-email";
 
 /**

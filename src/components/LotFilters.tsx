@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronDownIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, XIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState, useTransition } from "react";
-import { lotCountsAction, rememberLotFiltersAction } from "@/app/active-lots/actions";
+import { lotCountsAction, rememberLotFiltersAction } from "@/app/[lang]/active-lots/actions";
+import { useI18n } from "@/components/I18nProvider";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -14,6 +15,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { fill, formatCount, localePath, plural } from "@/lib/i18n";
 import {
   activeIds,
   chips,
@@ -35,9 +37,6 @@ import {
   ZONE_COOKIE,
 } from "@/lib/lot-filters";
 import type { Facets } from "@/lib/lots";
-
-const count = new Intl.NumberFormat("en-US");
-const lots = (n: number) => `${count.format(n)} ${n === 1 ? "lot" : "lots"}`;
 
 type Counts = { value: string; count: number }[] | null;
 type Apply = (next: Query) => void;
@@ -65,6 +64,9 @@ export function LotFilters({
   children: ReactNode;
 }) {
   const router = useRouter();
+  const { locale, m } = useI18n();
+  const words = m.filters;
+  const lots = (n: number) => plural(locale, m.lots.count, n);
   const [pending, startTransition] = useTransition();
   const search = queryString(query);
   const keep = queryString(rememberable(query));
@@ -73,7 +75,7 @@ export function LotFilters({
   function apply(next: Query) {
     // The bar always sets an order, so a URL without parameters means "as I left it".
     const ordered = edit(next, { sort: next.sort ?? ["newest"] });
-    startTransition(() => router.push(listPath(ordered), { scroll: false }));
+    startTransition(() => router.push(localePath(listPath(ordered), locale), { scroll: false }));
   }
 
   function countsOf(id: string): Counts {
@@ -109,7 +111,7 @@ export function LotFilters({
 
   const active = activeIds(query);
   const inBar = [...PRIMARY, ...promoted(usage)];
-  const found = chips(query);
+  const found = chips(query, { locale, m });
 
   function visible(filter: Filter): boolean {
     if (filter.id === "model") return !!query.make;
@@ -121,10 +123,10 @@ export function LotFilters({
   // filters beside it, and in the sheet that stands in for both below lg.
   const groups = (place: "side" | "sheet") =>
     GROUPS.map((group) => (
-      <section key={group.id} className="mb-6">
-        <h3 className="mb-1 font-semibold">{group.label}</h3>
+      <section key={group} className="mb-6">
+        <h3 className="mb-1 font-semibold">{words.groups[group]}</h3>
         {FILTERS.filter(
-          (filter) => filter.group === group.id && visible(filter) && (place === "sheet" || !PRIMARY.includes(filter.id)),
+          (filter) => filter.group === group && visible(filter) && (place === "sheet" || !PRIMARY.includes(filter.id)),
         ).map((filter) =>
           filter.kind === "toggle" ? (
             <div key={filter.id} className="border-b py-2.5">
@@ -152,7 +154,7 @@ export function LotFilters({
           }}
         >
           <Label htmlFor="lot-search" className="sr-only">
-            Search lots
+            {words.searchLabel}
           </Label>
           <Input
             key={search}
@@ -161,30 +163,48 @@ export function LotFilters({
             type="search"
             defaultValue={query.q?.[0] ?? ""}
             maxLength={200}
-            placeholder="Make, model, year, VIN, lot number or keyword"
+            placeholder={words.searchPlaceholder}
           />
           {/* As tall as the input beside it, like the bar's buttons. */}
           <Button type="submit" size="lg">
-            Search
+            {words.search}
           </Button>
         </form>
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {inBar.map((id) => {
             const filter = filterById(id);
-            return visible(filter) ? <Menu key={id} filter={filter} query={query} counts={countsOf(id)} apply={apply} /> : null;
+            if (!visible(filter)) return null;
+            // A switch needs no menu: one click turns it on or off.
+            return filter.kind === "toggle" ? (
+              <Button
+                key={id}
+                type="button"
+                variant="outline"
+                size="lg"
+                className="hidden aria-pressed:bg-muted lg:inline-flex"
+                aria-pressed={!!query[id]}
+                onClick={() => apply(edit(query, { [id]: query[id] ? null : ["1"] }))}
+              >
+                {query[id] && <CheckIcon aria-hidden="true" />}
+                {filter.label}
+              </Button>
+            ) : (
+              <Menu key={id} filter={filter} query={query} counts={countsOf(id)} apply={apply} />
+            );
           })}
           <Sheet>
             <SheetTrigger render={<Button variant="outline" size="lg" className="lg:hidden" />}>
-              Filters{active.length > 0 && ` · ${active.length}`}
+              {words.filters}
+              {active.length > 0 && ` · ${active.length}`}
             </SheetTrigger>
             {/* The whole screen on a phone. */}
             <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-md">
               <SheetHeader className="border-b">
-                <SheetTitle className="text-lg font-semibold">All filters</SheetTitle>
+                <SheetTitle className="text-lg font-semibold">{words.allFilters}</SheetTitle>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto p-4">{groups("sheet")}</div>
               <SheetFooter className="border-t">
-                <SheetClose render={<Button size="lg" className="w-full" />}>Show {lots(total)}</SheetClose>
+                <SheetClose render={<Button size="lg" className="w-full" />}>{fill(words.show, { lots: lots(total) })}</SheetClose>
               </SheetFooter>
             </SheetContent>
           </Sheet>
@@ -203,9 +223,9 @@ export function LotFilters({
         >
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 id="all-filters" className="text-lg font-semibold">
-              All filters
+              {words.allFilters}
             </h2>
-            <CollapsibleTrigger render={<Button variant="ghost" size="icon" aria-label="Hide filters" />}>
+            <CollapsibleTrigger render={<Button variant="ghost" size="icon" aria-label={words.hide} />}>
               <PanelLeftCloseIcon aria-hidden="true" />
             </CollapsibleTrigger>
           </div>
@@ -216,7 +236,8 @@ export function LotFilters({
             {/* Brings the sidebar back; only while it is put away, and only where there is one. */}
             <CollapsibleTrigger render={<Button variant="outline" className="hidden lg:inline-flex lg:data-[panel-open]:hidden" />}>
               <PanelLeftOpenIcon aria-hidden="true" />
-              Show filters{active.length > 0 && ` · ${active.length}`}
+              {words.showFilters}
+              {active.length > 0 && ` · ${active.length}`}
             </CollapsibleTrigger>
             <p aria-live="polite" className="mr-2 font-semibold">
               {lots(total)}
@@ -228,7 +249,7 @@ export function LotFilters({
                 variant="outline"
                 size="sm"
                 className="rounded-full"
-                aria-label={`Remove ${chip.label}`}
+                aria-label={fill(words.remove, { chip: chip.label })}
                 onClick={() => apply(chip.without)}
               >
                 {chip.label} <XIcon aria-hidden="true" />
@@ -236,19 +257,19 @@ export function LotFilters({
             ))}
             {found.length > 0 && (
               <Button type="button" variant="link" size="sm" onClick={() => apply(edit({}, { sort: query.sort ?? null }))}>
-                Clear all
+                {words.clearAll}
               </Button>
             )}
             <Label className="ml-auto font-normal">
-              Sort
+              {words.sort}
               <NativeSelect
                 size="sm"
                 value={query.sort?.[0] ?? "newest"}
                 onChange={(event) => apply(edit(query, { sort: [event.target.value] }))}
               >
-                {SORTS.map((option) => (
-                  <NativeSelectOption key={option.value} value={option.value}>
-                    {option.label}
+                {SORTS.map((sort) => (
+                  <NativeSelectOption key={sort} value={sort}>
+                    {words.sorts[sort]}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
@@ -271,6 +292,7 @@ function chosenCount(filter: Filter, query: Query): number {
 
 /** One filter of the sidebar or the sheet: folded away until opened, and open from the start while it holds a choice. */
 function Fold({ filter, query, counts, apply, place }: { filter: Filter; query: Query; counts: Counts; apply: Apply; place: string }) {
+  const label = useI18n().m.filters.labels[filter.id];
   const chosen = chosenCount(filter, query);
   return (
     <Collapsible defaultOpen={chosen > 0} className="border-b">
@@ -278,13 +300,13 @@ function Fold({ filter, query, counts, apply, place }: { filter: Filter; query: 
         render={<Button variant="ghost" className="h-10 w-full justify-between px-0 hover:bg-transparent aria-expanded:bg-transparent [&[data-panel-open]>svg]:rotate-180" />}
       >
         {/* One string, so the name keeps its spaces: "Auction · 1". */}
-        {chosen > 0 ? `${filter.label} · ${chosen}` : filter.label}
+        {chosen > 0 ? `${label} · ${chosen}` : label}
         <ChevronDownIcon aria-hidden="true" className="transition-transform" />
       </CollapsibleTrigger>
       <CollapsibleContent className="pb-3">
         {/* The open button names the section; the legend names the options for a screen reader. */}
         <FieldSet className="gap-2">
-          <FieldLegend className="sr-only">{filter.label}</FieldLegend>
+          <FieldLegend className="sr-only">{label}</FieldLegend>
           <Control filter={filter} query={query} counts={counts} apply={apply} place={place} />
         </FieldSet>
       </CollapsibleContent>
@@ -304,11 +326,12 @@ function Menu({
   counts: Counts;
   apply: Apply;
 }) {
+  const label = useI18n().m.filters.labels[filter.id];
   const chosen = chosenCount(filter, query);
   return (
     <Popover>
       <PopoverTrigger render={<Button variant="outline" size="lg" className="hidden lg:inline-flex" />}>
-        {filter.label}
+        {label}
         {chosen > 0 && <span className="font-normal">· {chosen}</span>}
         <ChevronDownIcon aria-hidden="true" />
       </PopoverTrigger>
@@ -333,11 +356,14 @@ function Control({
   apply: Apply;
   place: string;
 }) {
+  const { locale, m } = useI18n();
+  const words = m.filters;
+  const label = words.labels[filter.id];
   const id = `${place}-${filter.id}`;
   if (filter.range) return <Range filter={filter} query={query} apply={apply} id={id} />;
   if (filter.kind === "toggle") {
     return (
-      <Choice id={id} label={filter.label} count={counts ? (counts.find((option) => option.value === "yes")?.count ?? 0) : undefined}>
+      <Choice id={id} label={label} count={counts ? (counts.find((option) => option.value === "yes")?.count ?? 0) : undefined}>
         <Checkbox id={id} checked={!!query[filter.id]} onCheckedChange={(on) => apply(edit(query, { [filter.id]: on ? ["1"] : null }))} />
       </Choice>
     );
@@ -348,20 +374,20 @@ function Control({
   const options = [
     ...known.map((option) => ({
       value: option.value,
-      label: valueLabel(filter, option.value),
+      label: valueLabel(m, filter, option.value),
       count: counts ? (counts.find((one) => one.value === option.value)?.count ?? 0) : undefined,
     })),
     // A choice no lot has any more stays listed, so it can be taken back.
     ...chosen
       .filter((value) => !known.some((option) => option.value === value))
-      .map((value) => ({ value, label: valueLabel(filter, value), count: counts ? 0 : undefined })),
+      .map((value) => ({ value, label: valueLabel(m, filter, value), count: counts ? 0 : undefined })),
   ];
 
   if (filter.kind === "select") {
     return (
       <NativeSelect
         id={id}
-        aria-label={filter.label}
+        aria-label={label}
         className="w-full"
         value={chosen[0] ?? ""}
         onChange={(event) => {
@@ -369,18 +395,18 @@ function Control({
           apply(edit(query, { [filter.id]: value ? [value] : null, ...(filter.id === "make" ? { model: null } : {}) }));
         }}
       >
-        <NativeSelectOption value="">Any {filter.label.toLowerCase()}</NativeSelectOption>
+        <NativeSelectOption value="">{words.any[filter.id as keyof typeof words.any]}</NativeSelectOption>
         {options.map((option) => (
           <NativeSelectOption key={option.value} value={option.value}>
             {option.label}
-            {option.count !== undefined && ` (${count.format(option.count)})`}
+            {option.count !== undefined && ` (${formatCount(locale, option.count)})`}
           </NativeSelectOption>
         ))}
       </NativeSelect>
     );
   }
 
-  const loading = !filter.options && counts === null && <p className="text-sm text-muted-foreground">Loading…</p>;
+  const loading = !filter.options && counts === null && <p className="text-sm text-muted-foreground">{words.loading}</p>;
   // Nothing to find there with the other filters: shown, so the list does not jump, but off.
   const off = (option: (typeof options)[number], checked: boolean) => option.count === 0 && !checked;
   // Encoded: a value can hold a space ("FRONT END"), which would split the aria-labelledby that
@@ -390,7 +416,7 @@ function Control({
   if (filter.kind === "single") {
     return (
       <RadioGroup value={chosen[0] ?? ""} onValueChange={(value) => apply(edit(query, { [filter.id]: value ? [value as string] : null }))}>
-        <Choice id={`${id}-any`} label="Any day">
+        <Choice id={`${id}-any`} label={words.anyDay}>
           <RadioGroupItem id={`${id}-any`} value="" />
         </Choice>
         {options.map((option) => (
@@ -439,19 +465,18 @@ function Choice({
   disabled?: boolean;
   children: ReactNode;
 }) {
+  const { locale } = useI18n();
   return (
     <Field orientation="horizontal" data-disabled={disabled}>
       {children}
       {/* The count inside the label, so it is read out with the option. */}
       <FieldLabel htmlFor={id} className="flex-1 font-normal">
         {label}
-        {n !== undefined && <span className="ml-auto text-muted-foreground tabular-nums">{count.format(n)}</span>}
+        {n !== undefined && <span className="ml-auto text-muted-foreground tabular-nums">{formatCount(locale, n)}</span>}
       </FieldLabel>
     </Field>
   );
 }
-
-const UNITS = { year: "", mi: " (miles)", $: " ($)" };
 
 /** The years a range offers, newest first: next year (model years run a year ahead) down to 1900. */
 const NEWEST = new Date().getFullYear() + 1;
@@ -459,10 +484,11 @@ const YEARS = Array.from({ length: NEWEST - 1899 }, (_, i) => String(NEWEST - i)
 
 /** A range: whole numbers, applied together. */
 function Range({ filter, query, apply, id }: { filter: Filter; query: Query; apply: Apply; id: string }) {
+  const words = useI18n().m.filters;
   const { min, max, unit } = filter.range!;
   const bounds = [
-    min && { param: min, label: `From${UNITS[unit]}` },
-    max && { param: max, label: `${min ? "To" : "Up to"}${UNITS[unit]}` },
+    min && { param: min, label: `${words.from}${words.units[unit]}` },
+    max && { param: max, label: `${min ? words.to : words.upTo}${words.units[unit]}` },
   ].filter((bound): bound is { param: string; label: string } => !!bound);
   return (
     <form
@@ -484,7 +510,7 @@ function Range({ filter, query, apply, id }: { filter: Filter; query: Query; app
           </FieldLabel>
           {unit === "year" ? (
             <NativeSelect id={`${id}-${param}`} name={param} className="w-full" defaultValue={query[param]?.[0] ?? ""}>
-              <NativeSelectOption value="">Any</NativeSelectOption>
+              <NativeSelectOption value="">{words.anyYear}</NativeSelectOption>
               {YEARS.map((year) => (
                 <NativeSelectOption key={year} value={year}>
                   {year}
@@ -505,7 +531,7 @@ function Range({ filter, query, apply, id }: { filter: Filter; query: Query; app
         </Field>
       ))}
       <Button type="submit" variant="outline" size="lg">
-        Apply
+        {words.apply}
       </Button>
     </form>
   );

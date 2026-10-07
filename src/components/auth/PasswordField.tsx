@@ -2,9 +2,10 @@
 
 import { useId, useState, type KeyboardEvent } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
+import { useI18n } from "@/components/I18nProvider";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
-import { PASSWORD_MAX, PASSWORD_RULES } from "@/lib/auth-schemas";
+import { PASSWORD_MAX, PASSWORD_RULES, ruleWords } from "@/lib/auth-schemas";
 
 type Props = {
   registration: UseFormRegisterReturn;
@@ -16,7 +17,9 @@ type Props = {
 };
 
 /** Password input with a show/hide toggle, a Caps Lock warning and, for new passwords, the requirements. */
-export function PasswordField({ registration, label = "Password", autoComplete, error, requirementFor }: Props) {
+export function PasswordField({ registration, label, autoComplete, error, requirementFor }: Props) {
+  const { m } = useI18n();
+  const words = m.auth.passwordField;
   const id = useId();
   const [visible, setVisible] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
@@ -32,7 +35,7 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
 
   return (
     <Field data-invalid={error ? true : undefined}>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <FieldLabel htmlFor={id}>{label ?? m.auth.password}</FieldLabel>
       <InputGroup>
         <InputGroupInput
           id={id}
@@ -55,21 +58,21 @@ export function PasswordField({ registration, label = "Password", autoComplete, 
             size="sm"
             aria-pressed={visible}
             aria-controls={id}
-            aria-label={visible ? "Hide password" : "Show password"}
+            aria-label={visible ? words.hideLabel : words.showLabel}
             onClick={() => setVisible((v) => !v)}
           >
-            {visible ? "Hide" : "Show"}
+            {visible ? words.hide : words.show}
           </InputGroupButton>
         </InputGroupAddon>
       </InputGroup>
-      {capsLock && <FieldDescription id={`${id}-caps`}>Caps Lock is on.</FieldDescription>}
+      {capsLock && <FieldDescription id={`${id}-caps`}>{words.capsLock}</FieldDescription>}
       {showRules && (
         <ul id={`${id}-rules`} className="text-sm text-muted-foreground">
           {PASSWORD_RULES.map((rule) => {
             const met = rule.test(typed);
             return (
-              <li key={rule.text} className={met ? "font-medium text-foreground" : undefined}>
-                {met ? "✓" : "•"} {rule.text}
+              <li key={rule.key} className={met ? "font-medium text-foreground" : undefined}>
+                {met ? "✓" : "•"} {ruleWords(m.auth, rule.key).text}
               </li>
             );
           })}

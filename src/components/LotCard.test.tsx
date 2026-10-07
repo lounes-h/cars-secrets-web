@@ -4,11 +4,13 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cardPhoto, LotCard } from "@/components/LotCard";
 import type { Lot } from "@/lib/lots";
 import { sampleLot } from "@/lib/lots-fixture";
+import { en } from "@/messages/en";
+import { es } from "@/messages/es";
 
 afterEach(cleanup);
 
 function show(lot: Partial<Lot> = {}) {
-  return render(<LotCard lot={{ ...sampleLot, ...lot }} />).container;
+  return render(<LotCard lot={{ ...sampleLot, ...lot }} i18n={{ locale: "en", m: en }} />).container;
 }
 
 const prices = () =>
@@ -107,5 +109,15 @@ describe("cardPhoto", () => {
     expect(cardPhoto({ ...sampleLot, thumbnail_url: " https://cs.copart.com/photo.jpg " })).toBe("https://cs.copart.com/photo.jpg");
     expect(cardPhoto({ ...sampleLot, thumbnail_url: "http://cs.copart.com/a_thb.jpg" })).toBeNull();
     expect(cardPhoto({ ...sampleLot, thumbnail_url: "javascript:alert(1)" })).toBeNull();
+  });
+});
+
+describe("lot card in Spanish", () => {
+  it("words the card and links the lot under /es", () => {
+    render(<LotCard lot={{ ...sampleLot, sale_at: null, sale_date: null }} i18n={{ locale: "es", m: es }} />);
+    expect(screen.getAllByRole("link", { hidden: true }).every((link) => link.getAttribute("href")?.startsWith("/es/active-lots/"))).toBe(true);
+    expect(screen.getByText(es.lot.currentBid)).toBeTruthy();
+    expect(screen.getByText(es.lot.futureSale)).toBeTruthy();
+    expect(screen.getByRole("list", { name: es.lot.dealBreakers }).textContent).toContain(es.signals.runsAndDrives);
   });
 });

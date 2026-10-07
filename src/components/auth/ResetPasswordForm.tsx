@@ -4,19 +4,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { resetPasswordAction } from "@/app/(auth)/actions";
+import { resetPasswordAction } from "@/app/[lang]/(auth)/actions";
 import { FormError } from "@/components/auth/FormError";
 import { showServerErrors } from "@/components/auth/form-helpers";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { useI18n } from "@/components/I18nProvider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
-import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/auth-schemas";
+import { authSchemas, type ResetPasswordInput } from "@/lib/auth-schemas";
+import { localePath } from "@/lib/i18n";
 
 export function ResetPasswordForm({ token }: { token: string }) {
+  const { locale, m } = useI18n();
+  const words = m.auth.reset;
   const [done, setDone] = useState(false);
   const form = useForm<ResetPasswordInput>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(authSchemas(m.auth).resetPasswordSchema),
     // A field is checked once it has been visited, then on every submit.
     mode: "onTouched",
     defaultValues: { token, password: "", password_confirm: "" },
@@ -37,10 +41,10 @@ export function ResetPasswordForm({ token }: { token: string }) {
     return (
       <FieldGroup>
         <Alert role="status">
-          <AlertDescription>Your password has changed, and every other session was signed out.</AlertDescription>
+          <AlertDescription>{words.done}</AlertDescription>
         </Alert>
-        <Link href="/login" className={buttonVariants({ size: "lg", className: "w-full" })}>
-          Sign in with your new password
+        <Link href={localePath("/login", locale)} className={buttonVariants({ size: "lg", className: "w-full" })}>
+          {words.signIn}
         </Link>
       </FieldGroup>
     );
@@ -54,25 +58,25 @@ export function ResetPasswordForm({ token }: { token: string }) {
           {serverError?.type === "invalid_token" && (
             <>
               {" "}
-              <Link href="/forgot-password">Request a new link</Link>
+              <Link href={localePath("/forgot-password", locale)}>{words.requestNewLink}</Link>
             </>
           )}
         </FormError>
         <PasswordField
           registration={register("password")}
-          label="New password"
+          label={words.newPassword}
           autoComplete="new-password"
           error={errors.password?.message}
           requirementFor={password}
         />
         <PasswordField
           registration={register("password_confirm")}
-          label="Confirm new password"
+          label={words.confirmPassword}
           autoComplete="new-password"
           error={errors.password_confirm?.message}
         />
         <Button type="submit" disabled={isSubmitting} size="lg" className="w-full">
-          {isSubmitting ? "Changing your password…" : "Change password"}
+          {isSubmitting ? words.pending : words.submit}
         </Button>
       </FieldGroup>
     </form>

@@ -3,16 +3,20 @@ import { Fragment, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { range, SAMPLE, SAMPLE_NOTE, usd } from "@/lib/premium-sample";
+import { fill, type I18n } from "@/lib/i18n";
+import { range, SAMPLE, usd } from "@/lib/premium-sample";
+import type { Messages } from "@/messages/en";
 
-const { summary, damage, market } = SAMPLE;
-const mapped = damage.areas.filter((area) => area.spot != null);
+const { damage, market } = SAMPLE;
 
-export function PremiumBadge() {
+/** The sample's areas, each with its words in the page's language. */
+const areasIn = (m: Messages) => damage.areas.map((area, index) => ({ ...area, ...m.premium.sample.areas[index] }));
+
+export function PremiumBadge({ m }: { m: Messages }) {
   return (
     <Badge variant="secondary">
       <SparklesIcon aria-hidden="true" />
-      Premium
+      {m.premium.badge}
     </Badge>
   );
 }
@@ -20,43 +24,45 @@ export function PremiumBadge() {
 /** A dashed card: the look of every premium section. */
 const DASHED = "border-dashed";
 
+type Section = { i18n: I18n; className?: string };
+
 /** A premium section: dashed, badged, and saying its figures are samples. */
-function PremiumCard({ title, className, children }: { title: string; className?: string; children: ReactNode }) {
-  const id = `premium-${title.toLowerCase().replaceAll(" ", "-")}`;
+function PremiumCard({ id, title, m, className, children }: { id: string; title: string; m: Messages; className?: string; children: ReactNode }) {
   return (
-    <section aria-labelledby={id} className={className}>
+    <section aria-labelledby={`premium-${id}`} className={className}>
       <Card className={DASHED}>
         <CardHeader className="flex flex-wrap items-center gap-3">
-          <PremiumBadge />
-          <CardTitle id={id}>{title}</CardTitle>
+          <PremiumBadge m={m} />
+          <CardTitle id={`premium-${id}`}>{title}</CardTitle>
         </CardHeader>
         <CardContent>
           {children}
-          <p className="mt-3 text-sm text-muted-foreground">{SAMPLE_NOTE}</p>
+          <p className="mt-3 text-sm text-muted-foreground">{m.premium.sampleNote}</p>
         </CardContent>
       </Card>
     </section>
   );
 }
 
-export function PremiumSummary({ className }: { className?: string }) {
+export function PremiumSummary({ i18n: { m }, className }: Section) {
   return (
-    <PremiumCard title="Summary" className={className}>
-      <p className="max-w-[65ch] text-lg">{summary.text}</p>
-      <p className="mt-2 text-sm text-muted-foreground">Best for: {summary.bestFor}</p>
+    <PremiumCard id="summary" title={m.premium.summary} m={m} className={className}>
+      <p className="max-w-[65ch] text-lg">{m.premium.sample.summary}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{fill(m.premium.bestFor, { use: m.premium.sample.bestFor })}</p>
     </PremiumCard>
   );
 }
 
 /** The car from above, front to the left, with each damaged area numbered where it is. */
-export function DamageMap() {
+export function DamageMap({ m }: { m: Messages }) {
+  const mapped = areasIn(m).filter((area) => area.spot != null);
   return (
     <Card className={DASHED}>
       <CardContent>
-        <PremiumBadge />
+        <PremiumBadge m={m} />
         <svg
           role="img"
-          aria-label={`Damage map: ${mapped.map((area) => `${area.spot} ${area.area.toLowerCase()}`).join(", ")}`}
+          aria-label={fill(m.premium.damageMap, { areas: mapped.map((area) => `${area.spot} ${area.area.toLowerCase()}`).join(", ") })}
           viewBox="0 0 400 200"
           className="mx-auto mt-4 w-full max-w-md"
         >
@@ -69,8 +75,8 @@ export function DamageMap() {
             {[95, 265].flatMap((x) => [30, 160].map((y) => <rect key={`${x}-${y}`} x={x} y={y} width="40" height="10" rx="4" />))}
           </g>
           <g className="fill-muted-foreground text-xs">
-            <text x="30" y="104" textAnchor="middle">Front</text>
-            <text x="370" y="104" textAnchor="middle">Rear</text>
+            <text x="30" y="104" textAnchor="middle">{m.premium.front}</text>
+            <text x="370" y="104" textAnchor="middle">{m.premium.rear}</text>
           </g>
           {mapped.map((area) => (
             <g key={area.spot}>
@@ -91,21 +97,22 @@ export function DamageMap() {
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-sm text-muted-foreground">{SAMPLE_NOTE}</p>
+        <p className="mt-3 text-sm text-muted-foreground">{m.premium.sampleNote}</p>
       </CardContent>
     </Card>
   );
 }
 
-export function DamageReport({ className }: { className?: string }) {
+export function DamageReport({ i18n: { locale, m }, className }: Section) {
+  const words = m.premium;
   const total = [0, 1].map((end) => damage.areas.reduce((sum, area) => sum + area.estimate[end], 0)) as [number, number];
   return (
-    <PremiumCard title="Damage report" className={className}>
+    <PremiumCard id="damage-report" title={words.damageReport} m={m} className={className}>
       <dl className="grid gap-4 sm:grid-cols-3">
         {[
-          ["Primary", damage.primary],
-          ["Secondary", damage.secondary],
-          ["Insurer repair estimate", usd.format(damage.insurerEstimate)],
+          [words.primary, words.sample.primary],
+          [words.secondary, words.sample.secondary],
+          [words.insurerEstimate, usd(locale, damage.insurerEstimate)],
         ].map(([label, value]) => (
           <div key={label}>
             <dt className="text-sm text-muted-foreground">{label}</dt>
@@ -116,55 +123,56 @@ export function DamageReport({ className }: { className?: string }) {
       <Table className="mt-4 min-w-[32rem]">
         <TableHeader>
           <TableRow>
-            <TableHead scope="col">Area</TableHead>
-            <TableHead scope="col">What we see</TableHead>
-            <TableHead scope="col">Severity</TableHead>
-            <TableHead scope="col">Our estimate</TableHead>
+            <TableHead scope="col">{words.area}</TableHead>
+            <TableHead scope="col">{words.seen}</TableHead>
+            <TableHead scope="col">{words.severity}</TableHead>
+            <TableHead scope="col">{words.ourEstimate}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {damage.areas.map((area) => (
+          {areasIn(m).map((area) => (
             <TableRow key={area.area}>
               <TableCell>{[area.spot, area.area].filter(Boolean).join(" ")}</TableCell>
               <TableCell className="whitespace-normal">{area.seen}</TableCell>
               <TableCell>{area.severity}</TableCell>
-              <TableCell>{range(area.estimate, area.openEnded)}</TableCell>
+              <TableCell>{range(locale, area.estimate, area.openEnded)}</TableCell>
             </TableRow>
           ))}
           <TableRow className="font-semibold">
-            <TableCell>Total</TableCell>
-            <TableCell className="font-normal text-muted-foreground">used parts</TableCell>
+            <TableCell>{words.total}</TableCell>
+            <TableCell className="font-normal text-muted-foreground">{words.usedParts}</TableCell>
             <TableCell />
-            <TableCell>{range(total)}</TableCell>
+            <TableCell>{range(locale, total)}</TableCell>
           </TableRow>
         </TableBody>
       </Table>
-      <p className="mt-3 text-sm text-muted-foreground">Why lower than the insurer? Insurer estimates use new parts and body-shop labor.</p>
+      <p className="mt-3 text-sm text-muted-foreground">{words.whyLower}</p>
     </PremiumCard>
   );
 }
 
-export function Market({ className }: { className?: string }) {
+export function Market({ i18n: { locale, m }, className }: Section) {
+  const words = m.premium;
   const columns = [
     {
-      title: "Value",
+      title: words.value,
       rows: [
-        ["Copart ACV", usd.format(market.acv)],
-        ["Clean-title retail", usd.format(market.cleanRetail)],
-        ["Resale with salvage title", usd.format(market.salvageResale)],
+        [words.acv, usd(locale, market.acv)],
+        [words.cleanRetail, usd(locale, market.cleanRetail)],
+        [words.salvageResale, usd(locale, market.salvageResale)],
       ],
     },
     {
-      title: "How it sells",
+      title: words.howItSells,
       rows: [
-        ["Demand", market.demand],
-        ["Avg. time to sell", `${market.daysToSell} days`],
-        ["Similar lots sold (90 days)", String(market.similarSold90Days)],
+        [words.demand, words.sample.demand],
+        [words.daysToSell, fill(words.days, { days: market.daysToSell })],
+        [words.similarSold, String(market.similarSold90Days)],
       ],
     },
   ];
   return (
-    <PremiumCard title="Market" className={className}>
+    <PremiumCard id="market" title={words.market} m={m} className={className}>
       <div className="grid gap-6 sm:grid-cols-2">
         {columns.map(({ title, rows }) => (
           <div key={title}>
