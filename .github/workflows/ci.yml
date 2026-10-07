@@ -10,7 +10,9 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # A newer push replaces a pull request's run; on main every run finishes, so a release is
+  # never cut off halfway.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -29,3 +31,52 @@ jobs:
       - run: yarn typecheck
       - run: yarn test:coverage
       - run: yarn build
+
+  commits:
+    # The release reads commit subjects to pick the next version, so each must be conventional.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - run: |
+          bad=$(git log --no-merges --format=%s "$BASE..$HEAD" \
+            | grep -vE '^((feat|fix|perf|refactor|revert|docs|test|chore|ci|build|style)(\([^)]+\))?!?: |Revert ")' || true)
+          if [ -n "$bad" ]; then
+            printf 'Use "type: subject" (feat, fix, perf, refactor, docs, test, chore, ...):\n%s\n' "$bad"
+            exit 1
+          fi
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+
+  release:
+    # Each push to main that passes the checks is released: semantic-release reads the commits
+    # since the last tag, bumps package.json (feat: minor; fix, perf, refactor: patch; "!" or
+    # BREAKING CHANGE: major), commits it with CHANGELOG.md, tags vX.Y.Z and publishes a
+    # GitHub release. Nothing to release (docs, test, chore only) is a no-op.
+    if: github.event_name == 'push'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: >-
+          npx --yes
+          -p semantic-release@25
+          -p @semantic-release/changelog@7
+          -p @semantic-release/git@11
+          -p conventional-changelog-conventionalcommits@9
+          semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
