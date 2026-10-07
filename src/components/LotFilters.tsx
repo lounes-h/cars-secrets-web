@@ -186,7 +186,7 @@ export function LotFilters({
                 onClick={() => apply(edit(query, { [id]: query[id] ? null : ["1"] }))}
               >
                 {query[id] && <CheckIcon aria-hidden="true" />}
-                {filter.label}
+                {words.labels[filter.id]}
               </Button>
             ) : (
               <Menu key={id} filter={filter} query={query} counts={countsOf(id)} apply={apply} />
