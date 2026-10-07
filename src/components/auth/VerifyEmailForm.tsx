@@ -3,15 +3,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { resendVerificationAction, verifyEmailAction } from "@/app/(auth)/actions";
+import { resendVerificationAction, verifyEmailAction } from "@/app/[lang]/(auth)/actions";
 import { FormError } from "@/components/auth/FormError";
 import { showServerErrors } from "@/components/auth/form-helpers";
 import { Turnstile } from "@/components/auth/Turnstile";
+import { useI18n } from "@/components/I18nProvider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { CODE_LENGTH, codeDigits, verifyEmailSchema, type VerifyEmailInput } from "@/lib/auth-schemas";
+import { authSchemas, CODE_LENGTH, codeDigits, type VerifyEmailInput } from "@/lib/auth-schemas";
+import { fill, rich } from "@/lib/i18n";
 import { forgetEmail, rememberEmail } from "@/lib/remembered-email";
 
 /** The API sends at most one code a minute; the button waits as long. */
@@ -32,6 +34,8 @@ type Props = {
  * signs the dealer in (the action redirects to /active-lots).
  */
 export function VerifyEmailForm({ email, remember = false, onChangeEmail }: Props) {
+  const { m } = useI18n();
+  const words = m.auth.verify;
   // A deadline rather than a count of ticks: browsers slow timers down in a background tab,
   // which is where this one sits while the dealer reads their mail.
   const [now, setNow] = useState(() => Date.now());
@@ -42,7 +46,7 @@ export function VerifyEmailForm({ email, remember = false, onChangeEmail }: Prop
   const [captcha, setCaptcha] = useState("");
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<VerifyEmailInput>({
-    resolver: zodResolver(verifyEmailSchema),
+    resolver: zodResolver(authSchemas(m.auth).verifyEmailSchema),
     defaultValues: { email, code: "", remember },
   });
   const { register, handleSubmit, setValue, setFocus, setError, formState } = form;
@@ -101,12 +105,10 @@ export function VerifyEmailForm({ email, remember = false, onChangeEmail }: Prop
   return (
     <form onSubmit={onSubmit} noValidate>
       <FieldGroup>
-        <p>
-          Enter the {CODE_LENGTH}-digit code we sent to <strong>{email}</strong>. It expires in 10 minutes.
-        </p>
+        <p>{rich(words.intro, { length: CODE_LENGTH, email: <strong>{email}</strong> })}</p>
         <FormError message={errors.root?.server?.message} />
         <Field data-invalid={errors.code ? true : undefined}>
-          <FieldLabel htmlFor="code">Confirmation code</FieldLabel>
+          <FieldLabel htmlFor="code">{words.code}</FieldLabel>
           <Input
             id="code"
             type="text"
@@ -123,17 +125,17 @@ export function VerifyEmailForm({ email, remember = false, onChangeEmail }: Prop
           />
           <FieldError id="code-error">{errors.code?.message}</FieldError>
           {!errors.code && (
-            <FieldDescription id="code-hint">Can&rsquo;t find it? Check your spam or promotions folder.</FieldDescription>
+            <FieldDescription id="code-hint">{words.hint}</FieldDescription>
           )}
         </Field>
         <Button type="submit" disabled={isSubmitting} size="lg" className="w-full">
-          {isSubmitting ? "Confirming…" : "Confirm my email"}
+          {isSubmitting ? words.pending : words.submit}
         </Button>
         <div role="status" aria-live="polite">
           {resent && (
             // The live region around it announces it; an alert of its own would say it twice.
             <Alert role="none">
-              <AlertDescription>We sent a new code to {email}. Use the newest one.</AlertDescription>
+              <AlertDescription>{fill(words.resent, { email })}</AlertDescription>
             </Alert>
           )}
         </div>
@@ -142,17 +144,17 @@ export function VerifyEmailForm({ email, remember = false, onChangeEmail }: Prop
         )}
         <FieldDescription className="text-center">
           {wait > 0 ? (
-            <>Didn&rsquo;t get it? You can ask for a new code in {wait} s.</>
+            fill(words.wait, { seconds: wait })
           ) : (
             <Button type="button" variant="link" className="h-auto p-0 underline" disabled={resending} onClick={resend}>
-              {resending ? "Sending…" : "Send a new code"}
+              {resending ? m.auth.sending : words.resend}
             </Button>
           )}
           {onChangeEmail && (
             <>
               {" · "}
               <Button type="button" variant="link" className="h-auto p-0 underline" onClick={onChangeEmail}>
-                Use a different email
+                {words.differentEmail}
               </Button>
             </>
           )}

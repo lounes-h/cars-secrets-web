@@ -1,8 +1,10 @@
 "use client";
 
 import { useId } from "react";
+import { useI18n } from "@/components/I18nProvider";
+import { LOCALES } from "@/lib/i18n";
 
-/** Every time names its zone, so a reader never has to guess whose clock it is. */
+/** Every time names its zone, so a reader never has to guess whose clock it is. In English: */
 const FORMATS = {
   // "Sep 18, 2026, 2:00 PM CDT"
   full: { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" },
@@ -18,15 +20,16 @@ const FORMATS = {
  */
 export function LocalTime({ value, format = "full" }: { value: string | null; format?: keyof typeof FORMATS }) {
   const id = useId();
+  const tag = LOCALES[useI18n().locale].tag;
   if (!value) return "—";
   const options = FORMATS[format];
   // The script gets a number, never the API's string, so nothing from it lands in the page's code.
   const ms = new Date(value).getTime();
-  const rewrite = `document.getElementById(${JSON.stringify(id)}).textContent=new Intl.DateTimeFormat("en-US",${JSON.stringify(options)}).format(${ms})`;
+  const rewrite = `document.getElementById(${JSON.stringify(id)}).textContent=new Intl.DateTimeFormat(${JSON.stringify(tag)},${JSON.stringify(options)}).format(${ms})`;
   return (
     <>
       <time id={id} dateTime={value} suppressHydrationWarning>
-        {new Intl.DateTimeFormat("en-US", options).format(ms)}
+        {new Intl.DateTimeFormat(tag, options).format(ms)}
       </time>
       <script
         // Only the server's HTML runs it; in the browser React renders it inert, and warns otherwise.

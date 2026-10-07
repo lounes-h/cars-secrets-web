@@ -18,9 +18,8 @@ describe("resolveSiteUrl", () => {
 });
 
 describe("site", () => {
-  it("carries no brand name, only a description", () => {
-    expect(site).not.toHaveProperty("name");
-    expect(site.description).not.toMatch(/CarBidWise/i);
+  it("carries no brand name, only the address", () => {
+    expect(site).toEqual({ url: "https://cars-secrets.test" });
     expect(siteHost).toBe("cars-secrets.test");
   });
 });

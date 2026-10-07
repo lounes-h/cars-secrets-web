@@ -1,7 +1,8 @@
 /**
- * Single source of truth for site-wide identity. Anything that ends up in
- * metadata, the sitemap or llms.txt reads from here. The brand name
- * (CarBidInsight) is only in the banner's logo so far, not here.
+ * Single source of truth for the site's address. Anything that ends up in
+ * metadata, the sitemap or llms.txt reads its URLs from here; the words
+ * (description, titles) are in src/messages. The brand name (CarBidInsight)
+ * is only in the banner's logo so far, not here.
  */
 
 const LOCAL_URL = "http://localhost:3000";
@@ -18,10 +19,6 @@ export function resolveSiteUrl(value: string | undefined): string {
 
 export const site = {
   url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
-  locale: "en_US",
-  language: "en",
-  description:
-    "Active Copart, IAA and Manheim listings in one search, with the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid for every lot.",
 } as const;
 
 /** The site's host, used where a name would otherwise go. */

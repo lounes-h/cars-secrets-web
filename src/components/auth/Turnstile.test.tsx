@@ -12,7 +12,7 @@ const actions = vi.hoisted(() => ({
   forgotPasswordAction: vi.fn(),
   resendVerificationAction: vi.fn(),
 }));
-vi.mock("@/app/(auth)/actions", () => actions);
+vi.mock("@/app/[lang]/(auth)/actions", () => actions);
 vi.mock("next/script", () => ({ default: () => null }));
 
 const { Turnstile } = await import("@/components/auth/Turnstile");

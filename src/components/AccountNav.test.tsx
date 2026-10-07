@@ -5,9 +5,18 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const navigation = vi.hoisted(() => ({ pathname: "/" }));
 vi.mock("next/navigation", () => ({ usePathname: () => navigation.pathname }));
 const { logoutAction } = vi.hoisted(() => ({ logoutAction: vi.fn() }));
-vi.mock("@/app/(auth)/actions", () => ({ logoutAction }));
+vi.mock("@/app/[lang]/(auth)/actions", () => ({ logoutAction }));
 
 const { AccountNav, initials } = await import("@/components/AccountNav");
+const { I18nProvider } = await import("@/components/I18nProvider");
+const { es } = await import("@/messages/es");
+
+/** The nav as a Spanish page renders it. */
+const spanish = () => (
+  <I18nProvider value={{ locale: "es", m: es }}>
+    <AccountNav />
+  </I18nProvider>
+);
 
 /** Opens the account menu, as clicking the initials does. */
 async function openMenu() {
@@ -29,12 +38,64 @@ function session(user: { first_name: string; last_name: string; email: string } 
 }
 
 describe("AccountNav", () => {
-  it.each(["/register", "/login"])("leaves the logo alone on %s", async (pathname) => {
+  it.each(["/register", "/login", "/es/login"])("leaves the logo and the language alone on %s", async (pathname) => {
     navigation.pathname = pathname;
     session(LOUNES);
-    const { container } = render(<AccountNav />);
+    render(<AccountNav />);
     await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
-    expect(container.innerHTML).toBe("");
+    expect(screen.queryAllByRole("navigation")).toEqual([]);
+    expect(screen.queryAllByRole("link")).toEqual([]);
+    expect(screen.getByRole("button", { name: "Language: English (United States)" })).toBeTruthy();
+  });
+
+  it("offers the language to visitors, after the free trial", async () => {
+    session(null);
+    render(<AccountNav />);
+    await screen.findByRole("link", { name: "Sign in" });
+    const last = screen.getByRole("navigation", { name: "Account" }).lastElementChild!;
+    expect(last.getAttribute("aria-label")).toBe("Language: English (United States)");
+    expect(last.textContent).toBe("English");
+  });
+
+  it("opens the language dialog from the earth button, each language a link to this page in it", async () => {
+    navigation.pathname = "/active-lots";
+    window.history.replaceState(null, "", "/active-lots?make=TOYOTA");
+    session(null);
+    render(<AccountNav />);
+    const earth = await screen.findByRole("button", { name: /^Language/ });
+    await act(async () => fireEvent.click(earth));
+    const dialog = screen.getByRole("dialog", { name: "Choose a language:" });
+    expect(within(dialog).getAllByRole("link").map((link) => [link.textContent, link.getAttribute("href"), link.getAttribute("aria-current")])).toEqual([
+      ["English (United States)", "/en/active-lots?make=TOYOTA", "true"],
+      ["Español (Estados Unidos)", "/es/active-lots?make=TOYOTA", null],
+    ]);
+    expect(within(dialog).getByRole("button", { name: "Close" })).toBeTruthy();
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("links the home page in each language without a trailing slash", async () => {
+    session(null);
+    render(spanish());
+    const earth = await screen.findByRole("button", { name: /^Idioma/ });
+    await act(async () => fireEvent.click(earth));
+    const dialog = screen.getByRole("dialog", { name: es.language.title });
+    expect(within(dialog).getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual(["/en", "/es"]);
+    expect(within(dialog).getByRole("link", { name: "Español (Estados Unidos)" }).getAttribute("aria-current")).toBe("true");
+  });
+
+  it("links every item in the page's language and marks the current one under its prefix", async () => {
+    navigation.pathname = "/es/active-lots/copart/41633106";
+    session(null);
+    render(spanish());
+    const menu = await screen.findByRole("navigation", { name: es.nav.main });
+    expect([...menu.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
+      [es.nav.activeLots, "/es/active-lots"],
+      [es.nav.vinLookup, "/es/vin-lookup"],
+      [es.nav.howItWorks, "/es/how-it-works"],
+      [es.nav.pricing, "/es/pricing"],
+    ]);
+    expect(menu.querySelector("[aria-current]")?.textContent).toBe(es.nav.activeLots);
+    expect(screen.getByRole("link", { name: es.nav.signIn }).getAttribute("href")).toBe("/es/login");
   });
 
   it("offers sign in and the free trial to visitors", async () => {
@@ -118,7 +179,20 @@ describe("AccountNav", () => {
       ["Settings", "/settings"],
       ["Account", "/account"],
       ["Log out", null],
+      ["English (United States)", null],
     ]);
+  });
+
+  it("opens the language dialog from the menu's last item, and gives focus back to the initials", async () => {
+    session(LOUNES);
+    render(<AccountNav />);
+    await openMenu();
+    await act(async () => fireEvent.click(screen.getByRole("menuitem", { name: "English (United States)" })));
+    expect(screen.queryByRole("menu")).toBeNull();
+    const dialog = screen.getByRole("dialog", { name: "Choose a language:" });
+    expect(within(dialog).getAllByRole("link")).toHaveLength(2);
+    await act(async () => fireEvent.click(within(dialog).getByRole("button", { name: "Close" })));
+    await vi.waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   });
 
   it("closes the menu when one of its links is followed, not on any click", async () => {

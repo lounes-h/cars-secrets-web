@@ -1,16 +1,20 @@
-import { socialLoginAction } from "@/app/(auth)/actions";
+"use client";
+
+import { socialLoginAction } from "@/app/[lang]/(auth)/actions";
+import { useI18n } from "@/components/I18nProvider";
 import { Button } from "@/components/ui/button";
 
-export function SocialButtons({ intent }: { intent: "Sign in" | "Register" }) {
+export function SocialButtons({ intent }: { intent: "login" | "register" }) {
+  const words = useI18n().m.auth.social[intent];
   return (
-    <form action={socialLoginAction} aria-label={`${intent} with Google or Apple`} className="flex flex-col gap-2">
+    <form action={socialLoginAction} aria-label={words.group} className="flex flex-col gap-2">
       <Button type="submit" name="provider" value="google" variant="outline" size="lg" className="w-full">
         <GoogleMark />
-        {intent} with Google
+        {words.google}
       </Button>
       <Button type="submit" name="provider" value="apple" variant="outline" size="lg" className="w-full">
         <AppleMark />
-        {intent} with Apple
+        {words.apple}
       </Button>
     </form>
   );

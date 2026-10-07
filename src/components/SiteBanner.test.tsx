@@ -3,7 +3,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
-vi.mock("@/app/(auth)/actions", () => ({ logoutAction: vi.fn() }));
+vi.mock("@/app/[lang]/(auth)/actions", () => ({ logoutAction: vi.fn() }));
 vi.stubGlobal("fetch", vi.fn(async () => Response.json({ user: null })));
 
 const { SiteBanner } = await import("@/components/SiteBanner");
@@ -12,7 +12,7 @@ afterEach(cleanup);
 
 describe("SiteBanner", () => {
   it("links home with the CarBidInsight logo", () => {
-    render(<SiteBanner />);
+    render(<SiteBanner locale="en" />);
     const link = screen.getByRole("link", { name: "CarBidInsight" });
     const logo = screen.getByRole("img", { name: "CarBidInsight" });
     expect(link.getAttribute("href")).toBe("/");
@@ -24,7 +24,7 @@ describe("SiteBanner", () => {
   });
 
   it("holds the account navigation", async () => {
-    render(<SiteBanner />);
+    render(<SiteBanner locale="en" />);
     const nav = screen.getByRole("navigation", { name: "Account" });
     expect(screen.getByRole("banner").contains(nav)).toBe(true);
     expect((await screen.findByRole("link", { name: "Sign in" })).getAttribute("href")).toBe("/login");
@@ -32,8 +32,13 @@ describe("SiteBanner", () => {
     expect(screen.getByRole("navigation", { name: "Main" })).toBeTruthy();
   });
 
+  it("links a Spanish page's logo to the Spanish home", () => {
+    render(<SiteBanner locale="es" />);
+    expect(screen.getByRole("link", { name: "CarBidInsight" }).getAttribute("href")).toBe("/es");
+  });
+
   it("spans the full width with no max-width container", () => {
-    render(<SiteBanner />);
+    render(<SiteBanner locale="en" />);
     const banner = screen.getByRole("banner");
     expect(banner.className).toContain("w-full");
     expect(banner.outerHTML).not.toMatch(/max-w-/);

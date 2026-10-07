@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  authSchemas,
   codeDigits,
   fieldErrors,
   hasSpecialCharacter,
   isValidNationalNumber,
-  loginSchema,
-  registerSchema,
-  resetPasswordSchema,
+  PASSWORD_RULES,
+  ruleWords,
 } from "@/lib/auth-schemas";
 import { PHONE_FORMATS } from "@/lib/phone-formats";
+import { en } from "@/messages/en";
+import { es } from "@/messages/es";
+
+const { loginSchema, registerSchema, resetPasswordSchema } = authSchemas(en.auth);
 
 const register = {
   first_name: "Dana",
@@ -142,5 +146,32 @@ describe("isValidNationalNumber", () => {
   it("falls back to a minimum of four digits for an unknown country", () => {
     expect(isValidNationalNumber("ZZ", "123")).toBe(false);
     expect(isValidNationalNumber("ZZ", "1234")).toBe(true);
+  });
+});
+
+describe("authSchemas", () => {
+  it("builds each language's schemas once", () => {
+    expect(authSchemas(en.auth)).toBe(authSchemas(en.auth));
+    expect(authSchemas(es.auth)).not.toBe(authSchemas(en.auth));
+  });
+
+  it("gives its messages in the language it was built for", () => {
+    const result = authSchemas(es.auth).loginSchema.safeParse({ email: "", password: "", remember: false });
+    expect(!result.success && fieldErrors(result.error)).toEqual({
+      email: es.auth.validation.emailRequired,
+      password: es.auth.validation.passwordRequired,
+    });
+  });
+});
+
+describe("ruleWords", () => {
+  it("fills in the minimum length", () => {
+    expect(PASSWORD_RULES.map((rule) => ruleWords(en.auth, rule.key).text)).toEqual([
+      "At least 8 characters",
+      "At least one letter",
+      "At least one number",
+      "At least one special character",
+    ]);
+    expect(ruleWords(en.auth, "length").error).toBe("Use at least 8 characters.");
   });
 });
