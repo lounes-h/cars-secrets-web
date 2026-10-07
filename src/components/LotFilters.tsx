@@ -120,10 +120,12 @@ export function LotFilters({
   // Every filter, grouped, each folding away: in the sidebar, which leaves out the bar's own
   // filters beside it, and in the sheet that stands in for both below lg.
   const groups = (place: "side" | "sheet") =>
-    GROUPS.filter((group) => place === "sheet" || group.id !== "main").map((group) => (
+    GROUPS.map((group) => (
       <section key={group.id} className="mb-6">
         <h3 className="mb-1 font-semibold">{group.label}</h3>
-        {FILTERS.filter((filter) => filter.group === group.id && visible(filter)).map((filter) =>
+        {FILTERS.filter(
+          (filter) => filter.group === group.id && visible(filter) && (place === "sheet" || !PRIMARY.includes(filter.id)),
+        ).map((filter) =>
           filter.kind === "toggle" ? (
             <div key={filter.id} className="border-b py-2.5">
               <Control filter={filter} query={query} counts={countsOf(filter.id)} apply={apply} place={place} />
@@ -192,11 +194,12 @@ export function LotFilters({
       {/* The sidebar can be put away, and the lots then take the whole width. A closed panel leaves
           the page, so the second column is there only while the sidebar is. */}
       <Collapsible defaultOpen className="mt-6 lg:grid lg:items-start lg:gap-8 lg:has-[>aside]:grid-cols-[18rem_minmax(0,1fr)]">
-        {/* Stays in view, scrolling on its own, while the lots scroll past. */}
+        {/* Stays in view, scrolling on its own, while the lots scroll past; room at the bottom lets
+            the last group scroll up off the screen's edge. */}
         <CollapsibleContent
           render={<aside />}
           aria-labelledby="all-filters"
-          className="hidden lg:sticky lg:top-6 lg:block lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:pr-2"
+          className="hidden lg:sticky lg:top-6 lg:block lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:pr-2 lg:pb-12"
         >
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 id="all-filters" className="text-lg font-semibold">
