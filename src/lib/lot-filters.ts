@@ -132,7 +132,7 @@ export const GROUPS: { id: Filter["group"]; label: string }[] = [
 ];
 
 /** The filters always in the bar, most important first; the sidebar beside it leaves them out. */
-export const PRIMARY = ["sale", "title", "run", "damage"];
+export const PRIMARY = ["sale", "title", "run", "damage", "buy_now"];
 /** Filters counted per option by the API: everything but the ranges. */
 export const COUNTED = FILTERS.filter((filter) => filter.kind !== "range").map((filter) => filter.id);
 
@@ -235,9 +235,10 @@ export function searched(
 /** A dealer's filters set this often move up into the bar, up to two of them. */
 export const PROMOTE_AFTER = 3;
 
-/** The filters from "All filters" the dealer sets most, which earn a place in the bar. */
+/** The filters from "All filters" the dealer sets most, which earn a place in the bar. A make
+    (and the model that belongs to it) never does: the search beside the bar already takes one. */
 export function promoted(usage: Record<string, number>): string[] {
-  return FILTERS.filter((filter) => !PRIMARY.includes(filter.id) && filter.id !== "model")
+  return FILTERS.filter((filter) => !PRIMARY.includes(filter.id) && filter.id !== "make" && filter.id !== "model")
     .map((filter) => ({ id: filter.id, uses: Math.max(0, ...paramsOf(filter).map((param) => usage[param] ?? 0)) }))
     .filter(({ uses }) => uses >= PROMOTE_AFTER)
     .sort((a, b) => b.uses - a.uses)
