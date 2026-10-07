@@ -439,9 +439,9 @@ the server-rendered cards) work like this:
   `lg` up and sticky, scrolling on its own. Its "Hide filters" button puts it away and the lots
   take the whole width; "Show filters · n", before the count, brings it back (both one
   `Collapsible`; open on every visit). Its groups follow how a dealer narrows a search, in
-  `FILTERS`' order: **Vehicle** (vehicle type, make, model, year — From and To selects, this
-  year down to 1900 — mileage), **Condition** (runs and drives, damage, secondary damage,
-  keys), **Price** (current bid, Buy now price, retail value), **Sale** (sale date, title — the
+  `FILTERS`' order: **Vehicle** (vehicle type, make, model, year — From and To selects, next
+  year, since model years run a year ahead, down to 1900 — mileage), **Condition** (runs and
+  drives, damage, secondary damage, keys), **Price** (current bid, Buy now price, retail value), **Sale** (sale date, title — the
   document the sale hands over — sale type, Buy now available, auction, hidden while every lot
   has the same one) and **Location** (state or province, yard or offsite). The sidebar leaves
   out the bar's own filters (`PRIMARY`: sale date, title, runs and drives, damage). Each filter

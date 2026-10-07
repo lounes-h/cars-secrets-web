@@ -453,9 +453,9 @@ function Choice({
 
 const UNITS = { year: "", mi: " (miles)", $: " ($)" };
 
-/** The years a range offers, newest first: this year down to 1900. */
-const THIS_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: THIS_YEAR - 1899 }, (_, i) => String(THIS_YEAR - i));
+/** The years a range offers, newest first: next year (model years run a year ahead) down to 1900. */
+const NEWEST = new Date().getFullYear() + 1;
+const YEARS = Array.from({ length: NEWEST - 1899 }, (_, i) => String(NEWEST - i));
 
 /** A range: whole numbers, applied together. */
 function Range({ filter, query, apply, id }: { filter: Filter; query: Query; apply: Apply; id: string }) {
