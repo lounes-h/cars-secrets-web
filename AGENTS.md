@@ -38,6 +38,10 @@ yarn test:coverage   # the same, failing below 95 % coverage
 yarn build && yarn start
 ```
 
+`next dev` reads `src/proxy.ts` only when it starts: after pulling a change that adds,
+moves or renames it, or that moves the `src/app/[lang]` tree, stop `yarn dev` and start it
+again. A server left running keeps answering every unprefixed page ("/active-lots") with a 404.
+
 Run `yarn lint && yarn typecheck && yarn test:coverage && yarn build` before committing.
 GitHub Actions runs the same four checks on every pull request and on pushes
 to `main` (`.github/workflows/ci.yml`), checks that a pull request's commit
