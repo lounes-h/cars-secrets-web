@@ -10,7 +10,7 @@ const { push, refresh, lotCountsAction, rememberLotFiltersAction } = vi.hoisted(
   rememberLotFiltersAction: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh }) }));
-vi.mock("@/app/active-lots/actions", () => ({ lotCountsAction, rememberLotFiltersAction }));
+vi.mock("@/app/[lang]/active-lots/actions", () => ({ lotCountsAction, rememberLotFiltersAction }));
 
 const { LotFilters } = await import("@/components/LotFilters");
 const { COUNTED } = await import("@/lib/lot-filters");

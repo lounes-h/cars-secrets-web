@@ -4,27 +4,31 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { registerAction } from "@/app/(auth)/actions";
+import { registerAction } from "@/app/[lang]/(auth)/actions";
 import { FormError } from "@/components/auth/FormError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { PhoneField } from "@/components/auth/PhoneField";
 import { SocialButtons } from "@/components/auth/SocialButtons";
 import { Turnstile } from "@/components/auth/Turnstile";
-import { EMAIL_MAX, NAME_MAX, registerSchema, type RegisterInput } from "@/lib/auth-schemas";
+import { useI18n } from "@/components/I18nProvider";
+import { authSchemas, EMAIL_MAX, NAME_MAX, type RegisterInput } from "@/lib/auth-schemas";
 import { VerifyEmailForm } from "@/components/auth/VerifyEmailForm";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { countryFromBrowser, type Country } from "@/lib/countries";
+import { localePath, rich } from "@/lib/i18n";
 
 type Props = { countries: Country[]; defaultCountry: string };
 
 export function RegisterForm({ countries, defaultCountry }: Props) {
+  const { locale, m } = useI18n();
+  const words = m.auth.register;
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(authSchemas(m.auth).registerSchema),
     // A field is checked once it has been visited, then on every submit.
     mode: "onTouched",
     defaultValues: {
@@ -67,14 +71,14 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
   // The social buttons sit here, not on the page, so the code step replaces them too.
   return (
     <FieldGroup>
-      <SocialButtons intent="Register" />
-      <FieldSeparator>or register with your email</FieldSeparator>
+      <SocialButtons intent="register" />
+      <FieldSeparator>{m.auth.registerSeparator}</FieldSeparator>
       <form onSubmit={onSubmit} noValidate>
         <FieldGroup>
           <FormError message={errors.root?.server?.message} />
           <div className="grid gap-6 sm:grid-cols-2">
             <Field data-invalid={errors.first_name ? true : undefined}>
-              <FieldLabel htmlFor="first_name">First name</FieldLabel>
+              <FieldLabel htmlFor="first_name">{words.firstName}</FieldLabel>
               <Input
                 id="first_name"
                 autoComplete="given-name"
@@ -86,7 +90,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
               <FieldError id="first_name-error">{errors.first_name?.message}</FieldError>
             </Field>
             <Field data-invalid={errors.last_name ? true : undefined}>
-              <FieldLabel htmlFor="last_name">Last name</FieldLabel>
+              <FieldLabel htmlFor="last_name">{words.lastName}</FieldLabel>
               <Input
                 id="last_name"
                 autoComplete="family-name"
@@ -99,7 +103,7 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
             </Field>
           </div>
           <Field data-invalid={errors.email ? true : undefined}>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <FieldLabel htmlFor="email">{m.auth.email}</FieldLabel>
             <Input
               id="email"
               type="email"
@@ -131,15 +135,12 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
             resetSignal={captchaReset}
             onToken={(token) => setValue("captcha_token", token ?? "")}
           />
-          <FieldDescription>
-            By clicking on &ldquo;Agree and register&rdquo;, I agree to the Terms of Use and Privacy
-            Policy.
-          </FieldDescription>
+          <FieldDescription>{words.agreement}</FieldDescription>
           <Button type="submit" disabled={isSubmitting} size="lg" className="w-full">
-            {isSubmitting ? "Creating your account…" : "Agree and register"}
+            {isSubmitting ? words.pending : words.submit}
           </Button>
           <FieldDescription className="text-center">
-            Already registered? <Link href="/login">Sign in</Link>
+            {rich(words.already, { link: <Link href={localePath("/login", locale)}>{words.signIn}</Link> })}
           </FieldDescription>
         </FieldGroup>
       </form>

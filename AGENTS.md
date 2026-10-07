@@ -38,6 +38,10 @@ yarn test:coverage   # the same, failing below 95 % coverage
 yarn build && yarn start
 ```
 
+`next dev` reads `src/proxy.ts` only when it starts: after pulling a change that adds,
+moves or renames it, or that moves the `src/app/[lang]` tree, stop `yarn dev` and start it
+again. A server left running keeps answering every unprefixed page ("/active-lots") with a 404.
+
 Run `yarn lint && yarn typecheck && yarn test:coverage && yarn build` before committing.
 GitHub Actions runs the same four checks on every pull request and on pushes
 to `main` (`.github/workflows/ci.yml`), checks that a pull request's commit
@@ -48,15 +52,42 @@ Versioning).
 
 See `docs/architecture.md` for details.
 
-- Register every public page in `src/lib/routes.ts`. The sitemap and llms.txt
-  are generated from that registry, and a test fails when a `page.tsx` under
-  `src/app` is missing from it. A dynamic route behind sign-in has no place in
+- The site speaks English (`en`, the default) and US Spanish (`es`): `LOCALES` in
+  `src/lib/i18n.ts`, each with its BCP 47 tag (`en-US`, `es-US`, for `<html lang>`,
+  hreflang and every `Intl` format) and its name in itself ("English (United States)",
+  "Español (Estados Unidos)"). Every page lives under `src/app/[lang]`. English has
+  no prefix ("/active-lots", rewritten to `/en/…` by `src/proxy.ts`); Spanish is
+  "/es/active-lots". The proxy keeps the `cs_locale` cookie on the language last
+  browsed in: a visit to /es/… remembers Spanish, /en/… (only the language dialog
+  links there) remembers English and drops the prefix, and an unprefixed page goes
+  to /es/… while Spanish is remembered. Server actions cannot see the page's URL,
+  so they read that cookie (`actionI18n`). Link and redirect to
+  `localePath(path, locale)`, never to a bare path.
+- Every word the site shows is in `src/messages/en.ts`, and `src/messages/es.ts`
+  is typed against it, so a missing or extra key fails the type check
+  (`messages.test.ts` also compares the placeholders). Never write UI text in a
+  component. `{name}` is filled by `fill` (text) or `rich` (elements), and a count
+  chooses `{ one, other }` through `plural`; numbers, money and dates go through
+  `Intl` with the language's tag. Async Server Components read
+  `await getI18n()` (`src/lib/i18n-server.ts`, from the `[lang]` segment through
+  `next/root-params`), client components `useI18n()`
+  (`src/components/I18nProvider.tsx`, filled by the root layout with the page's
+  dictionary only), and other server components take the `i18n` (or `m`) their
+  page passes them. Auction data (makes, damage, Copart's title wording) is shown
+  as the auction gives it, untranslated. A dynamic key (an API code, a URL value)
+  is looked up with `lookup`, never `map[key]`.
+- Register every public page in `src/lib/routes.ts`, and its title and
+  description in each language's `pages`. The sitemap (every page in every
+  language, each naming the others) and llms.txt (English) are generated from
+  that registry, and a test fails when a `page.tsx` under `src/app/[lang]` is
+  missing from it. A dynamic route behind sign-in has no place in
   the registry (there is no one path to register): it builds its metadata with
   `buildMetadata({ noindex: true })` in `generateMetadata` instead, as
   `/active-lots/[source]/[lotNumber]` does.
 - Build page metadata with `metadataForRoute()` or `buildMetadata()` from
-  `src/lib/seo/metadata.ts`. Never hand-write `title`, canonical or Open Graph
-  metadata.
+  `src/lib/seo/metadata.ts`, in a `generateMetadata` (the words depend on the
+  page's language). Never hand-write `title`, canonical, language alternates or
+  Open Graph metadata.
 - There is no structured data: schema.org needs a brand name, and there is
   none yet. Add the builders back with the brand.
 - Each page has one `h1`. Its lede answers the page's question directly, so
@@ -76,7 +107,7 @@ See `docs/architecture.md` for details.
   a real link — Base UI's `render` would give it `role="button"`), `Input`,
   `Field` (label, description, error), `InputGroup` (password show/hide, phone
   country and number), `Checkbox`, `RadioGroup`, `NativeSelect`, `Card`,
-  `Alert`, `Badge`, `Table`, `Tabs`, `Slider`, `Popover`, `Sheet`, `Collapsible`,
+  `Alert`, `Badge`, `Table`, `Tabs`, `Slider`, `Popover`, `Sheet`, `Dialog`, `Collapsible`,
   `DropdownMenu`, `Avatar` and `Separator`; icons come from `lucide-react`. Add
   one with `npx shadcn@latest add <name>`, then delete the exports nothing uses
   (coverage counts them). Style with Tailwind utilities on the theme tokens;
@@ -105,7 +136,7 @@ See `docs/architecture.md` for details.
   buttons), 8px (controls, buttons, popovers), 12px (cards) and 16px, and pills
   `rounded-full`. Borders come in three strengths: `--border` for dividers and
   cards, `--input` a step darker for controls, and `--primary` for a focused field.
-  Only what floats (popovers, menus, the sheet) has a shadow. Text is
+  Only what floats (popovers, menus, the sheet, the dialog) has a shadow. Text is
   `--foreground` or, for what is secondary, `--muted-foreground` (#636363, at least
   5:1 on white and on `--muted`). `src/components/ui/design-system.test.ts` fails on
   an arbitrary font size, radius or control height, a weight outside 400–700, a
@@ -137,21 +168,27 @@ See `docs/architecture.md` for details.
   button opens the account menu, a `DropdownMenu` (a click outside or Escape
   closes it, and so does following one of its links): the initials, the full
   name and the email, then Settings, Account and Log out, which calls
-  `logoutAction` directly. A language selector
-  ("English") belongs there too but is not built yet. Best Buys is
+  `logoutAction` directly, and last the language in use ("English (United
+  States)", with the earth icon). Visitors get the language as an earth button
+  at the right end of the banner, after the free trial. Both open the language
+  dialog (`src/components/LanguageDialog.tsx`): "Choose a language:" and each
+  language, named in itself, as a plain link to the same page in it (query
+  included), so the page reloads in the new language. Best Buys is
   left out of the menu for now, though its page exists. The current page's
   item is marked (`aria-current`, the ghost button's grey hover kept on), on
   the pages under it too: a lot's page marks Active lots. The menu is
   hidden below `lg`. On `/register` and `/login` the navigation renders
-  nothing, so the banner is the logo alone. Never read the session in the root
-  layout: it would make every page dynamic.
+  only the earth button, so the banner is the logo and the language. Never read
+  the session or a cookie in the root layout: it would make every page dynamic
+  (it reads only its `[lang]` segment, so each page is prerendered once per language).
 - Pages are Server Components and stay static. Add `"use client"` only where
   interaction needs it. Pages that read the session (`/register`, `/login`,
   `/account`) or a token from the URL are dynamic by necessity.
-- Auth lives in the `src/app/(auth)` route group: `actions.ts` holds every auth
+- Auth lives in the `src/app/[lang]/(auth)` route group: `actions.ts` holds every auth
   server action, the pages sit next to it, and `/account` sits outside it.
   Forms use React Hook Form with Zod (`src/lib/auth-schemas.ts`): the same
-  schema validates in the browser and again in the server action, and the form
+  schema, built for the page's language by `authSchemas(m.auth)`, validates in
+  the browser and again in the server action, and the form
   keeps its values when the server answers with errors
   (`showServerErrors` in `src/components/auth/form-helpers.ts`). Actions take
   the form's values as an object, not `FormData`. Only the social buttons post
@@ -162,8 +199,8 @@ See `docs/architecture.md` for details.
   entry of `PASSWORD_RULES` in `src/lib/auth-schemas.ts` — at least
   `PASSWORD_MIN` (8) characters, one letter, one number and one special
   character (`hasSpecialCharacter`). That one list is both the checklist the
-  form shows and the validation the schema applies, so add a rule there and
-  nowhere else; the API applies the same rules. The checklist appears on the
+  form shows and the validation the schema applies, so add a rule there (and its
+  words in `passwordRules`) and nowhere else; the API applies the same rules. The checklist appears on the
   password field's first focus and stays from then on, so it is not noise
   before the dealer reaches the field.
 - The register form picks the phone's country from the browser's time zone,
@@ -190,15 +227,17 @@ See `docs/architecture.md` for details.
 - Deal arithmetic (cost, profit, margin, max bid) lives only in
   `src/lib/deal.ts`.
 - The lot list's search and filters live in one table, `FILTERS` in
-  `src/lib/lot-filters.ts`: each filter's label, group, kind and options. The URL is the
+  `src/lib/lot-filters.ts`: each filter's group, kind and options, its words in the
+  messages' `filters`. The URL is the
   state, and its parameters are the API's own (`/api/lots`), so a valid query string passes
   straight through; `readQuery` keeps only what the table allows, so add a filter there and in
-  the API's `LotFilters`, nowhere else. The bar always writes an order (`sort`), so a URL
+  the API's `LotFilters` (and its words in each language), nowhere else. The bar always writes an order (`sort`), so a URL
   without parameters means "as I left it".
 - Never publish invented statistics, testimonials, reviews or prices. The one
-  temporary exception is the lot page's premium sections: their figures and words come
-  from `SAMPLE` in `src/lib/premium-sample.ts`, are the same on every lot, and each section
-  says so (`SAMPLE_NOTE`, or the calculator's cost/profit note). The likely final bid
+  temporary exception is the lot page's premium sections: their figures come from `SAMPLE`
+  in `src/lib/premium-sample.ts` and their words from the messages' `premium.sample`, are
+  the same on every lot, and each section says so (`premium.sampleNote`, or the calculator's
+  cost/profit note). The likely final bid
   comes from the API's `predicted_final_price`; it is not a sample. Remaining samples go,
   section by section, as the real analysis arrives.
 
@@ -221,7 +260,11 @@ Tests sit next to the code as `*.test.ts(x)` under `src/`. They run in the node
 environment by default. Component tests opt into jsdom with
 `// @vitest-environment jsdom`. `vitest.config.mts` sets
 `NEXT_PUBLIC_SITE_URL=https://cars-secrets.test` so that URLs are deterministic,
-and `TZ=UTC` so that times are.
+and `TZ=UTC` so that times are. `src/test-setup.ts` stands in for
+`next/root-params`, so pages render in English unless a test says
+`vi.mocked(lang).mockResolvedValue("es")`; a client component without an
+`I18nProvider` around it renders in English, and a test wraps it in one for
+Spanish.
 
 **Minimum test coverage is 95 %** of statements, branches, functions and lines
 across `src/`. `yarn test:coverage` fails below it (thresholds in
@@ -291,15 +334,18 @@ and the empty placeholders the banner menu links to: `/vin-lookup`,
 `/how-it-works`, `/pricing`, `/saved`, `/alerts` and `/settings`, plus `/best-buys`, which the menu
 leaves out for now — blank white
 pages with metadata only, so they have no `h1` until there is something to put
-on them.
+on them. Every page exists in English and in Spanish (see the languages rule). A
+path no page matches (`[lang]/[...missing]`) and a lot the API no longer has are
+a 404 under the banner, in the page's language (`[lang]/not-found.tsx`); its tab
+keeps the home page's title, since only a `global-not-found` can set its own.
 Styling is shadcn/ui's components on the flat, grayscale design tokens above, until a
 brand design exists. `/` is the home page: the
 centred title "Everything You Need to Know Before Buying a Car at Auction" and
 nothing else yet. Add no other pages until the user asks.
 
 **The brand is CarBidInsight, and so far only the banner's logo carries it.**
-The logo links home, its alt text the name. `src/lib/site.ts` still holds only
-the URL, language, locale and a description; page titles stand alone (no
+The logo links home, its alt text the name. `src/lib/site.ts` holds only the
+URL, and the site's description is the messages' `site.description`; page titles stand alone (no
 "| Name" suffix) and `llms.txt` is headed by the site host (`siteHost`), until
 the user asks for the name there. The repository and the API keep their
 `cars-secrets-*` names, and so does the `cars-secrets.test` origin the tests
@@ -352,14 +398,15 @@ ingest first saw it ("Added to this site", `first_seen_at`) and when it last saw
 ("Last change seen", `last_changed_at`). Copart's "Create Date/Time" (`source_created_at`)
 is the moment the export was made, the same on every row and without a zone, so it is not a
 lot date and is not shown. Every time on the site — the sale on both pages and those three —
-is shown in the reader's own time zone, which is named ("12:00 PM EDT"), through
+is shown in the reader's own time zone, which is named ("12:00 PM EDT", "2:00 p.m. CDT" in Spanish), through
 `src/components/LocalTime.tsx`: the server cannot know the zone, so an inline script rewrites
 the server's text in the browser before the first paint (Next's "Preventing flash before
 hydration" guide). A sale day without a time (`sale_date`) is a calendar day and stays as
 the auction gives it (`saleDate`). Auction codes
 are translated into plain words in one lookup table, `SIGNALS` in
-`src/lib/lot-words.ts` (with the vehicle types and auction names, apart from the rest so the
-browser's filter bar can share them), which also sets each badge's colour; the page shows no raw
+`src/lib/lot-words.ts` (with the auction names, apart from the rest so the
+browser's filter bar can share them), which maps each code to a key of the messages' `signals`
+and sets each badge's colour; the page shows no raw
 code except one the table does not know yet, which appears as it came, neutral. The
 title is the exception, because Copart words and groups the same code differently by
 state and the export carries only the state and the code: it reads as copart.com shows it
@@ -369,7 +416,8 @@ off copart.com by `scripts/copart-titles.js`. A pair the file does not hold yet 
 the code ("OR - LS"), neutral; rerun the script to add it, and copy the file to the API
 (`app/copart_titles.json`), whose title filter reads the same groups. The vehicle type is Copart's
 one-letter code ("V", "K"), worded as copart.com words it ("Automobile", "Medium duty / box
-truck") by `vehicleType`. Neither the export nor copart.com has a seller type, so whether an
+truck"), from the messages' `vehicleTypes`, by `vehicleType`. Copart's title wording is not
+translated: it is the document's own name. Neither the export nor copart.com has a seller type, so whether an
 insurer sells the lot — an insurance claim, so less risk of swapped or missing parts or a
 rolled-back odometer — is read from the seller's name (`sellerType`, the `INSURER` pattern:
 add an insurer named without "insurance" there). The export names the seller for only about a

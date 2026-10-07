@@ -1,11 +1,16 @@
 /**
  * Validation for the auth forms, shared by the browser (React Hook Form) and the server
- * actions, so both give the same messages. Field names match the API's, so its field errors
- * land on the right input. The API validates again and has the final word.
+ * actions, so both give the same messages, in the page's language. Field names match the
+ * API's, so its field errors land on the right input. The API validates again and has the
+ * final word.
  */
 
 import { z } from "zod";
+import { fill } from "@/lib/i18n";
 import { PHONE_FORMATS } from "@/lib/phone-formats";
+import type { Messages } from "@/messages/en";
+
+type Words = Messages["auth"];
 
 export const PASSWORD_MIN = 8;
 export const PASSWORD_MAX = 128;
@@ -35,23 +40,21 @@ export function hasSpecialCharacter(value: string): boolean {
 
 /**
  * What a new password must contain. The checklist the form shows and the validation
- * that rejects it are the same list, so the two can never drift apart. The API applies
- * the same rules.
+ * that rejects it are the same list, so the two can never drift apart; each rule's words are
+ * `passwordRules[key]` in the messages. The API applies the same rules.
  */
 export const PASSWORD_RULES = [
-  {
-    text: `At least ${PASSWORD_MIN} characters`,
-    error: `Use at least ${PASSWORD_MIN} characters.`,
-    test: (value: string) => value.length >= PASSWORD_MIN,
-  },
-  { text: "At least one letter", error: "Add at least one letter.", test: (value: string) => /\p{L}/u.test(value) },
-  { text: "At least one number", error: "Add at least one number.", test: (value: string) => /\p{N}/u.test(value) },
-  {
-    text: "At least one special character",
-    error: "Add at least one special character.",
-    test: hasSpecialCharacter,
-  },
+  { key: "length", test: (value: string) => value.length >= PASSWORD_MIN },
+  { key: "letter", test: (value: string) => /\p{L}/u.test(value) },
+  { key: "number", test: (value: string) => /\p{N}/u.test(value) },
+  { key: "special", test: hasSpecialCharacter },
 ] as const;
+
+/** A rule's checklist line and the error it gives, in the page's language. */
+export function ruleWords(words: Words, key: (typeof PASSWORD_RULES)[number]["key"]): { text: string; error: string } {
+  const { text, error } = words.passwordRules[key];
+  return { text: fill(text, { min: PASSWORD_MIN }), error: fill(error, { min: PASSWORD_MIN }) };
+}
 
 /**
  * Digits of a national number against the lengths its country allows, with or without the
@@ -65,77 +68,89 @@ export function isValidNationalNumber(countryCode: string, national: string): bo
   return format.lengths.includes(digits.length) || format.lengths.includes(withoutTrunk.length);
 }
 
-const email = z
-  .string()
-  .trim()
-  .min(1, { error: "Enter your email address." })
-  .max(EMAIL_MAX, { error: `Use at most ${EMAIL_MAX} characters.` })
-  .pipe(z.email({ error: "Enter a valid email address, like name@example.com." }));
+const cache = new WeakMap<Words, ReturnType<typeof buildSchemas>>();
 
-const newPassword = z
-  .string()
-  .max(PASSWORD_MAX, { error: `Use at most ${PASSWORD_MAX} characters.` })
-  .superRefine((value, ctx) => {
-    for (const rule of PASSWORD_RULES) {
-      if (!rule.test(value)) ctx.addIssue({ code: "custom", message: rule.error });
-    }
-  });
+/** The auth forms' schemas, their messages in the language of `words` (built once per language). */
+export function authSchemas(words: Words): ReturnType<typeof buildSchemas> {
+  let schemas = cache.get(words);
+  if (!schemas) cache.set(words, (schemas = buildSchemas(words)));
+  return schemas;
+}
 
-const name = (label: string) =>
-  z
+function buildSchemas(words: Words) {
+  const v = words.validation;
+  const tooLong = (max: number) => ({ error: fill(v.tooLong, { max }) });
+
+  const email = z
     .string()
     .trim()
-    .min(1, { error: `Enter your ${label}.` })
-    .max(NAME_MAX, { error: `Use at most ${NAME_MAX} characters.` });
+    .min(1, { error: v.emailRequired })
+    .max(EMAIL_MAX, tooLong(EMAIL_MAX))
+    .pipe(z.email({ error: v.emailInvalid }));
 
-const captchaToken = z.string().optional();
+  const newPassword = z
+    .string()
+    .max(PASSWORD_MAX, tooLong(PASSWORD_MAX))
+    .superRefine((value, ctx) => {
+      for (const rule of PASSWORD_RULES) {
+        if (!rule.test(value)) ctx.addIssue({ code: "custom", message: ruleWords(words, rule.key).error });
+      }
+    });
 
-export const registerSchema = z
-  .object({
-    first_name: name("first name"),
-    last_name: name("last name"),
-    email,
-    phone_country: z.string(),
-    phone_number: z.string().trim(),
-    password: newPassword,
-    captcha_token: captchaToken,
-  })
-  .refine((data) => data.phone_number === "" || isValidNationalNumber(data.phone_country, data.phone_number), {
-    path: ["phone_number"],
-    error: "Enter a valid phone number for the country you picked.",
-  });
+  const name = (required: string) => z.string().trim().min(1, { error: required }).max(NAME_MAX, tooLong(NAME_MAX));
 
-export const loginSchema = z.object({
-  email,
-  password: z.string().min(1, { error: "Enter your password." }),
-  remember: z.boolean(),
-  captcha_token: captchaToken,
-});
+  const captchaToken = z.string().optional();
 
-export const emailSchema = z.object({ email, captcha_token: captchaToken });
+  return {
+    registerSchema: z
+      .object({
+        first_name: name(v.firstNameRequired),
+        last_name: name(v.lastNameRequired),
+        email,
+        phone_country: z.string(),
+        phone_number: z.string().trim(),
+        password: newPassword,
+        captcha_token: captchaToken,
+      })
+      .refine((data) => data.phone_number === "" || isValidNationalNumber(data.phone_country, data.phone_number), {
+        path: ["phone_number"],
+        error: v.phoneInvalid,
+      }),
 
-export const resetPasswordSchema = z
-  .object({
-    token: z.string().min(1),
-    password: newPassword,
-    password_confirm: z.string(),
-  })
-  .refine((data) => data.password === data.password_confirm, {
-    path: ["password_confirm"],
-    error: "The two passwords differ.",
-  });
+    loginSchema: z.object({
+      email,
+      password: z.string().min(1, { error: v.passwordRequired }),
+      remember: z.boolean(),
+      captcha_token: captchaToken,
+    }),
 
-export const verifyEmailSchema = z.object({
-  email,
-  code: z.string().regex(/^[0-9]{6}$/, { error: `Enter the ${CODE_LENGTH}-digit code from the email.` }),
-  remember: z.boolean(),
-});
+    emailSchema: z.object({ email, captcha_token: captchaToken }),
 
-export type RegisterInput = z.infer<typeof registerSchema>;
-export type LoginInput = z.infer<typeof loginSchema>;
-export type EmailInput = z.infer<typeof emailSchema>;
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
-export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+    resetPasswordSchema: z
+      .object({
+        token: z.string().min(1),
+        password: newPassword,
+        password_confirm: z.string(),
+      })
+      .refine((data) => data.password === data.password_confirm, {
+        path: ["password_confirm"],
+        error: v.passwordsDiffer,
+      }),
+
+    verifyEmailSchema: z.object({
+      email,
+      code: z.string().regex(/^[0-9]{6}$/, { error: fill(v.code, { length: CODE_LENGTH }) }),
+      remember: z.boolean(),
+    }),
+  };
+}
+
+type Schemas = ReturnType<typeof buildSchemas>;
+export type RegisterInput = z.infer<Schemas["registerSchema"]>;
+export type LoginInput = z.infer<Schemas["loginSchema"]>;
+export type EmailInput = z.infer<Schemas["emailSchema"]>;
+export type ResetPasswordInput = z.infer<Schemas["resetPasswordSchema"]>;
+export type VerifyEmailInput = z.infer<Schemas["verifyEmailSchema"]>;
 
 /** First message per field, e.g. `{ email: "Enter a valid email address…" }`. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {

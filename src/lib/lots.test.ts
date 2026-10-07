@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { en } from "@/messages/en";
+import { es } from "@/messages/es";
 
 const api = vi.fn<(path: string, options: unknown) => Promise<unknown>>();
 vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }));
@@ -9,6 +11,7 @@ const {
   ACTIVITY_MIN,
   activityWindow,
   amount,
+  odometer,
   auctionName,
   countLots,
   getLotActivity,
@@ -95,20 +98,20 @@ describe("activityWindow", () => {
   it("says today once today reaches the minimum", () => {
     expect(activityWindow({ today: ACTIVITY_MIN, last_3_days: 5000, last_7_days: 9000 })).toEqual({
       count: ACTIVITY_MIN,
-      words: "today",
+      window: "today",
     });
   });
 
   it("looks back 3 days on a quiet day", () => {
     expect(activityWindow({ today: ACTIVITY_MIN - 1, last_3_days: 11821, last_7_days: 57043 })).toEqual({
       count: 11821,
-      words: "in the last 3 days",
+      window: "last_3_days",
     });
   });
 
   it("falls back to the last 7 days, however few", () => {
-    expect(activityWindow({ today: 3, last_3_days: 40, last_7_days: 120 })).toEqual({ count: 120, words: "in the last 7 days" });
-    expect(activityWindow({ today: 0, last_3_days: 0, last_7_days: 0 })).toEqual({ count: 0, words: "in the last 7 days" });
+    expect(activityWindow({ today: 3, last_3_days: 40, last_7_days: 120 })).toEqual({ count: 120, window: "last_7_days" });
+    expect(activityWindow({ today: 0, last_3_days: 0, last_7_days: 0 })).toEqual({ count: 0, window: "last_7_days" });
   });
 });
 
@@ -181,26 +184,39 @@ describe("getLot", () => {
 
 describe("amount", () => {
   it("shows the lot's own currency, falls back to dollars for a junk code, and is a dash for none", () => {
-    expect(amount(8119, "CAD")).toBe("CA$8,119");
-    expect(amount(8119, "n/a")).toBe("$8,119");
-    expect(amount(null, "USD")).toBe("—");
+    expect(amount(8119, "CAD", "en")).toBe("CA$8,119");
+    expect(amount(8119, "n/a", "en")).toBe("$8,119");
+    expect(amount(null, "USD", "en")).toBe("—");
+  });
+
+  it("writes dollars as US Spanish does", () => {
+    expect(amount(8119, "USD", "es")).toBe("$8,119");
+  });
+});
+
+describe("odometer", () => {
+  it("groups the miles in the page's language, and is a dash for none", () => {
+    expect(odometer(120500, { locale: "en", m: en })).toBe("120,500 mi");
+    expect(odometer(120500, { locale: "es", m: es })).toBe(es.lot.miles.replace("{miles}", "120,500"));
+    expect(odometer(null, { locale: "en", m: en })).toBe("—");
   });
 });
 
 describe("saleDate", () => {
   it("shows a date column as a day, with no time of its own", () => {
-    expect(saleDate("2026-10-01")).toBe("Oct 1, 2026");
+    expect(saleDate("2026-10-01", "en")).toBe("Oct 1, 2026");
+    expect(saleDate("2026-10-01", "es")).toBe("1 oct 2026");
   });
 
   it("keeps the auction's day in a zone behind UTC", () => {
     const zone = process.env.TZ;
     process.env.TZ = "America/Los_Angeles";
-    expect(saleDate("2026-10-01")).toBe("Oct 1, 2026");
+    expect(saleDate("2026-10-01", "en")).toBe("Oct 1, 2026");
     process.env.TZ = zone;
   });
 
   it("is a dash when the auction published none", () => {
-    expect(saleDate(null)).toBe("—");
+    expect(saleDate(null, "en")).toBe("—");
   });
 });
 

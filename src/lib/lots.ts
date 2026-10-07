@@ -1,6 +1,7 @@
 /** Auction lots, read from the API, which reads the ingest database. */
 
 import { api, ApiError } from "@/lib/api";
+import { fill, type I18n, type Locale, LOCALES } from "@/lib/i18n";
 import { type Query, queryString } from "@/lib/lot-filters";
 
 export const PAGE_SIZE = 20;
@@ -124,16 +125,12 @@ export function getLotActivity(token: string, clientIp: string | null = null, zo
 
 /** Fewer lots than this today reads as a quiet day, so the summary looks further back. */
 export const ACTIVITY_MIN = 1000;
-const ACTIVITY_WINDOWS = [
-  ["today", "today"],
-  ["last_3_days", "in the last 3 days"],
-  ["last_7_days", "in the last 7 days"],
-] as const;
+const ACTIVITY_WINDOWS = ["today", "last_3_days", "last_7_days"] as const;
 
-/** The shortest window with at least ACTIVITY_MIN lots, or else the last 7 days, and its words. */
-export function activityWindow(counts: ActivityCounts): { count: number; words: string } {
-  const [key, words] = ACTIVITY_WINDOWS.find(([key]) => counts[key] >= ACTIVITY_MIN) ?? ACTIVITY_WINDOWS[2];
-  return { count: counts[key], words };
+/** The shortest window with at least ACTIVITY_MIN lots, or else the last 7 days. */
+export function activityWindow(counts: ActivityCounts): { count: number; window: keyof ActivityCounts } {
+  const window = ACTIVITY_WINDOWS.find((key) => counts[key] >= ACTIVITY_MIN) ?? "last_7_days";
+  return { count: counts[window], window };
 }
 
 /** What a search names: the one lot of a lot number or VIN, or a make, model and years. */
@@ -203,27 +200,25 @@ export async function getLotImages(
 }
 
 /** The lot's own currency, ignored unless it is a currency code Intl accepts. */
-export function amount(value: number | null, currency: string | null): string {
+export function amount(value: number | null, currency: string | null, locale: Locale): string {
   if (value == null) return "—";
   const code = currency && /^[A-Z]{3}$/.test(currency) ? currency : "USD";
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(LOCALES[locale].tag, {
     style: "currency",
     currency: code,
     maximumFractionDigits: 0,
   }).format(value);
 }
 
-const miles = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-/** A calendar day, not a moment: UTC keeps it the same day in every zone. */
-const day = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
-
-export function odometer(value: number | null): string {
-  return value == null ? "—" : `${miles.format(value)} mi`;
+export function odometer(value: number | null, { locale, m }: I18n): string {
+  if (value == null) return "—";
+  return fill(m.lot.miles, { miles: new Intl.NumberFormat(LOCALES[locale].tag, { maximumFractionDigits: 0 }).format(value) });
 }
 
-/** A date column ("2026-10-01"), which carries no time to show. */
-export function saleDate(value: string | null): string {
-  return value ? day.format(new Date(`${value}T00:00:00Z`)) : "—";
+/** A date column ("2026-10-01"), which carries no time to show: UTC keeps it the same day in every zone. */
+export function saleDate(value: string | null, locale: Locale): string {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat(LOCALES[locale].tag, { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
 }
 
 export { auctionName } from "@/lib/lot-words";

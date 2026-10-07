@@ -1,10 +1,13 @@
 "use client";
 
+import { EarthIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { logoutAction } from "@/app/(auth)/actions";
+import { useEffect, useRef, useState } from "react";
+import { logoutAction } from "@/app/[lang]/(auth)/actions";
 import type { SessionSummary } from "@/app/auth/session/route";
+import { useI18n } from "@/components/I18nProvider";
+import { LanguageButton, LanguageDialog } from "@/components/LanguageDialog";
 import { Avatar as AvatarRoot, AvatarFallback } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -14,43 +17,47 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LOCALES, localePath, splitLocale } from "@/lib/i18n";
 import { forgetEmail } from "@/lib/remembered-email";
+import type { Messages } from "@/messages/en";
 
 type User = SessionSummary["user"];
+type Item = { href: string; label: keyof Messages["nav"] };
 
 // Best Buys is left out of both menus for now; its page (/best-buys) still exists.
-const GUEST_MENU = [
-  { href: "/active-lots", label: "Active lots" },
-  { href: "/vin-lookup", label: "VIN Lookup" },
-  { href: "/how-it-works", label: "How It Works" },
-  { href: "/pricing", label: "Pricing" },
+const GUEST_MENU: Item[] = [
+  { href: "/active-lots", label: "activeLots" },
+  { href: "/vin-lookup", label: "vinLookup" },
+  { href: "/how-it-works", label: "howItWorks" },
+  { href: "/pricing", label: "pricing" },
 ];
 
-const MEMBER_MENU = [
-  { href: "/active-lots", label: "Active lots" },
-  { href: "/vin-lookup", label: "VIN Lookup" },
-  { href: "/saved", label: "Saved" },
-  { href: "/alerts", label: "Alerts" },
+const MEMBER_MENU: Item[] = [
+  { href: "/active-lots", label: "activeLots" },
+  { href: "/vin-lookup", label: "vinLookup" },
+  { href: "/saved", label: "saved" },
+  { href: "/alerts", label: "alerts" },
 ];
 
-// Sign-up and sign-in show the logo alone, so nothing pulls the dealer off the form.
+// Sign-up and sign-in show the logo and the language alone, so nothing pulls the dealer off the form.
 const LOGO_ONLY = new Set(["/register", "/login"]);
 
 /**
  * The current page's item is marked: "page" on the page itself, "true" on a page under it (a
  * lot's page is in Active lots), and drawn as the ghost button's hover, kept on.
  */
-function Menu({ items, pathname }: { items: typeof GUEST_MENU; pathname: string }) {
+function Menu({ items, path }: { items: Item[]; path: string }) {
+  const { locale, m } = useI18n();
   return (
-    <nav aria-label="Main" className="ml-6 hidden items-center gap-1 lg:flex">
+    <nav aria-label={m.nav.main} className="ml-6 hidden items-center gap-1 lg:flex">
       {items.map((item) => (
         <Link
           key={item.href}
-          href={item.href}
-          aria-current={pathname === item.href ? "page" : pathname.startsWith(`${item.href}/`) ? "true" : undefined}
+          href={localePath(item.href, locale)}
+          aria-current={path === item.href ? "page" : path.startsWith(`${item.href}/`) ? "true" : undefined}
           className={buttonVariants({ variant: "ghost", className: "aria-[current]:bg-muted" })}
         >
-          {item.label}
+          {m.nav[item.label]}
         </Link>
       ))}
     </nav>
@@ -59,13 +66,15 @@ function Menu({ items, pathname }: { items: typeof GUEST_MENU; pathname: string 
 
 /**
  * The banner's menu and its right side: the pages a visitor or a signed-in
- * dealer can reach, then "Sign in / free trial" or the dealer's initials,
- * which open the account menu. It asks /auth/session after every navigation,
- * so signing in or out (both redirect) updates it. On /register and /login it
- * renders nothing, leaving the logo alone.
+ * dealer can reach, then "Sign in / free trial" and the language, or the
+ * dealer's initials, which open the account menu (the language is in it). It
+ * asks /auth/session after every navigation, so signing in or out (both
+ * redirect) updates it. On /register and /login it shows the language alone.
  */
 export function AccountNav() {
   const pathname = usePathname();
+  const { path } = splitLocale(pathname);
+  const { locale, m } = useI18n();
   const [user, setUser] = useState<User | undefined>(undefined);
 
   useEffect(() => {
@@ -79,31 +88,38 @@ export function AccountNav() {
     };
   }, [pathname]);
 
-  if (LOGO_ONLY.has(pathname)) return null;
+  if (LOGO_ONLY.has(path)) {
+    return (
+      <div className="ml-auto">
+        <LanguageButton />
+      </div>
+    );
+  }
   if (user === undefined) {
     // Same height as the loaded state, so the banner does not jump.
-    return <nav aria-label="Account" aria-busy="true" className="ml-auto h-10" />;
+    return <nav aria-label={m.nav.account} aria-busy="true" className="ml-auto h-10" />;
   }
   if (user === null) {
     return (
       <>
-        <Menu items={GUEST_MENU} pathname={pathname} />
-        <nav aria-label="Account" className="ml-auto flex items-center gap-2 sm:gap-3">
-          <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
-            Sign in
+        <Menu items={GUEST_MENU} path={path} />
+        <nav aria-label={m.nav.account} className="ml-auto flex items-center gap-2 sm:gap-3">
+          <Link href={localePath("/login", locale)} className={buttonVariants({ variant: "ghost" })}>
+            {m.nav.signIn}
           </Link>
-          <Link href="/register" className={buttonVariants({ className: "flex-col gap-0 leading-tight" })}>
-            7 days free trial
-            <span className="text-xs font-normal opacity-90">No credit cards required</span>
+          <Link href={localePath("/register", locale)} className={buttonVariants({ className: "flex-col gap-0 leading-tight" })}>
+            {m.nav.trial}
+            <span className="text-xs font-normal opacity-90">{m.nav.trialNote}</span>
           </Link>
+          <LanguageButton />
         </nav>
       </>
     );
   }
   return (
     <>
-      <Menu items={MEMBER_MENU} pathname={pathname} />
-      <nav aria-label="Account" className="ml-auto flex items-center">
+      <Menu items={MEMBER_MENU} path={path} />
+      <nav aria-label={m.nav.account} className="ml-auto flex items-center">
         <AccountMenu user={user} />
       </nav>
     </>
@@ -125,39 +141,51 @@ function Avatar({ user }: { user: NonNullable<User> }) {
 }
 
 /**
- * The round initials button and the menu it opens: who is signed in, Settings, Account and
- * Log out. A click outside, Escape or following one of its links closes it.
+ * The round initials button and the menu it opens: who is signed in, Settings, Account, Log out
+ * and, last, the language, which opens the language dialog. A click outside, Escape or
+ * following one of its links closes it.
  */
 function AccountMenu({ user }: { user: NonNullable<User> }) {
+  const { locale, m } = useI18n();
+  const [choosing, setChoosing] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
   const name = `${user.first_name} ${user.last_name}`.trim();
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger aria-label="Account menu" title={name || user.email} className="rounded-full">
-        <Avatar user={user} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72">
-        <div className="flex items-center gap-3 px-2 py-2">
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger ref={trigger} aria-label={m.nav.accountMenu} title={name || user.email} className="rounded-full">
           <Avatar user={user} />
-          <div className="min-w-0">
-            {name && <p className="truncate text-sm">{name}</p>}
-            <p className="truncate text-xs text-muted-foreground" title={user.email}>
-              {user.email}
-            </p>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-72">
+          <div className="flex items-center gap-3 px-2 py-2">
+            <Avatar user={user} />
+            <div className="min-w-0">
+              {name && <p className="truncate text-sm">{name}</p>}
+              <p className="truncate text-xs text-muted-foreground" title={user.email}>
+                {user.email}
+              </p>
+            </div>
           </div>
-        </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link href="/settings" />}>Settings</DropdownMenuItem>
-        <DropdownMenuItem render={<Link href="/account" />}>Account</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => {
-            forgetEmail();
-            void logoutAction();
-          }}
-        >
-          Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem render={<Link href={localePath("/settings", locale)} />}>{m.nav.settings}</DropdownMenuItem>
+          <DropdownMenuItem render={<Link href={localePath("/account", locale)} />}>{m.nav.accountPage}</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => {
+              forgetEmail();
+              void logoutAction();
+            }}
+          >
+            {m.nav.logOut}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setChoosing(true)}>
+            <EarthIcon aria-hidden="true" />
+            {LOCALES[locale].label}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <LanguageDialog open={choosing} onOpenChange={setChoosing} returnFocus={trigger} />
+    </>
   );
 }

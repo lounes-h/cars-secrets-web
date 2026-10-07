@@ -27,6 +27,11 @@ hashing, throttling, captcha and token rules.
   (`SameSite=Lax`, path `/`, a year). It is not secret and not `HttpOnly`: the server
   reads it only through `knownZone`, which accepts a zone `Intl` knows (64 characters
   at most), and uses it only to say when "today" is; the API checks it again.
+- `cs_locale` holds the language last browsed in (`en` or `es`), set only by the proxy
+  (`src/proxy.ts`: `SameSite=Lax`, path `/`, a year). It is not secret and not
+  `HttpOnly`; anything else in it reads as English (`isLocale`), and it chooses only
+  which words a page or an action uses and which prefix a page redirects to. The proxy
+  redirects only GETs by it, to a path on this site.
 
 ## Forms and server actions
 

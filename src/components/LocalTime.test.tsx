@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
+import { I18nProvider } from "@/components/I18nProvider";
 import { LocalTime } from "@/components/LocalTime";
+import { es } from "@/messages/es";
 
 const zone = process.env.TZ;
 afterEach(() => {
@@ -47,5 +49,18 @@ describe("LocalTime", () => {
 
   it("shows a dash when there is no time", () => {
     expect(page(null).html).toBe("—");
+  });
+});
+
+describe("LocalTime in Spanish", () => {
+  it("writes the moment as US Spanish does, in the server's zone and then the browser's", () => {
+    process.env.TZ = "America/Chicago";
+    const html = renderToStaticMarkup(
+      <I18nProvider value={{ locale: "es", m: es }}>
+        <LocalTime value="2026-09-18T19:00:00Z" format="sale" />
+      </I18nProvider>,
+    );
+    expect(html).toContain(">vie, 18 de sept, 2:00 p.m. CDT</time>");
+    expect(html).toContain('new Intl.DateTimeFormat("es-US"');
   });
 });

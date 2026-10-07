@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { en } from "@/messages/en";
+import { es } from "@/messages/es";
 import {
   activeIds,
   amountIn,
@@ -19,6 +21,8 @@ import {
 } from "@/lib/lot-filters";
 
 const read = (search: string) => readQuery(new URLSearchParams(search));
+
+const EN = { locale: "en", m: en } as const;
 
 describe("readQuery", () => {
   it("keeps what the list understands, in one order whatever the URL's", () => {
@@ -151,18 +155,18 @@ describe("the filters", () => {
   });
 
   it("word codes as the lot page does", () => {
-    expect(valueLabel(filterById("run"), "unverified")).toBe("Not verified to start");
-    expect(valueLabel(filterById("sale_type"), "approval")).toBe("Seller must approve");
-    expect(valueLabel(filterById("vehicle_type"), "k")).toBe("Medium duty / box truck");
-    expect(valueLabel(filterById("vehicle_type"), "Q")).toBe("Q");
-    expect(valueLabel(filterById("source"), "copart")).toBe("Copart");
-    expect(valueLabel(filterById("damage"), "FRONT END")).toBe("FRONT END");
+    expect(valueLabel(en, filterById("run"), "unverified")).toBe("Not verified to start");
+    expect(valueLabel(en, filterById("sale_type"), "approval")).toBe("Seller must approve");
+    expect(valueLabel(en, filterById("vehicle_type"), "k")).toBe("Medium duty / box truck");
+    expect(valueLabel(en, filterById("vehicle_type"), "Q")).toBe("Q");
+    expect(valueLabel(en, filterById("source"), "copart")).toBe("Copart");
+    expect(valueLabel(en, filterById("damage"), "FRONT END")).toBe("FRONT END");
   });
 
   it("show amounts in their unit", () => {
-    expect(amountIn("$", "15000")).toBe("$15,000");
-    expect(amountIn("mi", "100000")).toBe("100,000 mi");
-    expect(amountIn("year", "2018")).toBe("2018");
+    expect(amountIn("$", "15000", EN)).toBe("$15,000");
+    expect(amountIn("mi", "100000", EN)).toBe("100,000 mi");
+    expect(amountIn("year", "2018", EN)).toBe("2018");
   });
 });
 
@@ -171,7 +175,7 @@ describe("chips", () => {
     const query = read(
       "q=hybrid&sale=today&title=salvage&run=starts&damage=SIDE&vehicle_type=V&buy_now=1&make=TOYOTA&model=RAV4&year_min=2018&year_max=2021&odometer_max=100000&retail_min=5000&bid_max=900&sort=sale",
     );
-    expect(chips(query).map((chip) => chip.label)).toEqual([
+    expect(chips(query, EN).map((chip) => chip.label)).toEqual([
       "“hybrid”",
       "Vehicle type: Automobile",
       "TOYOTA",
@@ -190,7 +194,7 @@ describe("chips", () => {
 
   it("remove only their own value, a range's bounds together, and a make's model with it", () => {
     const query = read("title=salvage&title=clean&year_min=2018&year_max=2021&make=TOYOTA&model=RAV4&sort=sale");
-    const without = Object.fromEntries(chips(query).map((chip) => [chip.key, queryString(chip.without)]));
+    const without = Object.fromEntries(chips(query, EN).map((chip) => [chip.key, queryString(chip.without)]));
     expect(without["title:salvage"]).toBe("make=TOYOTA&model=RAV4&year_min=2018&year_max=2021&title=clean&sort=sale");
     expect(without.year).toBe("make=TOYOTA&model=RAV4&title=salvage&title=clean&sort=sale");
     expect(without["make:TOYOTA"]).toBe("year_min=2018&year_max=2021&title=salvage&title=clean&sort=sale");
@@ -198,11 +202,11 @@ describe("chips", () => {
   });
 
   it("are none for an order alone", () => {
-    expect(chips(read("sort=year"))).toEqual([]);
+    expect(chips(read("sort=year"), EN)).toEqual([]);
   });
 
   it("say Future sale as Copart does", () => {
-    expect(chips(read("sale=future"))[0].label).toBe("Future sale");
+    expect(chips(read("sale=future"), EN)[0].label).toBe("Future sale");
   });
 });
 
@@ -213,5 +217,19 @@ describe("knownZone", () => {
     expect(knownZone("x".repeat(65))).toBeNull();
     expect(knownZone(undefined)).toBeNull();
     expect(knownZone("")).toBeNull();
+  });
+});
+
+describe("in Spanish", () => {
+  const ES = { locale: "es", m: es } as const;
+
+  it("words the chips and amounts in the language", () => {
+    const query = { sale: ["today"], year_min: ["2018"], odometer_max: ["100000"], vehicle_type: ["K"] };
+    expect(chips(query, ES).map((chip) => chip.label)).toEqual([
+      `${es.filters.labels.vehicle_type}: ${es.vehicleTypes.K}`,
+      `${es.filters.labels.year} ${es.filters.spanFrom.replace("{low}", "2018")}`,
+      `${es.filters.labels.mileage} ${es.filters.spanUpTo.replace("{high}", "100,000 mi")}`,
+      es.filters.options.sale.today.chip,
+    ]);
   });
 });

@@ -4,26 +4,29 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { loginAction } from "@/app/(auth)/actions";
+import { loginAction } from "@/app/[lang]/(auth)/actions";
 import { FormError } from "@/components/auth/FormError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Turnstile } from "@/components/auth/Turnstile";
 import { VerifyEmailForm } from "@/components/auth/VerifyEmailForm";
+import { useI18n } from "@/components/I18nProvider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { EMAIL_MAX, loginSchema, type LoginInput } from "@/lib/auth-schemas";
+import { authSchemas, EMAIL_MAX, type LoginInput } from "@/lib/auth-schemas";
+import { localePath, rich } from "@/lib/i18n";
 
 /** `remember` ticks the box when the last sign-in in this browser had it ticked. */
 export function LoginForm({ remember = false }: { remember?: boolean }) {
+  const { locale, m } = useI18n();
   const [unconfirmed, setUnconfirmed] = useState<{ email: string; remember: boolean } | null>(null);
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(authSchemas(m.auth).loginSchema),
     // A field is checked once it has been visited, then on every submit.
     mode: "onTouched",
     defaultValues: { email: "", password: "", remember, captcha_token: "" },
@@ -54,7 +57,7 @@ export function LoginForm({ remember = false }: { remember?: boolean }) {
     return (
       <FieldGroup>
         <Alert>
-          <AlertDescription>Confirm your email address to finish signing in.</AlertDescription>
+          <AlertDescription>{m.auth.login.confirmToFinish}</AlertDescription>
         </Alert>
         <VerifyEmailForm
           email={unconfirmed.email}
@@ -70,7 +73,7 @@ export function LoginForm({ remember = false }: { remember?: boolean }) {
       <FieldGroup>
         <FormError message={errors.root?.server?.message} />
         <Field data-invalid={errors.email ? true : undefined}>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <FieldLabel htmlFor="email">{m.auth.email}</FieldLabel>
           <Input
             id="email"
             type="email"
@@ -100,21 +103,21 @@ export function LoginForm({ remember = false }: { remember?: boolean }) {
               )}
             />
             <FieldLabel htmlFor="remember" className="font-normal">
-              Remember me
+              {m.auth.login.remember}
             </FieldLabel>
           </Field>
-          <Link href="/forgot-password" className="text-sm">
-            Forgot your password?
+          <Link href={localePath("/forgot-password", locale)} className="text-sm">
+            {m.auth.login.forgot}
           </Link>
         </div>
         {captchaRequired && (
           <Turnstile action="login" resetSignal={captchaReset} onToken={(token) => setValue("captcha_token", token ?? "")} />
         )}
         <Button type="submit" disabled={isSubmitting} size="lg" className="w-full">
-          {isSubmitting ? "Signing in…" : "Sign in"}
+          {isSubmitting ? m.auth.login.pending : m.auth.login.submit}
         </Button>
         <FieldDescription className="text-center">
-          New here? <Link href="/register">Create an account</Link>
+          {rich(m.auth.login.newHere, { link: <Link href={localePath("/register", locale)}>{m.auth.login.createAccount}</Link> })}
         </FieldDescription>
       </FieldGroup>
     </form>

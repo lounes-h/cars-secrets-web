@@ -3,15 +3,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
-import type { FormState } from "@/app/(auth)/actions";
+import type { FormState } from "@/app/[lang]/(auth)/actions";
 import { FormError } from "@/components/auth/FormError";
 import { showServerErrors, useRememberedEmail } from "@/components/auth/form-helpers";
 import { Turnstile } from "@/components/auth/Turnstile";
+import { useI18n } from "@/components/I18nProvider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { EMAIL_MAX, emailSchema, type EmailInput } from "@/lib/auth-schemas";
+import { authSchemas, EMAIL_MAX, type EmailInput } from "@/lib/auth-schemas";
+import { rich } from "@/lib/i18n";
 
 type Props = {
   action: (input: EmailInput) => Promise<FormState>;
@@ -26,10 +28,11 @@ type Props = {
 
 /** One email field + captcha: used by "forgot password" and "confirm your email". */
 export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLabel, success, next }: Props) {
+  const { m } = useI18n();
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [captchaReset, setCaptchaReset] = useState(0);
   const form = useForm<EmailInput>({
-    resolver: zodResolver(emailSchema),
+    resolver: zodResolver(authSchemas(m.auth).emailSchema),
     // A field is checked once it has been visited, then on every submit.
     mode: "onTouched",
     defaultValues: { email: "", captcha_token: "" },
@@ -56,10 +59,13 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
           <AlertDescription>{success?.(sentTo)}</AlertDescription>
         </Alert>
         <FieldDescription className="text-center">
-          Wrong address?{" "}
-          <Button type="button" variant="link" className="h-auto p-0 underline" onClick={() => setSentTo(null)}>
-            Try another one
-          </Button>
+          {rich(m.auth.emailRequest.wrongAddress, {
+            link: (
+              <Button type="button" variant="link" className="h-auto p-0 underline" onClick={() => setSentTo(null)}>
+                {m.auth.emailRequest.tryAnother}
+              </Button>
+            ),
+          })}
         </FieldDescription>
       </FieldGroup>
     );
@@ -70,7 +76,7 @@ export function EmailRequestForm({ action, captchaAction, submitLabel, pendingLa
       <FieldGroup>
         <FormError message={errors.root?.server?.message} />
         <Field data-invalid={errors.email ? true : undefined}>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <FieldLabel htmlFor="email">{m.auth.email}</FieldLabel>
           <Input
             id="email"
             type="email"

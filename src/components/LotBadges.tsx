@@ -1,5 +1,6 @@
 import { CheckIcon, DotIcon, TriangleAlertIcon, XIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { Messages } from "@/messages/en";
 import { badges } from "@/lib/lot-signals";
 import type { Lot } from "@/lib/lots";
 import { cn } from "cn";
@@ -14,10 +15,10 @@ const TONE_COLORS = {
 } as const;
 
 /** The lot's deal breakers as badges, each with an icon and words, never colour alone. Shared by the lot page and the lot card. */
-export function LotBadges({ lot, className, badgeClassName }: { lot: Lot; className?: string; badgeClassName?: string }) {
+export function LotBadges({ lot, m, className, badgeClassName }: { lot: Lot; m: Messages; className?: string; badgeClassName?: string }) {
   return (
-    <ul aria-label="Deal breakers" className={cn("flex flex-wrap gap-2", className)}>
-      {badges(lot).map((badge) => {
+    <ul aria-label={m.lot.dealBreakers} className={cn("flex flex-wrap gap-2", className)}>
+      {badges(lot, m).map((badge) => {
         const Tone = TONE_ICONS[badge.tone];
         return (
           <Badge key={badge.label} render={<li />} variant="outline" data-tone={badge.tone} className={cn(TONE_COLORS[badge.tone], badgeClassName)}>
