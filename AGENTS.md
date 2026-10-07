@@ -480,8 +480,10 @@ the server-rendered cards) work like this:
   on its right (below `lg` the search has a line of its own). From `lg` up the bar shows the
   main filters as popovers: Sale date (Today, Tomorrow, This week, Next week, Future sale, in
   the dealer's own zone), Title (Copart's salvage, clean and non-repairable groups), Runs and
-  drives and Damage. Up to two filters the dealer has set at least three times move into the
-  bar (`promoted`). Sort, above the lots with the count and the chips: newest listed, sale
+  drives and Damage, then Buy now available, a button that switches on and off in one click
+  (`aria-pressed`) rather than a popover. Up to two filters the dealer has set at least three
+  times move into the bar (`promoted`), never the make or model, which the search beside it
+  takes. Sort, above the lots with the count and the chips: newest listed, sale
   soonest, year, mileage, retail value.
 - **All filters** is a sidebar on the left, under the search and beside the lots, there from
   `lg` up and sticky, scrolling on its own. Its "Hide filters" button puts it away and the lots
@@ -492,7 +494,8 @@ the server-rendered cards) work like this:
   keys), **Price** (current bid, Buy now price, retail value), **Sale** (sale date, title — the
   document the sale hands over — sale type, Buy now available, auction, hidden while every lot
   has the same one) and **Location** (state or province, yard or offsite). The sidebar leaves
-  out the bar's own filters (`PRIMARY`: sale date, title, runs and drives, damage). Each filter
+  out the bar's own filters (`PRIMARY`: sale date, title, runs and drives, damage, Buy now
+  available). Each filter
   folds away (`Collapsible`): folded at first, unfolded from the start while it holds a
   choice; a switch (Buy now available) has nothing to fold. Below `lg` it is a sheet (the
   whole screen on a phone) behind the bar's "Filters · n", which holds the bar's filters too,

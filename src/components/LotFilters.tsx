@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, XIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState, useTransition } from "react";
 import { lotCountsAction, rememberLotFiltersAction } from "@/app/[lang]/active-lots/actions";
@@ -173,7 +173,24 @@ export function LotFilters({
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {inBar.map((id) => {
             const filter = filterById(id);
-            return visible(filter) ? <Menu key={id} filter={filter} query={query} counts={countsOf(id)} apply={apply} /> : null;
+            if (!visible(filter)) return null;
+            // A switch needs no menu: one click turns it on or off.
+            return filter.kind === "toggle" ? (
+              <Button
+                key={id}
+                type="button"
+                variant="outline"
+                size="lg"
+                className="hidden aria-pressed:bg-muted lg:inline-flex"
+                aria-pressed={!!query[id]}
+                onClick={() => apply(edit(query, { [id]: query[id] ? null : ["1"] }))}
+              >
+                {query[id] && <CheckIcon aria-hidden="true" />}
+                {filter.label}
+              </Button>
+            ) : (
+              <Menu key={id} filter={filter} query={query} counts={countsOf(id)} apply={apply} />
+            );
           })}
           <Sheet>
             <SheetTrigger render={<Button variant="outline" size="lg" className="lg:hidden" />}>

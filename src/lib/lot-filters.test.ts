@@ -132,8 +132,8 @@ describe("searched", () => {
 });
 
 describe("promoted", () => {
-  it("moves the most used filters from All filters into the bar, two at most", () => {
-    expect(promoted({ state: 9, keys: 3, year_max: 5, title: 50, model: 40, damage2: 2 })).toEqual(["state", "year"]);
+  it("moves the most used filters from All filters into the bar, two at most, never a make or model", () => {
+    expect(promoted({ state: 9, keys: 3, year_max: 5, title: 50, make: 60, model: 40, damage2: 2 })).toEqual(["state", "year"]);
   });
 
   it("promotes nothing used fewer than three times", () => {
@@ -143,8 +143,8 @@ describe("promoted", () => {
 });
 
 describe("the filters", () => {
-  it("put sale date, title, condition and damage in the bar", () => {
-    expect(PRIMARY).toEqual(["sale", "title", "run", "damage"]);
+  it("put sale date, title, condition, damage and Buy now in the bar", () => {
+    expect(PRIMARY).toEqual(["sale", "title", "run", "damage", "buy_now"]);
   });
 
   it("count every filter but the ranges", () => {

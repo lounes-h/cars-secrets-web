@@ -98,9 +98,9 @@ describe("the search", () => {
 });
 
 describe("the bar", () => {
-  it("shows sale date, title, condition and damage, the filters' sheet and the order", () => {
+  it("shows sale date, title, condition, damage and Buy now, the filters' sheet and the order", () => {
     show();
-    for (const label of ["Sale date", "Title", "Runs and drives", "Damage"]) {
+    for (const label of ["Sale date", "Title", "Runs and drives", "Damage", "Buy now available"]) {
       expect(trigger(new RegExp(`^${label}`))).toBeTruthy();
     }
     expect(screen.getByRole("button", { name: /^Filters/ })).toBeTruthy();
@@ -167,9 +167,24 @@ describe("the bar", () => {
     expect(push).toHaveBeenCalledWith("/active-lots?title=clean&sort=mileage", { scroll: false });
   });
 
-  it("moves the dealer's most used filters into the bar", () => {
-    show({}, { usage: { state: 5 } });
+  it("moves the dealer's most used filters into the bar, but never a make, which the search takes", () => {
+    show({}, { usage: { state: 5, make: 9 } });
     expect(trigger(/^State or province/)).toBeTruthy();
+    expect(within(screen.getByRole("search").parentElement!).queryByRole("button", { name: /^Make/ })).toBeNull();
+  });
+
+  it("switches Buy now on and off in one click, with no menu", () => {
+    const view = show();
+    const buyNow = trigger(/^Buy now available/);
+    expect(buyNow.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(buyNow);
+    expect(push).toHaveBeenLastCalledWith("/active-lots?buy_now=1&sort=newest", { scroll: false });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    view.unmount();
+    show({ buy_now: ["1"] });
+    expect(trigger(/^Buy now available/).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(trigger(/^Buy now available/));
+    expect(push).toHaveBeenLastCalledWith("/active-lots?sort=newest", { scroll: false });
   });
 
   it("promotes a range too, which has nothing to count", async () => {
@@ -244,7 +259,7 @@ describe("All filters", () => {
     expect(lotCountsAction).toHaveBeenCalledTimes(1);
     expect(lotCountsAction).toHaveBeenCalledWith("", expect.arrayContaining(["title", "damage", "state", "buy_now", "make"]));
     // What the lot is, its shape, its price, its sale, where it is. Sale date, title, runs and
-    // drives and damage are the bar's, beside the sidebar; Buy now available is a switch, not a fold.
+    // drives, damage and Buy now are the bar's, beside the sidebar.
     expect(sections(panel())).toEqual([
       ["Vehicle", ["Vehicle type", "Make", "Year", "Mileage"]],
       ["Condition", ["Secondary damage", "Keys"]],
@@ -252,7 +267,7 @@ describe("All filters", () => {
       ["Sale", ["Sale type"]],
       ["Location", ["State or province", "Yard or offsite"]],
     ]);
-    await within(panel()).findByRole("checkbox", { name: /Buy now available\s*19/ });
+    expect(within(panel()).queryByRole("checkbox", { name: /Buy now available/ })).toBeNull();
     // Every lot comes from one auction: nothing to choose.
     expect(within(panel()).queryByText("Auction")).toBeNull();
     // A model is chosen within a make.
@@ -336,18 +351,6 @@ describe("All filters", () => {
     expect(push).toHaveBeenLastCalledWith("/active-lots?year_max=2020&odometer_max=90000&sort=newest", { scroll: false });
   });
 
-  it("switches Buy now on and off", async () => {
-    const view = show();
-    await counted();
-    fireEvent.click(within(panel()).getByRole("checkbox", { name: /Buy now available/ }));
-    expect(push).toHaveBeenLastCalledWith("/active-lots?buy_now=1&sort=newest", { scroll: false });
-    view.unmount();
-    show({ buy_now: ["1"] });
-    await counted();
-    fireEvent.click(within(panel()).getByRole("checkbox", { name: /Buy now available/ }));
-    expect(push).toHaveBeenLastCalledWith("/active-lots?sort=newest", { scroll: false });
-  });
-
   it("opens as a sheet on a narrow screen, with its own fields, and closes from its button or its cross", async () => {
     show({}, { total: 1234 });
     const sheet = async () => {
@@ -363,6 +366,9 @@ describe("All filters", () => {
       ["Sale", ["Sale date", "Title", "Sale type"]],
       ["Location", ["State or province", "Yard or offsite"]],
     ]);
+    // Buy now is a switch there, not a fold, and it is counted.
+    fireEvent.click(await within(opened).findByRole("checkbox", { name: /Buy now available\s*19/ }));
+    expect(push).toHaveBeenLastCalledWith("/active-lots?buy_now=1&sort=newest", { scroll: false });
     // Not the sidebar's ids, so a label in the sheet works its own box.
     await act(async () => fireEvent.click(within(opened).getByRole("button", { name: "Year" })));
     expect(within(opened).getByLabelText("From", { selector: "#sheet-year-year_min" })).toBeTruthy();
