@@ -9,6 +9,7 @@ import type { SessionSummary } from "@/app/auth/session/route";
 import { useI18n } from "@/components/I18nProvider";
 import { LanguageButton, LanguageDialog } from "@/components/LanguageDialog";
 import { Avatar as AvatarRoot, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LOCALES, localePath, splitLocale } from "@/lib/i18n";
+import { fill, formatCount, LOCALES, localePath, splitLocale } from "@/lib/i18n";
 import { forgetEmail } from "@/lib/remembered-email";
 import type { Messages } from "@/messages/en";
 
@@ -42,12 +43,30 @@ const MEMBER_MENU: Item[] = [
 // Sign-up and sign-in show the logo and the language alone, so nothing pulls the dealer off the form.
 const LOGO_ONLY = new Set(["/register", "/login"]);
 
+/** "Alerts", and how many are unread when any are: "Alerts 3", read out as "Alerts, 3 unread". */
+function AlertsLabel({ unread }: { unread: number }) {
+  const { locale, m } = useI18n();
+  if (!unread) return m.nav.alerts;
+  return (
+    <>
+      {m.nav.alerts}
+      <Badge className="tabular-nums">{formatCount(locale, unread)}</Badge>
+    </>
+  );
+}
+
+/** What a screen reader calls a link to the alerts while some are unread. */
+function alertsName(unread: number, { locale, m }: ReturnType<typeof useI18n>): string | undefined {
+  return unread ? `${m.nav.alerts}, ${fill(m.nav.unread, { count: formatCount(locale, unread) })}` : undefined;
+}
+
 /**
  * The current page's item is marked: "page" on the page itself, "true" on a page under it (a
  * lot's page is in Active lots), and drawn as the ghost button's hover, kept on.
  */
-function Menu({ items, path }: { items: Item[]; path: string }) {
-  const { locale, m } = useI18n();
+function Menu({ items, path, unread = 0 }: { items: Item[]; path: string; unread?: number }) {
+  const i18n = useI18n();
+  const { locale, m } = i18n;
   return (
     <nav aria-label={m.nav.main} className="ml-6 hidden items-center gap-1 lg:flex">
       {items.map((item) => (
@@ -55,9 +74,10 @@ function Menu({ items, path }: { items: Item[]; path: string }) {
           key={item.href}
           href={localePath(item.href, locale)}
           aria-current={path === item.href ? "page" : path.startsWith(`${item.href}/`) ? "true" : undefined}
+          aria-label={item.label === "alerts" ? alertsName(unread, i18n) : undefined}
           className={buttonVariants({ variant: "ghost", className: "aria-[current]:bg-muted" })}
         >
-          {m.nav[item.label]}
+          {item.label === "alerts" ? <AlertsLabel unread={unread} /> : m.nav[item.label]}
         </Link>
       ))}
     </nav>
@@ -76,12 +96,17 @@ export function AccountNav() {
   const { path } = splitLocale(pathname);
   const { locale, m } = useI18n();
   const [user, setUser] = useState<User | undefined>(undefined);
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     let current = true;
     fetch("/auth/session", { cache: "no-store" })
-      .then((response) => (response.ok ? (response.json() as Promise<SessionSummary>) : { user: null }))
-      .then((summary) => current && setUser(summary.user))
+      .then((response) => (response.ok ? (response.json() as Promise<SessionSummary>) : { user: null, unread: 0 }))
+      .then((summary) => {
+        if (!current) return;
+        setUser(summary.user);
+        setUnread(summary.unread ?? 0);
+      })
       .catch(() => current && setUser(null));
     return () => {
       current = false;
@@ -118,9 +143,9 @@ export function AccountNav() {
   }
   return (
     <>
-      <Menu items={MEMBER_MENU} path={path} />
+      <Menu items={MEMBER_MENU} path={path} unread={unread} />
       <nav aria-label={m.nav.account} className="ml-auto flex items-center">
-        <AccountMenu user={user} />
+        <AccountMenu user={user} unread={unread} />
       </nav>
     </>
   );
@@ -141,20 +166,28 @@ function Avatar({ user }: { user: NonNullable<User> }) {
 }
 
 /**
- * The round initials button and the menu it opens: who is signed in, Settings, Account, Log out
- * and, last, the language, which opens the language dialog. A click outside, Escape or
- * following one of its links closes it.
+ * The round initials button and the menu it opens: who is signed in, Saved and Alerts where the
+ * main menu is hidden (below lg), Settings, Account, Log out and, last, the language, which opens
+ * the language dialog. A click outside, Escape or following one of its links closes it. Below lg
+ * the initials carry the unread alerts' count too.
  */
-function AccountMenu({ user }: { user: NonNullable<User> }) {
-  const { locale, m } = useI18n();
+function AccountMenu({ user, unread }: { user: NonNullable<User>; unread: number }) {
+  const i18n = useI18n();
+  const { locale, m } = i18n;
   const [choosing, setChoosing] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const name = `${user.first_name} ${user.last_name}`.trim();
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger ref={trigger} aria-label={m.nav.accountMenu} title={name || user.email} className="rounded-full">
+        <DropdownMenuTrigger
+          ref={trigger}
+          aria-label={unread ? fill(m.nav.accountMenuUnread, { count: formatCount(locale, unread) }) : m.nav.accountMenu}
+          title={name || user.email}
+          className="relative rounded-full"
+        >
           <Avatar user={user} />
+          {unread > 0 && <Badge className="absolute -top-1 -right-1 tabular-nums lg:hidden">{formatCount(locale, unread)}</Badge>}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-72">
           <div className="flex items-center gap-3 px-2 py-2">
@@ -167,6 +200,12 @@ function AccountMenu({ user }: { user: NonNullable<User> }) {
             </div>
           </div>
           <DropdownMenuSeparator />
+          <DropdownMenuItem render={<Link href={localePath("/saved", locale)} />} className="lg:hidden">
+            {m.nav.saved}
+          </DropdownMenuItem>
+          <DropdownMenuItem render={<Link href={localePath("/alerts", locale)} />} aria-label={alertsName(unread, i18n)} className="lg:hidden">
+            <AlertsLabel unread={unread} />
+          </DropdownMenuItem>
           <DropdownMenuItem render={<Link href={localePath("/settings", locale)} />}>{m.nav.settings}</DropdownMenuItem>
           <DropdownMenuItem render={<Link href={localePath("/account", locale)} />}>{m.nav.accountPage}</DropdownMenuItem>
           <DropdownMenuSeparator />

@@ -156,10 +156,26 @@ export function edit(query: Query, changes: Record<string, string[] | null>): Qu
   return readQuery(new URLSearchParams(queryString(next)));
 }
 
-/** Where the list shows this query; page 1 has no page number. */
-export function listPath(query: Query, page = 1): string {
-  const search = queryString(page > 1 ? { ...query, page: [String(page)] } : query);
+/** Where the list shows this query; page 1 has no page number. `saved` is the saved search being edited. */
+export function listPath(query: Query, page = 1, saved?: string): string {
+  const search = queryString({ ...query, ...(page > 1 && { page: [String(page)] }), ...(saved && { saved: [saved] }) });
   return search ? `/active-lots?${search}` : "/active-lots";
+}
+
+/** What a saved search keeps: the filters and the search words, not the order. */
+export function searchQuery(query: Query): string {
+  const rest = { ...query };
+  delete rest.sort;
+  return queryString(rest);
+}
+
+/** The longest name a saved search may have, as the API allows. */
+export const SEARCH_NAME_MAX = 80;
+
+/** A name for a search, from its chips ("TOYOTA, CAMRY, Salvage title"), or "All lots" without any. */
+export function searchName(query: Query, i18n: I18n): string {
+  const named = chips(query, i18n).map((chip) => chip.label).join(", ");
+  return named.slice(0, SEARCH_NAME_MAX) || i18n.m.searches.allLots;
 }
 
 /** What is kept for the dealer's next visit: filters and order, not the words of a search. */
@@ -261,6 +277,9 @@ export function chips(query: Query, i18n: I18n): Chip[] {
 
 /** The dealer's time zone as the browser names it, kept in a cookie so "today" is their today. */
 export const ZONE_COOKIE = "cs_tz";
+
+/** The zone the browser runs in. */
+export const browserZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 /** The zone when it is one this runtime knows, otherwise null. */
 export function knownZone(zone: string | undefined | null): string | null {

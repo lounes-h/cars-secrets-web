@@ -46,8 +46,15 @@ hashing, throttling, captcha and token rules.
   parameters and values. The filters are kept in the API (at most 2000 characters), and
   a kept query passes through `readQuery` again before the page redirects to it, always
   to `/active-lots`. The browser never calls the API.
-- `/auth/session` returns only the signed-in user's first and last name and email, with
-  `Cache-Control: private, no-store`, for the banner.
+- `/auth/session` returns only the signed-in user's first and last name, email and number of
+  unread alerts, with `Cache-Control: private, no-store`, for the banner.
+- The saved-lot, search, alert and settings actions (`src/app/[lang]/saved/actions.ts`,
+  `alerts/actions.ts`, `settings/actions.ts`) need a session and trust nothing they are sent: a
+  lot is a source and lot number of 1–40 characters each, switches must be booleans, a search's
+  name is trimmed and at most 80 characters and its query goes through `readQuery`, search ids
+  must be UUIDs and alert ids positive integers, and settings must name a known zone and language.
+  The API checks again and keeps every row to the session's dealer. They answer with the saved
+  lot or search, or a message in the page's language, never an API error's own words.
 - The email typed in an auth form is kept in sessionStorage for the tab, never
   in a URL, so it does not reach server logs or referrers.
 - The reset link (`/reset-password`) needs a click to use its token, so link

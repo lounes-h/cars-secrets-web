@@ -33,8 +33,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function session(user: { first_name: string; last_name: string; email: string } | null) {
-  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ user })));
+function session(user: { first_name: string; last_name: string; email: string } | null, unread = 0) {
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ user, unread })));
 }
 
 describe("AccountNav", () => {
@@ -176,11 +176,40 @@ describe("AccountNav", () => {
     expect(within(menu).getByText("Lounes Hammache")).toBeTruthy();
     expect(within(menu).getByText("l@example.com")).toBeTruthy();
     expect(within(menu).getAllByRole("menuitem").map((item) => [item.textContent, item.getAttribute("href")])).toEqual([
+      ["Saved", "/saved"],
+      ["Alerts", "/alerts"],
       ["Settings", "/settings"],
       ["Account", "/account"],
       ["Log out", null],
       ["English (United States)", null],
     ]);
+  });
+
+  it("reaches Saved and Alerts from the account menu where the main menu is hidden", async () => {
+    session(LOUNES);
+    render(<AccountNav />);
+    const menu = await openMenu();
+    for (const name of ["Saved", "Alerts"]) expect(within(menu).getByRole("menuitem", { name }).className).toContain("lg:hidden");
+    expect(within(menu).getByRole("menuitem", { name: "Settings" }).className).not.toContain("lg:hidden");
+  });
+
+  it("counts the unread alerts on Alerts and, where the main menu is hidden, on the initials", async () => {
+    session(LOUNES, 3);
+    render(<AccountNav />);
+    const alerts = within(await screen.findByRole("navigation", { name: "Main" })).getByRole("link", { name: "Alerts, 3 unread" });
+    expect(alerts.textContent).toBe("Alerts3");
+    const button = screen.getByRole("button", { name: "Account menu, 3 unread alerts" });
+    expect(button.textContent).toBe("LH3");
+    await act(async () => fireEvent.click(button));
+    const menu = screen.getByRole("menu");
+    expect(within(menu).getByRole("menuitem", { name: "Alerts, 3 unread" }).textContent).toBe("Alerts3");
+  });
+
+  it("counts them in the page's language", async () => {
+    session(LOUNES, 1200);
+    render(spanish());
+    expect(await screen.findByRole("link", { name: "Alertas, 1,200 sin leer" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Menú de la cuenta, 1,200 alertas sin leer" })).toBeTruthy();
   });
 
   it("opens the language dialog from the menu's last item, and gives focus back to the initials", async () => {

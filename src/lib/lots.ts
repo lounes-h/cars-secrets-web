@@ -227,7 +227,7 @@ export function vehicle(lot: Lot): string {
   return [lot.year, lot.make, lot.model].filter(Boolean).join(" ") || "—";
 }
 
-export function place(lot: Lot): string {
+export function place(lot: Pick<Lot, "location_city" | "location_state">): string {
   return [lot.location_city, lot.location_state].filter(Boolean).join(", ") || "—";
 }
 

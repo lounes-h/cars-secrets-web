@@ -104,6 +104,25 @@ describe("lot card", () => {
   });
 });
 
+describe("lot card controls and availability", () => {
+  it("makes room for the dealer's own controls, beside the money and above View details", () => {
+    render(<LotCard lot={sampleLot} i18n={{ locale: "en", m: en }} actions={<button type="button">Save</button>} />);
+    const save = screen.getByRole("button", { name: "Save" });
+    const column = screen.getByText("Current bid").closest("dl")!.parentElement!;
+    expect(column.contains(save)).toBe(true);
+    expect(save.compareDocumentPosition(screen.getByText("View details")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("says a lot the auction no longer lists is gone, and offers no way into it", () => {
+    const card = render(<LotCard lot={sampleLot} i18n={{ locale: "en", m: en }} unavailable />).container;
+    expect(card.querySelectorAll("a")).toHaveLength(0);
+    expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("2013 ACURA TSX TECH");
+    expect(card.textContent).toContain("No longer listed");
+    expect(card.textContent).toContain("The auction no longer lists this lot, which does not mean it sold.");
+    expect(card.querySelector("img")).toBeTruthy();
+  });
+});
+
 describe("cardPhoto", () => {
   it("keeps a thumbnail that has no full-size name as it is, and refuses anything but https", () => {
     expect(cardPhoto({ ...sampleLot, thumbnail_url: " https://cs.copart.com/photo.jpg " })).toBe("https://cs.copart.com/photo.jpg");
