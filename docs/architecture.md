@@ -38,7 +38,8 @@ src/
     LotCard.tsx        One lot in the list: photo, title, real figures, badges, sale time; the
                        dealer's controls; "No longer listed" for a saved lot the auction dropped
     LotWatch.tsx       Save / Saved, Remind me (the reminder dialog), the reminders' status, change alerts
-    SavedSearches.tsx  Save search beside Clear all, and a saved search's controls on the Saved page
+    SavedSearches.tsx  Save search beside Clear all, the Saved searches menu, and a saved search's
+                       controls on the Saved page
     SavedTabs.tsx      The Saved page's Lots and Searches tabs
     AlertEntry.tsx     One inbox entry: unread until one of its links is followed
     AlertSettingsForm.tsx  The Settings page's form
@@ -155,9 +156,9 @@ The API keeps what a dealer saves and decides when to tell them (its `docs/archi
 actions, never deciding when an alert goes out.
 
 - A lot's Save, reminders and change alerts are one client component, `LotWatch`, holding what is
-  switched on for the lot and updated from each action's answer. The lot list fetches only which
-  lots are saved (`/api/me/saved-lots/keys`), since a card shows Save alone; the lot page asks for
-  its lot (`/api/me/saved-lots/{source}/{lot}`), and the Saved page for all of them. Whether a set
+  switched on for the lot and updated from each action's answer. The lot page asks for its lot
+  (`/api/me/saved-lots/{source}/{lot}`) and the Saved page for all of them; the lot list's cards
+  offer no Save, so the list asks for none. Whether a set
   reminder's time has passed is said with the request's clock, passed down, so the server's HTML
   and the browser agree; the dialog reads the browser's clock as it opens.
 - A saved search is the lot list's query without its order (`searchQuery`), so equal filters are

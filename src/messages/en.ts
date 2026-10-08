@@ -586,7 +586,10 @@ export const en = {
   /** Save search on Active lots, and the Saved page's searches (src/components/SavedSearches.tsx). */
   searches: {
     save: "Save search",
-    saved: "Saved search",
+    /** Save search's words while the filters on screen are a saved search's. */
+    edit: "Edit search",
+    /** The menu of the dealer's saved searches beside it. */
+    mine: "Saved searches",
     saveChanges: "Save changes",
     createTitle: "Save this search",
     editTitle: "Edit saved search",

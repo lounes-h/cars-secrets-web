@@ -12,7 +12,7 @@ const { saveSearchAction, updateSearchAction, deleteSearchAction, push, refresh 
 vi.mock("@/app/[lang]/saved/actions", () => ({ saveSearchAction, updateSearchAction, deleteSearchAction }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh }) }));
 
-const { SaveSearch, SearchControls } = await import("@/components/SavedSearches");
+const { SaveSearch, SearchControls, SearchesMenu } = await import("@/components/SavedSearches");
 const { readQuery } = await import("@/lib/lot-filters");
 
 const read = (search: string) => readQuery(new URLSearchParams(search));
@@ -58,10 +58,10 @@ describe("Save search", () => {
     expect(saveSearchAction).not.toHaveBeenCalled();
   });
 
-  it("reads Saved search when the filters on screen are a saved search's, and renames or pauses it", async () => {
+  it("reads Edit search when the filters on screen are a saved search's, and renames or pauses it", async () => {
     updateSearchAction.mockResolvedValue({ value: { ...CAMRY, alerts: true } });
     render(<SaveSearch query={read("model=CAMRY&make=TOYOTA&sort=sale")} searches={[CAMRY]} editing={null} />);
-    await click(screen.getByRole("button", { name: "Saved search" }));
+    await click(screen.getByRole("button", { name: "Edit search" }));
     const form = dialog("Edit saved search");
     expect(nameField(form).value).toBe("Camry");
     await click(alerts(form));
@@ -108,6 +108,27 @@ describe("Save search", () => {
       "An account keeps up to 50 saved searches. Delete one to save another.",
     );
     expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
+describe("the saved searches menu", () => {
+  const HONDAS = { ...CAMRY, id: "s2", name: "Hondas", query: "make=HONDA" };
+
+  it("lists each saved search, opening its lots, and marks the one on screen", async () => {
+    render(<SearchesMenu query={read("model=CAMRY&make=TOYOTA&sort=year")} searches={[CAMRY, HONDAS]} />);
+
+    await click(screen.getByRole("button", { name: "Saved searches" }));
+
+    const items = within(screen.getByRole("menu")).getAllByRole("menuitem");
+    expect(items.map((item) => [item.textContent, item.getAttribute("href"), item.getAttribute("aria-current")])).toEqual([
+      ["Camry", "/active-lots?make=TOYOTA&model=CAMRY", "true"],
+      ["Hondas", "/active-lots?make=HONDA", null],
+    ]);
+  });
+
+  it("is not there without saved searches", () => {
+    render(<SearchesMenu query={{}} searches={[]} />);
+    expect(screen.queryByRole("button")).toBeNull();
   });
 });
 

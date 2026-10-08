@@ -564,7 +564,8 @@ export const es: Messages = {
 
   searches: {
     save: "Guardar búsqueda",
-    saved: "Búsqueda guardada",
+    edit: "Editar búsqueda",
+    mine: "Búsquedas guardadas",
     saveChanges: "Guardar cambios",
     createTitle: "Guardar esta búsqueda",
     editTitle: "Editar búsqueda guardada",

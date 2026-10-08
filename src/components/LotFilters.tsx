@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState, useTransition } from "react";
 import { lotCountsAction, rememberLotFiltersAction } from "@/app/[lang]/active-lots/actions";
 import { useI18n } from "@/components/I18nProvider";
-import { SaveSearch } from "@/components/SavedSearches";
+import { SaveSearch, SearchesMenu } from "@/components/SavedSearches";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -50,8 +50,9 @@ type Apply = (next: Query) => void;
  * change is a new URL, so the server lists the lots and a list can be shared. The search runs
  * along the top; below it, the filters sit in a sidebar on the left, always there on a wide
  * screen and behind "Filters" on a narrow one, each folding away. Option counts come after the
- * list, since counting is the slow part. Save search follows the chips and Clear all; while the
- * dealer edits a saved search (`editing`), every new URL carries it.
+ * list, since counting is the slow part. Save search follows the chips and Clear all while a filter
+ * is set, then the menu of saved searches; while the dealer edits a saved search (`editing`), every
+ * new URL carries it.
  */
 export function LotFilters({
   query,
@@ -272,11 +273,14 @@ export function LotFilters({
               </Button>
             ))}
             {found.length > 0 && (
-              <Button type="button" variant="link" size="sm" onClick={() => apply(edit({}, { sort: query.sort ?? null }))}>
-                {words.clearAll}
-              </Button>
+              <>
+                <Button type="button" variant="link" size="sm" onClick={() => apply(edit({}, { sort: query.sort ?? null }))}>
+                  {words.clearAll}
+                </Button>
+                <SaveSearch query={query} searches={searches} editing={editing} />
+              </>
             )}
-            <SaveSearch query={query} searches={searches} editing={editing} />
+            <SearchesMenu query={query} searches={searches} />
             <Label className="ml-auto font-normal">
               {words.sort}
               <NativeSelect

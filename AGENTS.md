@@ -460,8 +460,8 @@ left to right: the photo (the export's `thumbnail_url` is 144px wide, so the car
 model, trim, linking to the lot), "Lot N · auction · place",
 mileage and primary damage, the deal-breaker badges and the sale time; then, in a column on
 the right, the real figures only — current bid, likely final bid (`predicted_final_price`),
-retail value (ACV) and Buy now when offered, never the calculator's samples — then Save /
-Saved (`LotWatch`) and a "View details" button under them. Only the photo, the title and View details open the lot; the rest
+retail value (ACV) and Buy now when offered, never the calculator's samples — and a "View
+details" button under them. Only the photo, the title and View details open the lot; the rest
 of the card is text, to read and select. The photo and the button are out of the tab order and
 hidden from screen readers, which get the title's link once rather than three times. The API
 lists cars (vehicle type `V`) before every other type, whatever the order.
@@ -524,9 +524,9 @@ the server-rendered cards) work like this:
 In place for saved lots, searches and alerts, which the API stores, finds and sends (its
 `app/saved.py` and `app/alerts.py`; when an alert goes out is never decided here):
 
-- **Save / Saved** (`src/components/LotWatch.tsx`), on every lot card, the lot page and the
-  Saved page, bookmarks the auction's listing in the dealer's account and switches nothing on.
-  On the lot page and the Saved page the same component offers **Remind me**: a dialog with 1
+- **Save / Saved** (`src/components/LotWatch.tsx`), on the lot page and the Saved page (the lot
+  list's cards have none), bookmarks the auction's listing in the dealer's account and switches
+  nothing on. The same component offers **Remind me**: a dialog with 1
   hour before the auction (checked while no reminder is still to come) and 1 day before, each at
   its time in the dealer's zone, "Already passed" and off once its time has come, and a waiting
   state while the auction has no start time. Reminders refer to the auction's scheduled start,
@@ -534,11 +534,13 @@ In place for saved lots, searches and alerts, which the API stores, finds and se
   chosen, unless that turns off a reminder still to come. Under it, the reminders' status and,
   once saved, "Email me when the auction date or Buy now price changes" (change alerts; "when the
   auction date changes" for a lot without a Buy now price).
-- **Save search** (`src/components/SavedSearches.tsx`), text like Clear all and right after it
-  (after the count while no filter is set), opens a dialog: a name drawn from the chips
-  (`searchName`) and "Email me new matches", off by default. A search keeps the list's query
-  without its order (`searchQuery`). While the filters on screen are a saved search's the button
-  reads "Saved search", to rename it or pause its alerts. The Saved page's "Edit filters" opens the
+- **Save search** (`src/components/SavedSearches.tsx`), text like Clear all and right after it,
+  there only while a filter is set, opens a dialog: a name drawn from the chips (`searchName`)
+  and "Email me new matches", off by default. A search keeps the list's query without its order
+  (`searchQuery`). While the filters on screen are a saved search's the text reads "Edit search",
+  to rename it or pause its alerts. Beside it (after the count without a filter), **Saved
+  searches** is a dropdown of the dealer's saved searches, each opening its lots, the one on
+  screen checked; it is not there without any. The Saved page's "Edit filters" opens the
   list with `saved=<id>`, which every URL the list makes keeps (`listPath(query, page, saved)`); the
   button then offers "Save changes" or "Save as a new search", and "Stop editing" leaves it.
 - **Saved** (`/saved`): Lots and Searches tabs. Lots are lot cards with `LotWatch`; one the auction

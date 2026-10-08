@@ -4,8 +4,7 @@ const api = vi.fn<(path: string, options: unknown) => Promise<unknown>>();
 vi.mock("@/lib/api", async (original) => ({ ...(await original<object>()), api }));
 
 const { ApiError } = await import("@/lib/api");
-const { createSearch, deleteSearch, getSavedLot, getSavedLotKeys, getSavedLots, getSavedSearches, keyOf, saveLot, unsaveLot, updateSearch } =
-  await import("@/lib/saved");
+const { createSearch, deleteSearch, getSavedLot, getSavedLots, getSavedSearches, keyOf, saveLot, unsaveLot, updateSearch } = await import("@/lib/saved");
 
 const LOT = { source: "copart", lot_number: "41633106" };
 const HERE = { locale: "es", time_zone: "America/Chicago" } as const;
@@ -19,12 +18,8 @@ describe("saved lots", () => {
     expect(api).toHaveBeenCalledWith("/api/me/saved-lots", { token: "tok", clientIp: "9.9.9.9" });
   });
 
-  it("knows which lots are saved by key, and none when the API cannot say", async () => {
-    api.mockResolvedValue({ keys: [LOT, { source: "copart", lot_number: "7" }] });
-    expect(await getSavedLotKeys("tok")).toEqual(new Set(["copart/41633106", "copart/7"]));
+  it("keys a lot by its auction and number", () => {
     expect(keyOf(LOT)).toBe("copart/41633106");
-    api.mockRejectedValue(new ApiError(0, "unavailable", "down"));
-    expect(await getSavedLotKeys("tok")).toEqual(new Set());
   });
 
   it("finds one saved lot, or null when it is not saved", async () => {

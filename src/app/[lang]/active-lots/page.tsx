@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LotCard } from "@/components/LotCard";
 import { LotFilters } from "@/components/LotFilters";
-import { LotWatch } from "@/components/LotWatch";
 import { buttonVariants } from "@/components/ui/button";
 import { fill, formatCount, type I18n, localePath, pluralForm, rich } from "@/lib/i18n";
 import { getI18n } from "@/lib/i18n-server";
@@ -20,7 +19,7 @@ import {
   type LotActivity,
   type LotPage,
 } from "@/lib/lots";
-import { getSavedLotKeys, getSavedSearches, keyOf, type SavedSearch } from "@/lib/saved";
+import { getSavedSearches, type SavedSearch } from "@/lib/saved";
 import { metadataForRoute } from "@/lib/seo/metadata";
 import { currentUser, sessionToken, visitorIp, visitorZone } from "@/lib/session";
 
@@ -85,7 +84,7 @@ function ActivitySummary({ added, updated, i18n: { locale, m } }: LotActivity & 
 /**
  * The lots a signed-in dealer asked for. A search that names a lot opens it, and one that names
  * a make, model or years becomes those filters; the bare list comes back as the dealer left it.
- * Alongside: which lots the dealer saved, their saved searches, and the one they edit (`saved`).
+ * Alongside: the dealer's saved searches, and the one they edit (`saved`).
  */
 async function dealerLots(params: SearchParams, token: string, { locale }: I18n) {
   const query = readQuery(params);
@@ -103,29 +102,24 @@ async function dealerLots(params: SearchParams, token: string, { locale }: I18n)
   const kept = readQuery(new URLSearchParams(filters));
   if (Object.keys(params).length === 0 && Object.keys(kept).length) redirect(localePath(listPath(kept), locale));
   const zone = await visitorZone();
-  const [list, activity, saved, searches] = await Promise.all([
+  const [list, activity, searches] = await Promise.all([
     listLots(query, page, token, ip, zone),
     // The summary is extra: the list stands without it, as without the saved searches.
     getLotActivity(token, ip, zone).catch(() => null),
-    getSavedLotKeys(token, ip),
     getSavedSearches(token, ip).catch((): SavedSearch[] => []),
   ]);
   const editing = searches.find((search) => search.id === params.saved) ?? null;
-  return { query, page, usage, remembered: queryString(kept), activity, saved, searches, editing, ...list };
+  return { query, page, usage, remembered: queryString(kept), activity, searches, editing, ...list };
 }
-
-/** A saved lot on the list: only Save shows there, so what is switched on for it does not matter. */
-const SAVED = { change_alerts: false, remind_hour: false, remind_day: false };
 
 function Lots({
   query,
   page,
   items,
   total,
-  saved,
   editing,
   i18n,
-}: { query: Query; page: number; saved: Set<string>; editing: SavedSearch | null; i18n: I18n } & LotPage) {
+}: { query: Query; page: number; editing: SavedSearch | null; i18n: I18n } & LotPage) {
   const { locale, m } = i18n;
   const pages = pageCount(total);
   const first = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -144,16 +138,7 @@ function Lots({
       <ul aria-label={m.lots.list} className="mt-6 flex flex-col gap-4">
         {items.map((lot) => (
           <li key={`${lot.source}-${lot.lot_number}`}>
-            <LotCard
-              lot={lot}
-              i18n={i18n}
-              actions={
-                <LotWatch
-                  lot={{ source: lot.source, lot_number: lot.lot_number, sale_at: lot.sale_at, buy_it_now_price: lot.buy_it_now_price }}
-                  initial={saved.has(keyOf(lot)) ? SAVED : null}
-                />
-              }
-            />
+            <LotCard lot={lot} i18n={i18n} />
           </li>
         ))}
       </ul>

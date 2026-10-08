@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactElement, type ReactNode, useId, useState, useTransition } from "react";
@@ -8,6 +9,7 @@ import { useI18n } from "@/components/I18nProvider";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { fill, localePath } from "@/lib/i18n";
@@ -15,10 +17,10 @@ import { browserZone, listPath, type Query, readQuery, SEARCH_NAME_MAX, searchNa
 import type { SavedSearch } from "@/lib/saved";
 
 /**
- * Save search, as text like Clear all, right after it above the lots. While the filters on screen
- * are a saved search's it reads "Saved search", to rename it or pause its alerts; while the dealer
- * edits one (`editing`, the list's `saved` parameter) and the filters differ, "Save changes", to
- * save them into it or as a new search.
+ * Save search, as text like Clear all, right after it above the lots, while a filter is set. While
+ * the filters on screen are a saved search's it reads "Edit search", to rename it or pause its
+ * alerts; while the dealer edits one (`editing`, the list's `saved` parameter) and the filters
+ * differ, "Save changes", to save them into it or as a new search.
  */
 export function SaveSearch({ query, searches, editing }: { query: Query; searches: SavedSearch[]; editing: SavedSearch | null }) {
   const { locale, m } = useI18n();
@@ -34,10 +36,37 @@ export function SaveSearch({ query, searches, editing }: { query: Query; searche
       query={saved ? null : filters}
       name={same?.name ?? searchName(query, { locale, m })}
       trigger={<Button variant="link" size="sm" />}
-      label={changed ? words.saveChanges : saved ? words.saved : words.save}
+      label={changed ? words.saveChanges : saved ? words.edit : words.save}
       // A new search made while editing another leaves that one: the list stops editing it.
       onDone={(created) => (created && editing ? router.push(localePath(listPath(query), locale)) : router.refresh())}
     />
+  );
+}
+
+/** The dealer's saved searches beside Save search, each opening its lots; the one on screen is marked. */
+export function SearchesMenu({ query, searches }: { query: Query; searches: SavedSearch[] }) {
+  const { locale, m } = useI18n();
+  const filters = searchQuery(query);
+  if (!searches.length) return null;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="link" size="sm" />}>
+        {m.searches.mine}
+        <ChevronDownIcon aria-hidden="true" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-72">
+        {searches.map((search) => {
+          const current = search.query === filters;
+          const href = localePath(listPath(readQuery(new URLSearchParams(search.query))), locale);
+          return (
+            <DropdownMenuItem key={search.id} render={<Link href={href} aria-current={current ? "true" : undefined} />}>
+              <span className="min-w-0 flex-1 truncate">{search.name}</span>
+              {current && <CheckIcon aria-hidden="true" />}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

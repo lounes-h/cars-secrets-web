@@ -28,16 +28,6 @@ export async function getSavedLots(token: string, clientIp: string | null = null
   return (await api<{ items: SavedLot[] }>("/api/me/saved-lots", { token, clientIp })).items;
 }
 
-/** Which lots the dealer saved, to mark them in a list. Never an error: the list stands without the marks. */
-export async function getSavedLotKeys(token: string, clientIp: string | null = null): Promise<Set<string>> {
-  try {
-    const { keys } = await api<{ keys: LotKey[] }>("/api/me/saved-lots/keys", { token, clientIp });
-    return new Set(keys.map(keyOf));
-  } catch {
-    return new Set();
-  }
-}
-
 /** The lot as the dealer saved it, or null when it is not saved. */
 export async function getSavedLot(lot: LotKey, token: string, clientIp: string | null = null): Promise<SavedLot | null> {
   try {

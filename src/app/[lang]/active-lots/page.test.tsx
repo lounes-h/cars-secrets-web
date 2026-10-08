@@ -11,7 +11,6 @@ const interpretSearch = vi.fn();
 const getLotPreferences = vi.fn();
 const getLotActivity = vi.fn();
 const filterProps = vi.fn();
-const getSavedLotKeys = vi.fn();
 const getSavedSearches = vi.fn();
 const redirect = vi.fn((url: string) => {
   throw new Error(`REDIRECT ${url}`);
@@ -30,9 +29,8 @@ vi.mock("@/lib/lots", async (original) => ({
   getLotPreferences,
   getLotActivity,
 }));
-vi.mock("@/lib/saved", async (original) => ({ ...(await original<object>()), getSavedLotKeys, getSavedSearches }));
-vi.mock("@/app/[lang]/saved/actions", () => ({}));
-vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url), useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock("@/lib/saved", async (original) => ({ ...(await original<object>()), getSavedSearches }));
+vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url) }));
 vi.mock("@/components/LotFilters", () => ({
   LotFilters: ({ children, ...props }: { children: ReactNode }) => {
     filterProps(props);
@@ -64,7 +62,6 @@ beforeEach(() => {
     added: { today: 87, last_3_days: 11821, last_7_days: 57043 },
     updated: { today: 14769, last_3_days: 62275, last_7_days: 61280 },
   });
-  getSavedLotKeys.mockResolvedValue(new Set());
   getSavedSearches.mockResolvedValue([]);
 });
 
@@ -145,12 +142,9 @@ describe("active lots page", () => {
     expect(card.textContent).toContain("$8,119");
   });
 
-  it("offers Save on every card, and marks the lots the dealer saved", async () => {
-    getSavedLotKeys.mockResolvedValue(new Set(["copart/41633101"]));
+  it("offers no Save on the cards: a lot is saved from its page", async () => {
     await show();
-    expect(getSavedLotKeys).toHaveBeenCalledWith("token-abc", null);
-    const saves = cards().map((card) => within(card).getByRole("button").textContent);
-    expect(saves.slice(0, 3)).toEqual(["Save", "Saved", "Save"]);
+    expect(cards().every((card) => within(card).queryByRole("button") === null)).toBe(true);
   });
 
   it("asks for the requested page and offers the neighbouring ones", async () => {
