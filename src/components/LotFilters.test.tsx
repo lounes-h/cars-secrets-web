@@ -14,6 +14,7 @@ vi.mock("@/app/[lang]/active-lots/actions", () => ({ lotCountsAction, rememberLo
 vi.mock("@/app/[lang]/saved/actions", () => ({ saveSearchAction: vi.fn(), updateSearchAction: vi.fn() }));
 
 const { LotFilters } = await import("@/components/LotFilters");
+const { buttonVariants } = await import("@/components/ui/button");
 const { COUNTED } = await import("@/lib/lot-filters");
 
 const COUNTS = {
@@ -133,18 +134,26 @@ describe("the bar", () => {
     expect(screen.getByText("145 lots").parentElement!.contains(sort)).toBe(true);
   });
 
-  it("ends with Save search, which reads Saved search for a saved search's filters", () => {
+  it("offers Save search as text right after Clear all, reading Saved search for a saved search's filters", () => {
     show({ make: ["TOYOTA"], sort: ["year"] }, { searches: [CAMRY] });
-    const filters = trigger(/^Title/).parentElement!;
-    expect(filters.lastElementChild!.textContent).toBe("Saved search");
+    const saved = screen.getByRole("button", { name: "Saved search" });
+    expect(screen.getByRole("button", { name: "Clear all" }).nextElementSibling).toBe(saved);
+    expect(saved.className).toContain(buttonVariants({ variant: "link", size: "sm" }));
+    expect(saved.querySelector("svg")).toBeNull();
+    expect(within(screen.getByRole("search").parentElement!).queryByRole("button", { name: /^Saved? search$/ })).toBeNull();
     cleanup();
     show({ make: ["HONDA"] }, { searches: [CAMRY] });
-    expect(trigger(/^Save search$/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Save search" })).toBeTruthy();
+  });
+
+  it("keeps Save search in that place, after the count, while there is nothing to clear", () => {
+    show({ sort: ["year"] });
+    expect(screen.getByText("145 lots").nextElementSibling).toBe(screen.getByRole("button", { name: "Save search" }));
   });
 
   it("keeps editing a saved search while its filters change, until the dealer stops", () => {
     show({ make: ["TOYOTA"], title: ["salvage"] }, { searches: [CAMRY], editing: CAMRY });
-    expect(trigger(/^Save changes$/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeTruthy();
     expect(screen.getByText("Editing “Camry”")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Stop editing" }).getAttribute("href")).toBe("/active-lots?make=TOYOTA&title=salvage");
 

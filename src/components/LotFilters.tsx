@@ -50,8 +50,8 @@ type Apply = (next: Query) => void;
  * change is a new URL, so the server lists the lots and a list can be shared. The search runs
  * along the top; below it, the filters sit in a sidebar on the left, always there on a wide
  * screen and behind "Filters" on a narrow one, each folding away. Option counts come after the
- * list, since counting is the slow part. Save search ends the bar; while the dealer edits a saved
- * search (`editing`), every new URL carries it.
+ * list, since counting is the slow part. Save search follows the chips and Clear all; while the
+ * dealer edits a saved search (`editing`), every new URL carries it.
  */
 export function LotFilters({
   query,
@@ -218,7 +218,6 @@ export function LotFilters({
               </SheetFooter>
             </SheetContent>
           </Sheet>
-          <SaveSearch query={query} searches={searches} editing={editing} />
         </div>
       </div>
 
@@ -277,6 +276,7 @@ export function LotFilters({
                 {words.clearAll}
               </Button>
             )}
+            <SaveSearch query={query} searches={searches} editing={editing} />
             <Label className="ml-auto font-normal">
               {words.sort}
               <NativeSelect

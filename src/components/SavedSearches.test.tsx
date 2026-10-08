@@ -32,10 +32,7 @@ describe("Save search", () => {
   it("saves the filters on screen under a name drawn from them, alerts off unless asked for", async () => {
     saveSearchAction.mockResolvedValue({ value: { ...CAMRY, alerts: true } });
     render(<SaveSearch query={read("make=TOYOTA&model=CAMRY&sort=year")} searches={[]} editing={null} />);
-    const button = screen.getByRole("button", { name: "Save search" });
-    expect(button.getAttribute("aria-pressed")).toBe("false");
-
-    await click(button);
+    await click(screen.getByRole("button", { name: "Save search" }));
     const form = dialog("Save this search");
     expect(nameField(form).value).toBe("TOYOTA, CAMRY");
     expect(alerts(form).getAttribute("aria-checked")).toBe("false");
@@ -64,10 +61,7 @@ describe("Save search", () => {
   it("reads Saved search when the filters on screen are a saved search's, and renames or pauses it", async () => {
     updateSearchAction.mockResolvedValue({ value: { ...CAMRY, alerts: true } });
     render(<SaveSearch query={read("model=CAMRY&make=TOYOTA&sort=sale")} searches={[CAMRY]} editing={null} />);
-    const button = screen.getByRole("button", { name: "Saved search" });
-    expect(button.getAttribute("aria-pressed")).toBe("true");
-
-    await click(button);
+    await click(screen.getByRole("button", { name: "Saved search" }));
     const form = dialog("Edit saved search");
     expect(nameField(form).value).toBe("Camry");
     await click(alerts(form));

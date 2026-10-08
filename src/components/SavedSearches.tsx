@@ -1,6 +1,5 @@
 "use client";
 
-import { BookmarkCheckIcon, BookmarkIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactElement, type ReactNode, useId, useState, useTransition } from "react";
@@ -16,10 +15,10 @@ import { browserZone, listPath, type Query, readQuery, SEARCH_NAME_MAX, searchNa
 import type { SavedSearch } from "@/lib/saved";
 
 /**
- * Save search, at the end of the lot list's filter bar. While the filters on screen are a saved
- * search's it reads "Saved search", to rename it or pause its alerts; while the dealer edits one
- * (`editing`, the list's `saved` parameter) and the filters differ, "Save changes", to save them
- * into it or as a new search.
+ * Save search, as text like Clear all, right after it above the lots. While the filters on screen
+ * are a saved search's it reads "Saved search", to rename it or pause its alerts; while the dealer
+ * edits one (`editing`, the list's `saved` parameter) and the filters differ, "Save changes", to
+ * save them into it or as a new search.
  */
 export function SaveSearch({ query, searches, editing }: { query: Query; searches: SavedSearch[]; editing: SavedSearch | null }) {
   const { locale, m } = useI18n();
@@ -34,13 +33,8 @@ export function SaveSearch({ query, searches, editing }: { query: Query; searche
       search={same}
       query={saved ? null : filters}
       name={same?.name ?? searchName(query, { locale, m })}
-      trigger={<Button variant="outline" size="lg" aria-pressed={saved} className="aria-pressed:bg-muted" />}
-      label={
-        <>
-          {saved ? <BookmarkCheckIcon aria-hidden="true" /> : <BookmarkIcon aria-hidden="true" />}
-          {changed ? words.saveChanges : saved ? words.saved : words.save}
-        </>
-      }
+      trigger={<Button variant="link" size="sm" />}
+      label={changed ? words.saveChanges : saved ? words.saved : words.save}
       // A new search made while editing another leaves that one: the list stops editing it.
       onDone={(created) => (created && editing ? router.push(localePath(listPath(query), locale)) : router.refresh())}
     />

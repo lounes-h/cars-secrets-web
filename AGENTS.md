@@ -534,8 +534,9 @@ In place for saved lots, searches and alerts, which the API stores, finds and se
   chosen, unless that turns off a reminder still to come. Under it, the reminders' status and,
   once saved, "Email me when the auction date or Buy now price changes" (change alerts; "when the
   auction date changes" for a lot without a Buy now price).
-- **Save search** (`src/components/SavedSearches.tsx`) ends the filter bar: a name drawn from the
-  chips (`searchName`) and "Email me new matches", off by default. A search keeps the list's query
+- **Save search** (`src/components/SavedSearches.tsx`), text like Clear all and right after it
+  (after the count while no filter is set), opens a dialog: a name drawn from the chips
+  (`searchName`) and "Email me new matches", off by default. A search keeps the list's query
   without its order (`searchQuery`). While the filters on screen are a saved search's the button
   reads "Saved search", to rename it or pause its alerts. The Saved page's "Edit filters" opens the
   list with `saved=<id>`, which every URL the list makes keeps (`listPath(query, page, saved)`); the
