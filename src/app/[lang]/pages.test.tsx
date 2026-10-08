@@ -124,7 +124,7 @@ describe("a path no page matches", () => {
 });
 
 describe("placeholder pages", () => {
-  it.each(["alerts", "best-buys", "how-it-works", "pricing", "saved", "settings", "vin-lookup"])(
+  it.each(["best-buys", "how-it-works", "pricing", "vin-lookup"])(
     "/%s is a blank main with its registered metadata",
     async (path) => {
       const page = await import(`@/app/[lang]/${path}/page.tsx`);

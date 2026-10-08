@@ -1,10 +1,12 @@
 "use client";
 
 import { CheckIcon, ChevronDownIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, XIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState, useTransition } from "react";
 import { lotCountsAction, rememberLotFiltersAction } from "@/app/[lang]/active-lots/actions";
 import { useI18n } from "@/components/I18nProvider";
+import { SaveSearch } from "@/components/SavedSearches";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -18,6 +20,7 @@ import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, 
 import { fill, formatCount, localePath, plural } from "@/lib/i18n";
 import {
   activeIds,
+  browserZone,
   chips,
   COUNTED,
   edit,
@@ -37,6 +40,7 @@ import {
   ZONE_COOKIE,
 } from "@/lib/lot-filters";
 import type { Facets } from "@/lib/lots";
+import type { SavedSearch } from "@/lib/saved";
 
 type Counts = { value: string; count: number }[] | null;
 type Apply = (next: Query) => void;
@@ -46,13 +50,16 @@ type Apply = (next: Query) => void;
  * change is a new URL, so the server lists the lots and a list can be shared. The search runs
  * along the top; below it, the filters sit in a sidebar on the left, always there on a wide
  * screen and behind "Filters" on a narrow one, each folding away. Option counts come after the
- * list, since counting is the slow part.
+ * list, since counting is the slow part. Save search ends the bar; while the dealer edits a saved
+ * search (`editing`), every new URL carries it.
  */
 export function LotFilters({
   query,
   total,
   usage,
   remembered,
+  searches = [],
+  editing = null,
   children,
 }: {
   query: Query;
@@ -61,6 +68,9 @@ export function LotFilters({
   usage: Record<string, number>;
   /** The filters kept for the dealer's next visit, as last stored. */
   remembered: string;
+  /** The dealer's saved searches, and the one they are editing (the URL's `saved`). */
+  searches?: SavedSearch[];
+  editing?: SavedSearch | null;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -75,7 +85,7 @@ export function LotFilters({
   function apply(next: Query) {
     // The bar always sets an order, so a URL without parameters means "as I left it".
     const ordered = edit(next, { sort: next.sort ?? ["newest"] });
-    startTransition(() => router.push(localePath(listPath(ordered), locale), { scroll: false }));
+    startTransition(() => router.push(localePath(listPath(ordered, 1, editing?.id), locale), { scroll: false }));
   }
 
   function countsOf(id: string): Counts {
@@ -99,7 +109,7 @@ export function LotFilters({
   }, [keep, remembered]);
 
   useEffect(() => {
-    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const zone = browserZone();
     const cookie = `${ZONE_COOKIE}=${encodeURIComponent(zone)}`;
     if (!zone || document.cookie.split("; ").includes(cookie)) return;
     document.cookie = `${cookie}; path=/; max-age=31536000; samesite=lax`;
@@ -208,6 +218,7 @@ export function LotFilters({
               </SheetFooter>
             </SheetContent>
           </Sheet>
+          <SaveSearch query={query} searches={searches} editing={editing} />
         </div>
       </div>
 
@@ -242,6 +253,12 @@ export function LotFilters({
             <p aria-live="polite" className="mr-2 font-semibold">
               {lots(total)}
             </p>
+            {editing && (
+              <p className="mr-2 flex gap-2 text-sm text-muted-foreground">
+                {fill(m.searches.editing, { name: editing.name })}
+                <Link href={localePath(listPath(query), locale)}>{m.searches.stopEditing}</Link>
+              </p>
+            )}
             {found.map((chip) => (
               <Button
                 key={chip.key}

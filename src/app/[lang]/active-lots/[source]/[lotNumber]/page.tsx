@@ -16,6 +16,7 @@ import { GalleryTabs } from "@/components/GalleryTabs";
 import { DamageMap, DamageReport, Market, PremiumBadge, PremiumSummary } from "@/components/PremiumSections";
 import { LocalTime } from "@/components/LocalTime";
 import { LotBadges } from "@/components/LotBadges";
+import { LotWatch } from "@/components/LotWatch";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fill, localePath } from "@/lib/i18n";
@@ -35,6 +36,7 @@ import {
   sellerName,
   vehicle,
 } from "@/lib/lots";
+import { getSavedLot } from "@/lib/saved";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { currentUser, sessionToken, visitorIp } from "@/lib/session";
 import type { Messages } from "@/messages/en";
@@ -79,9 +81,11 @@ export default async function LotPage({ params }: { params: Params }) {
   }
 
   const clientIp = await visitorIp();
-  const [lot, images] = await Promise.all([
+  const [lot, images, saved] = await Promise.all([
     getLot(source, lotNumber, token, clientIp),
     getLotImages(source, lotNumber, token, clientIp),
+    // Without it the lot still shows, as not saved.
+    getSavedLot({ source, lot_number: lotNumber }, token, clientIp).catch(() => null),
   ]);
   if (!lot) notFound();
 
@@ -94,7 +98,9 @@ export default async function LotPage({ params }: { params: Params }) {
     lot.damage_primary && fill(m.lot.secondaryDamage, { damage: lot.damage_secondary || m.lot.notApplicable }),
     place(lot) !== "—" && place(lot),
   ].filter(Boolean);
-  const left = lot.sale_at ? countdown(lot.sale_at, new Date(), m) : null;
+  // The request's clock: how long until the sale, and whether a set reminder's time has passed.
+  const now = new Date();
+  const left = lot.sale_at ? countdown(lot.sale_at, now, m) : null;
   const money = (value: number | null) => amount(value, lot.currency, locale);
   const buyNow = lot.buy_it_now_price ? money(lot.buy_it_now_price) : null;
   const auction = auctionName(lot.source);
@@ -132,6 +138,13 @@ export default async function LotPage({ params }: { params: Params }) {
             <p className="text-sm text-muted-foreground">
               {lot.sale_at ? <LocalTime value={lot.sale_at} format="sale" /> : lot.sale_date ? saleDate(lot.sale_date, locale) : m.lot.futureSale}
             </p>
+            <LotWatch
+              lot={{ source: lot.source, lot_number: lot.lot_number, sale_at: lot.sale_at }}
+              initial={saved && { change_alerts: saved.change_alerts, remind_hour: saved.remind_hour, remind_day: saved.remind_day }}
+              full
+              now={now.getTime()}
+              className="mt-2 sm:items-end"
+            />
             {lot.listing_url && (
               <a href={lot.listing_url} rel="noopener noreferrer nofollow" target="_blank" className={buttonVariants({ variant: "outline", size: "lg", className: "mt-2" })}>
                 {fill(words.viewOn, { auction })}

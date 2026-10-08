@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LotCard } from "@/components/LotCard";
 import { LotFilters } from "@/components/LotFilters";
+import { LotWatch } from "@/components/LotWatch";
 import { buttonVariants } from "@/components/ui/button";
 import { fill, formatCount, type I18n, localePath, pluralForm, rich } from "@/lib/i18n";
 import { getI18n } from "@/lib/i18n-server";
@@ -19,6 +20,7 @@ import {
   type LotActivity,
   type LotPage,
 } from "@/lib/lots";
+import { getSavedLotKeys, getSavedSearches, keyOf, type SavedSearch } from "@/lib/saved";
 import { metadataForRoute } from "@/lib/seo/metadata";
 import { currentUser, sessionToken, visitorIp, visitorZone } from "@/lib/session";
 
@@ -40,7 +42,14 @@ export default async function AuctionsPage({ searchParams }: { searchParams: Pro
         {/* No visible title or lede: the search comes first. The heading stays for screen readers. */}
         <h1 className="sr-only">{m.pages["/active-lots"].title}</h1>
         {found ? (
-          <LotFilters query={found.query} total={found.total} usage={found.usage} remembered={found.remembered}>
+          <LotFilters
+            query={found.query}
+            total={found.total}
+            usage={found.usage}
+            remembered={found.remembered}
+            searches={found.searches}
+            editing={found.editing}
+          >
             <Lots {...found} i18n={i18n} />
           </LotFilters>
         ) : (
@@ -76,6 +85,7 @@ function ActivitySummary({ added, updated, i18n: { locale, m } }: LotActivity & 
 /**
  * The lots a signed-in dealer asked for. A search that names a lot opens it, and one that names
  * a make, model or years becomes those filters; the bare list comes back as the dealer left it.
+ * Alongside: which lots the dealer saved, their saved searches, and the one they edit (`saved`).
  */
 async function dealerLots(params: SearchParams, token: string, { locale }: I18n) {
   const query = readQuery(params);
@@ -90,18 +100,32 @@ async function dealerLots(params: SearchParams, token: string, { locale }: I18n)
   const { filters, usage } = await getLotPreferences(token, ip);
   // No parameters at all: the dealer came from elsewhere, not from the filter bar, which always
   // sets an order. Kept filters that read as nothing would only lead back here.
-  const saved = readQuery(new URLSearchParams(filters));
-  if (Object.keys(params).length === 0 && Object.keys(saved).length) redirect(localePath(listPath(saved), locale));
+  const kept = readQuery(new URLSearchParams(filters));
+  if (Object.keys(params).length === 0 && Object.keys(kept).length) redirect(localePath(listPath(kept), locale));
   const zone = await visitorZone();
-  const [list, activity] = await Promise.all([
+  const [list, activity, saved, searches] = await Promise.all([
     listLots(query, page, token, ip, zone),
-    // The summary is extra: the list stands without it.
+    // The summary is extra: the list stands without it, as without the saved searches.
     getLotActivity(token, ip, zone).catch(() => null),
+    getSavedLotKeys(token, ip),
+    getSavedSearches(token, ip).catch((): SavedSearch[] => []),
   ]);
-  return { query, page, usage, remembered: queryString(saved), activity, ...list };
+  const editing = searches.find((search) => search.id === params.saved) ?? null;
+  return { query, page, usage, remembered: queryString(kept), activity, saved, searches, editing, ...list };
 }
 
-function Lots({ query, page, items, total, i18n }: { query: Query; page: number; i18n: I18n } & LotPage) {
+/** A saved lot on the list: only Save shows there, so what is switched on for it does not matter. */
+const SAVED = { change_alerts: false, remind_hour: false, remind_day: false };
+
+function Lots({
+  query,
+  page,
+  items,
+  total,
+  saved,
+  editing,
+  i18n,
+}: { query: Query; page: number; saved: Set<string>; editing: SavedSearch | null; i18n: I18n } & LotPage) {
   const { locale, m } = i18n;
   const pages = pageCount(total);
   const first = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -120,18 +144,24 @@ function Lots({ query, page, items, total, i18n }: { query: Query; page: number;
       <ul aria-label={m.lots.list} className="mt-6 flex flex-col gap-4">
         {items.map((lot) => (
           <li key={`${lot.source}-${lot.lot_number}`}>
-            <LotCard lot={lot} i18n={i18n} />
+            <LotCard
+              lot={lot}
+              i18n={i18n}
+              actions={
+                <LotWatch lot={{ source: lot.source, lot_number: lot.lot_number, sale_at: lot.sale_at }} initial={saved.has(keyOf(lot)) ? SAVED : null} />
+              }
+            />
           </li>
         ))}
       </ul>
       <nav aria-label={m.lots.pagination} className="mt-6 flex items-center gap-4">
-        <PageLink href={localePath(listPath(query, page - 1), locale)} enabled={page > 1}>
+        <PageLink href={localePath(listPath(query, page - 1, editing?.id), locale)} enabled={page > 1}>
           {m.lots.previous}
         </PageLink>
         <p className="text-muted-foreground">
           {fill(m.lots.range, { first: n(first), last: n(first + items.length - 1), total: n(total), page: n(page), pages: n(pages) })}
         </p>
-        <PageLink href={localePath(listPath(query, page + 1), locale)} enabled={page < pages}>
+        <PageLink href={localePath(listPath(query, page + 1, editing?.id), locale)} enabled={page < pages}>
           {m.lots.next}
         </PageLink>
       </nav>

@@ -164,10 +164,13 @@ See `docs/architecture.md` for details.
   `/auth/session` after each navigation and renders both the main menu and the
   account side: Active lots, VIN Lookup, then How It Works and Pricing
   with "Sign in" and the "7 days free trial" button for visitors, or Saved and
-  Alerts with the dealer's initials in a round button once signed in. That
+  Alerts with the dealer's initials in a round button once signed in. Alerts
+  carries how many alerts are unread (`/auth/session` returns the count), and so
+  do the initials below `lg`. That
   button opens the account menu, a `DropdownMenu` (a click outside or Escape
   closes it, and so does following one of its links): the initials, the full
-  name and the email, then Settings, Account and Log out, which calls
+  name and the email, then Saved and Alerts (below `lg` only, where the main menu
+  is hidden), Settings, Account and Log out, which calls
   `logoutAction` directly, and last the language in use ("English (United
   States)", with the earth icon). Visitors get the language as an earth button
   at the right end of the banner, after the free trial. Both open the language
@@ -183,7 +186,8 @@ See `docs/architecture.md` for details.
   (it reads only its `[lang]` segment, so each page is prerendered once per language).
 - Pages are Server Components and stay static. Add `"use client"` only where
   interaction needs it. Pages that read the session (`/register`, `/login`,
-  `/account`) or a token from the URL are dynamic by necessity.
+  `/account`, `/saved`, `/alerts`, `/settings`) or a token from the URL are dynamic by
+  necessity.
 - Auth lives in the `src/app/[lang]/(auth)` route group: `actions.ts` holds every auth
   server action, the pages sit next to it, and `/account` sits outside it.
   Forms use React Hook Form with Zod (`src/lib/auth-schemas.ts`): the same
@@ -329,9 +333,10 @@ A code change is not considered complete until the relevant unit tests have been
 ## Current state
 
 The pages are the auth pages (`/register`, `/login`, `/forgot-password`,
-`/reset-password`, `/verify-email`, `/account`), `/active-lots` (the lot listing)
+`/reset-password`, `/verify-email`, `/account`), `/active-lots` (the lot listing),
+`/saved`, `/alerts` and `/settings` (saved lots, searches and alerts, below)
 and the empty placeholders the banner menu links to: `/vin-lookup`,
-`/how-it-works`, `/pricing`, `/saved`, `/alerts` and `/settings`, plus `/best-buys`, which the menu
+`/how-it-works` and `/pricing`, plus `/best-buys`, which the menu
 leaves out for now — blank white
 pages with metadata only, so they have no `h1` until there is something to put
 on them. Every page exists in English and in Spanish (see the languages rule). A
@@ -380,7 +385,8 @@ the last 3 or 7 days when today has fewer than 1,000 (`activityWindow`) — and 
 every column the ingest keeps for it, every photo of it, and a way to the lot on the
 auction's site, since bidding never happens here. The page reads top to bottom as: a summary (title, lot number and VIN
 with copy buttons, the time left before the sale — "Future sale" when the auction has set no
-sale day yet, as Copart calls it — a "View on Copart" button (the auction's name from
+sale day yet, as Copart calls it — Save / Saved and Remind me with the reminders' status and,
+once saved, the change alerts (`LotWatch`, below), a "View on Copart" button (the auction's name from
 `auctionName` in `src/lib/lots.ts`) to the lot on the auction's site, with "Bidding happens on
 Copart's own site." under it, a meta line (mileage, drive as a
 dealer says it — FWD, RWD, AWD, 4WD, from `driveType` — "Primary damage: …" and "Secondary damage: …", the latter "N/A" when the auction gives none, location) and
@@ -454,8 +460,8 @@ left to right: the photo (the export's `thumbnail_url` is 144px wide, so the car
 model, trim, linking to the lot), "Lot N · auction · place",
 mileage and primary damage, the deal-breaker badges and the sale time; then, in a column on
 the right, the real figures only — current bid, likely final bid (`predicted_final_price`),
-retail value (ACV) and Buy now when offered, never the calculator's samples — and a "View
-details" button under them. Only the photo, the title and View details open the lot; the rest
+retail value (ACV) and Buy now when offered, never the calculator's samples — then Save /
+Saved (`LotWatch`) and a "View details" button under them. Only the photo, the title and View details open the lot; the rest
 of the card is text, to read and select. The photo and the button are out of the tab order and
 hidden from screen readers, which get the title's link once rather than three times. The API
 lists cars (vehicle type `V`) before every other type, whatever the order.
@@ -515,7 +521,43 @@ the server-rendered cards) work like this:
 - The dealer's time zone travels in the `cs_tz` cookie, which the bar sets from the browser,
   so "today" is their today; until it is set, it is UTC.
 
-There is no saved search, saved lot or alert yet, and no "who can bid" or distance filter
+In place for saved lots, searches and alerts, which the API stores, finds and sends (its
+`app/saved.py` and `app/alerts.py`; when an alert goes out is never decided here):
+
+- **Save / Saved** (`src/components/LotWatch.tsx`), on every lot card, the lot page and the
+  Saved page, bookmarks the auction's listing in the dealer's account and switches nothing on.
+  On the lot page and the Saved page the same component offers **Remind me**: a dialog with 1
+  hour before the auction (checked while no reminder is still to come) and 1 day before, each at
+  its time in the dealer's zone, "Already passed" and off once its time has come, and a waiting
+  state while the auction has no start time. Reminders refer to the auction's scheduled start,
+  not to the lot's turn; saving them saves the lot. Under it, the reminders' status and, once
+  saved, "Email me when the auction date or Buy now price changes" (change alerts).
+- **Save search** (`src/components/SavedSearches.tsx`) ends the filter bar: a name drawn from the
+  chips (`searchName`) and "Email me new matches", off by default. A search keeps the list's query
+  without its order (`searchQuery`). While the filters on screen are a saved search's the button
+  reads "Saved search", to rename it or pause its alerts. The Saved page's "Edit filters" opens the
+  list with `saved=<id>`, which every URL the list makes keeps (`listPath(query, page, saved)`); the
+  button then offers "Save changes" or "Save as a new search", and "Stop editing" leaves it.
+- **Saved** (`/saved`): Lots and Searches tabs. Lots are lot cards with `LotWatch`; one the auction
+  no longer lists reads "No longer listed" (which does not mean sold), has no links and can only be
+  removed. Searches open their results, switch their alerts, edit their filters, rename, and delete
+  after a confirmation, which leaves saved lots alone.
+- **Alerts** (`/alerts`): the inbox, newest first, 20 to a page, by kind (`?kind=`): new matches,
+  grouped by search with each lot once, naming its other searches, and "See all N"; saved-lot
+  changes ("Auction: … → …", "Buy now: … → …"); and reminders. Unread ones carry a dot and a bold
+  heading; following a link in one marks it read (`AlertEntry`), "Mark all as read" marks them all,
+  and reading changes nothing else.
+- **Settings** (`/settings`): email on or off for each kind, the search summary once a day (7 AM)
+  or twice (7 AM and 5 PM), the emails' language and time zone, from the page's language and the
+  browser's zone until chosen. Every alert reaches the inbox whatever is chosen here.
+- The server actions (`src/app/[lang]/saved/actions.ts`, `alerts/actions.ts`,
+  `settings/actions.ts`) check everything they are given, and send the page's language and the
+  browser's zone along, which the API keeps for the dealer's first alert emails.
+
+Reminders go out at their time, saved-lot changes within a minute, and search summaries at the
+dealer's 7 AM (and 5 PM), by email in English or Spanish; text messages come later.
+
+There is no "who can bid" or distance filter
 (the data has neither buyer eligibility nor the dealer's location). The likely final bid uses
 the real stored prediction; calculator costs and profit remain samples because the API has
 no fees, transport or target profit to feed `src/lib/deal.ts` yet.

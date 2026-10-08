@@ -4,6 +4,7 @@ import { es } from "@/messages/es";
 import {
   activeIds,
   amountIn,
+  browserZone,
   chips,
   COUNTED,
   edit,
@@ -17,6 +18,8 @@ import {
   readQuery,
   rememberable,
   searched,
+  searchName,
+  searchQuery,
   valueLabel,
 } from "@/lib/lot-filters";
 
@@ -86,6 +89,38 @@ describe("listPath", () => {
     expect(listPath({}, 2)).toBe("/active-lots?page=2");
     expect(listPath(read("title=clean"), 1)).toBe("/active-lots?title=clean");
     expect(listPath(read("title=clean"), 3)).toBe("/active-lots?title=clean&page=3");
+  });
+
+  it("carries the saved search being edited, after the query and the page", () => {
+    expect(listPath(read("title=clean"), 2, "s1")).toBe("/active-lots?title=clean&page=2&saved=s1");
+    expect(listPath({}, 1, "s1")).toBe("/active-lots?saved=s1");
+  });
+});
+
+describe("searchQuery", () => {
+  it("is what a saved search keeps: the filters and the search words, not the order", () => {
+    expect(searchQuery(read("sort=year&q=hybrid&title=clean"))).toBe("q=hybrid&title=clean");
+    expect(searchQuery(read("sort=year"))).toBe("");
+  });
+});
+
+describe("searchName", () => {
+  it("names a search after its chips, or after every lot when it has none", () => {
+    expect(searchName(read("year_min=2021&year_max=2025&title=salvage&make=TOYOTA&model=CAMRY"), EN)).toBe(
+      "TOYOTA, CAMRY, Year 2021–2025, Salvage title",
+    );
+    expect(searchName(read("sort=year"), EN)).toBe("All lots");
+    expect(searchName({}, { locale: "es", m: es })).toBe("Todos los lotes");
+  });
+
+  it("fits the 80 characters a name may have", () => {
+    expect(searchName(read(`q=${"word ".repeat(30)}`), EN)).toHaveLength(80);
+  });
+});
+
+describe("browserZone", () => {
+  it("is the zone the browser runs in", () => {
+    expect(browserZone()).toBe("UTC");
   });
 });
 

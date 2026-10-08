@@ -1,7 +1,9 @@
 import { CalendarIcon, ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { LocalTime } from "@/components/LocalTime";
 import { LotBadges } from "@/components/LotBadges";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fill, type I18n, localePath } from "@/lib/i18n";
@@ -16,12 +18,16 @@ export function cardPhoto(lot: Lot): string | null {
   return url?.startsWith("https://") ? url.replace(/_thb\.(\w+)$/, "_ful.$1") : null;
 }
 
+const PHOTO_BOX = "relative flex-none bg-muted no-underline sm:min-h-48 sm:w-64";
+
 /**
  * One lot in the list, answering "is this lot worth opening?": the photo, what it is and where,
  * the deal breakers, when it sells and the real money figures. The photo, the title and View
- * details open the lot; the rest of the card is text to read and select.
+ * details open the lot; the rest of the card is text to read and select. `actions` are the
+ * dealer's controls (Save); a lot the auction no longer lists (`unavailable`, on the Saved page)
+ * says so and has no page to open.
  */
-export function LotCard({ lot, i18n }: { lot: Lot; i18n: I18n }) {
+export function LotCard({ lot, i18n, actions, unavailable = false }: { lot: Lot; i18n: I18n; actions?: ReactNode; unavailable?: boolean }) {
   const { locale, m } = i18n;
   const href = localePath(lotPath(lot), locale);
   const photo = cardPhoto(lot);
@@ -38,6 +44,12 @@ export function LotCard({ lot, i18n }: { lot: Lot; i18n: I18n }) {
     [m.lot.retailValue, lot.est_retail_value],
   ];
   if (lot.buy_it_now_price) prices.push([m.lot.buyNow, lot.buy_it_now_price]);
+  const picture = photo ? (
+    // eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it
+    <img src={photo} alt="" loading="lazy" className="aspect-4/3 w-full object-cover sm:absolute sm:inset-0 sm:aspect-auto sm:h-full" />
+  ) : (
+    <div className="grid aspect-4/3 place-items-center text-muted-foreground sm:absolute sm:inset-0 sm:aspect-auto">{m.lot.noPhoto}</div>
+  );
 
   return (
     // One per line: the photo on the left, the lot in the middle, the money on the right; stacked on a phone.
@@ -45,21 +57,30 @@ export function LotCard({ lot, i18n }: { lot: Lot; i18n: I18n }) {
       {/* At least 4:3 beside the text, and as tall as the card when the text runs longer. One of the
           three ways into the lot, with the title and View details; the title is the one a keyboard
           or a screen reader uses, so this one is left out of both rather than read twice. */}
-      <Link href={href} tabIndex={-1} aria-hidden="true" className="relative flex-none bg-muted no-underline sm:min-h-48 sm:w-64">
-        {photo ? (
-          // eslint-disable-next-line @next/next/no-img-element -- the auction hosts the photo; next/image would proxy it
-          <img src={photo} alt="" loading="lazy" className="aspect-4/3 w-full object-cover sm:absolute sm:inset-0 sm:aspect-auto sm:h-full" />
-        ) : (
-          <div className="grid aspect-4/3 place-items-center text-muted-foreground sm:absolute sm:inset-0 sm:aspect-auto">{m.lot.noPhoto}</div>
-        )}
-      </Link>
+      {unavailable ? (
+        <div className={PHOTO_BOX}>{picture}</div>
+      ) : (
+        <Link href={href} tabIndex={-1} aria-hidden="true" className={PHOTO_BOX}>
+          {picture}
+        </Link>
+      )}
       <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:p-6 md:flex-row md:gap-6">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <h2 className="font-heading text-base leading-snug font-semibold">
-            <Link href={href} className="no-underline hover:underline">
-              {title}
-            </Link>
+            {unavailable ? (
+              title
+            ) : (
+              <Link href={href} className="no-underline hover:underline">
+                {title}
+              </Link>
+            )}
           </h2>
+          {unavailable && (
+            <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <Badge variant="outline">{m.saved.unavailable}</Badge>
+              {m.saved.unavailableNote}
+            </p>
+          )}
           <p className="text-muted-foreground">{where.join(" · ")}</p>
           {facts.length > 0 && <p>{facts.join(" · ")}</p>}
           <LotBadges lot={lot} m={m} className="gap-1.5" />
@@ -78,11 +99,14 @@ export function LotCard({ lot, i18n }: { lot: Lot; i18n: I18n }) {
               </div>
             ))}
           </dl>
+          {actions}
           {/* Left out of the tab order and of what a screen reader reads, like the photo. */}
-          <Link href={href} tabIndex={-1} aria-hidden="true" className={buttonVariants({ variant: "outline", className: "mt-auto" })}>
-            {m.lot.viewDetails}
-            <ChevronRightIcon aria-hidden="true" />
-          </Link>
+          {!unavailable && (
+            <Link href={href} tabIndex={-1} aria-hidden="true" className={buttonVariants({ variant: "outline", className: "mt-auto" })}>
+              {m.lot.viewDetails}
+              <ChevronRightIcon aria-hidden="true" />
+            </Link>
+          )}
         </div>
       </div>
     </Card>

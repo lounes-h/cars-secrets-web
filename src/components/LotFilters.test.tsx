@@ -11,6 +11,7 @@ const { push, refresh, lotCountsAction, rememberLotFiltersAction } = vi.hoisted(
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh }) }));
 vi.mock("@/app/[lang]/active-lots/actions", () => ({ lotCountsAction, rememberLotFiltersAction }));
+vi.mock("@/app/[lang]/saved/actions", () => ({ saveSearchAction: vi.fn(), updateSearchAction: vi.fn() }));
 
 const { LotFilters } = await import("@/components/LotFilters");
 const { COUNTED } = await import("@/lib/lot-filters");
@@ -35,9 +36,20 @@ const COUNTS = {
   sale: [{ value: "next_week", count: 40 }],
 };
 
-function show(query: Query = {}, { total = 145, usage = {}, remembered = "" }: { total?: number; usage?: Record<string, number>; remembered?: string } = {}) {
+const CAMRY = { id: "s1", name: "Camry", query: "make=TOYOTA", alerts: true, created_at: "2026-10-07T00:00:00Z" };
+
+function show(
+  query: Query = {},
+  {
+    total = 145,
+    usage = {},
+    remembered = "",
+    searches = [],
+    editing = null,
+  }: { total?: number; usage?: Record<string, number>; remembered?: string; searches?: (typeof CAMRY)[]; editing?: typeof CAMRY | null } = {},
+) {
   return render(
-    <LotFilters query={query} total={total} usage={usage} remembered={remembered}>
+    <LotFilters query={query} total={total} usage={usage} remembered={remembered} searches={searches} editing={editing}>
       <table aria-label="Lots" />
     </LotFilters>,
   );
@@ -119,6 +131,26 @@ describe("the bar", () => {
     const sort = screen.getByRole("combobox", { name: "Sort" });
     expect(line.contains(sort)).toBe(false);
     expect(screen.getByText("145 lots").parentElement!.contains(sort)).toBe(true);
+  });
+
+  it("ends with Save search, which reads Saved search for a saved search's filters", () => {
+    show({ make: ["TOYOTA"], sort: ["year"] }, { searches: [CAMRY] });
+    const filters = trigger(/^Title/).parentElement!;
+    expect(filters.lastElementChild!.textContent).toBe("Saved search");
+    cleanup();
+    show({ make: ["HONDA"] }, { searches: [CAMRY] });
+    expect(trigger(/^Save search$/)).toBeTruthy();
+  });
+
+  it("keeps editing a saved search while its filters change, until the dealer stops", () => {
+    show({ make: ["TOYOTA"], title: ["salvage"] }, { searches: [CAMRY], editing: CAMRY });
+    expect(trigger(/^Save changes$/)).toBeTruthy();
+    expect(screen.getByText("Editing “Camry”")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Stop editing" }).getAttribute("href")).toBe("/active-lots?make=TOYOTA&title=salvage");
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Sort" }), { target: { value: "year" } });
+
+    expect(push).toHaveBeenCalledWith("/active-lots?make=TOYOTA&title=salvage&sort=year&saved=s1", { scroll: false });
   });
 
   it("shows a title's counts, and takes a choice", async () => {

@@ -11,6 +11,8 @@ const interpretSearch = vi.fn();
 const getLotPreferences = vi.fn();
 const getLotActivity = vi.fn();
 const filterProps = vi.fn();
+const getSavedLotKeys = vi.fn();
+const getSavedSearches = vi.fn();
 const redirect = vi.fn((url: string) => {
   throw new Error(`REDIRECT ${url}`);
 });
@@ -28,7 +30,9 @@ vi.mock("@/lib/lots", async (original) => ({
   getLotPreferences,
   getLotActivity,
 }));
-vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url) }));
+vi.mock("@/lib/saved", async (original) => ({ ...(await original<object>()), getSavedLotKeys, getSavedSearches }));
+vi.mock("@/app/[lang]/saved/actions", () => ({}));
+vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url), useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/components/LotFilters", () => ({
   LotFilters: ({ children, ...props }: { children: ReactNode }) => {
     filterProps(props);
@@ -60,7 +64,11 @@ beforeEach(() => {
     added: { today: 87, last_3_days: 11821, last_7_days: 57043 },
     updated: { today: 14769, last_3_days: 62275, last_7_days: 61280 },
   });
+  getSavedLotKeys.mockResolvedValue(new Set());
+  getSavedSearches.mockResolvedValue([]);
 });
+
+const CAMRY = { id: "s1", name: "Camry", query: "make=TOYOTA", alerts: true, created_at: "2026-10-07T00:00:00Z" };
 
 afterEach(() => {
   cleanup();
@@ -137,6 +145,14 @@ describe("active lots page", () => {
     expect(card.textContent).toContain("$8,119");
   });
 
+  it("offers Save on every card, and marks the lots the dealer saved", async () => {
+    getSavedLotKeys.mockResolvedValue(new Set(["copart/41633101"]));
+    await show();
+    expect(getSavedLotKeys).toHaveBeenCalledWith("token-abc", null);
+    const saves = cards().map((card) => within(card).getByRole("button").textContent);
+    expect(saves.slice(0, 3)).toEqual(["Save", "Saved", "Save"]);
+  });
+
   it("asks for the requested page and offers the neighbouring ones", async () => {
     listLots.mockResolvedValue({ items: lots(PAGE_SIZE), total: 145 });
     await show("3");
@@ -187,7 +203,24 @@ describe("search and filters", () => {
       total: 145,
       usage: { state: 4 },
       remembered: "sort=year",
+      searches: [],
+      editing: null,
     });
+  });
+
+  it("hands the bar the dealer's saved searches and the one being edited, which the page links keep", async () => {
+    getSavedSearches.mockResolvedValue([CAMRY]);
+    await show({ make: "TOYOTA", saved: "s1", page: "2" });
+    expect(filterProps).toHaveBeenCalledWith(expect.objectContaining({ searches: [CAMRY], editing: CAMRY }));
+    expect(screen.getByRole("link", { name: "Previous" }).getAttribute("href")).toBe("/active-lots?make=TOYOTA&saved=s1");
+    expect(screen.getByRole("link", { name: "Next" }).getAttribute("href")).toBe("/active-lots?make=TOYOTA&page=3&saved=s1");
+  });
+
+  it("edits no search it cannot find, and stands without saved searches when the API cannot say", async () => {
+    getSavedSearches.mockRejectedValue(new Error("down"));
+    await show({ make: "TOYOTA", saved: "s1" });
+    expect(filterProps).toHaveBeenCalledWith(expect.objectContaining({ searches: [], editing: null }));
+    expect(cards()).toHaveLength(PAGE_SIZE);
   });
 
   it("keeps the filters in the pagination links", async () => {

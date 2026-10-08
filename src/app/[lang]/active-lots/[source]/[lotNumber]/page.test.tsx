@@ -6,6 +6,7 @@ import { sampleLot } from "@/lib/lots-fixture";
 const currentUser = vi.fn();
 const getLot = vi.fn();
 const getLotImages = vi.fn();
+const getSavedLot = vi.fn();
 const notFound = vi.fn(() => {
   throw new Error("NEXT_NOT_FOUND");
 });
@@ -16,7 +17,9 @@ vi.mock("@/lib/session", () => ({
   visitorIp: async () => null,
 }));
 vi.mock("@/lib/lots", async (original) => ({ ...(await original<object>()), getLot, getLotImages }));
-vi.mock("next/navigation", () => ({ notFound }));
+vi.mock("@/lib/saved", async (original) => ({ ...(await original<object>()), getSavedLot }));
+vi.mock("@/app/[lang]/saved/actions", () => ({}));
+vi.mock("next/navigation", () => ({ notFound, useRouter: () => ({ refresh: vi.fn() }) }));
 
 const { default: LotPage, generateMetadata } = await import("@/app/[lang]/active-lots/[source]/[lotNumber]/page");
 
@@ -33,11 +36,37 @@ beforeEach(() => {
     { thumb: "https://cs.copart.example/a_thb.jpg", full: "https://cs.copart.example/a_ful.jpg" },
     { thumb: "https://cs.copart.example/b_thb.jpg", full: null },
   ]);
+  getSavedLot.mockResolvedValue(null);
 });
 
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+});
+
+describe("lot page's Save and Remind me", () => {
+  it("offers Save and Remind me beside the sale time, with nothing switched on yet", async () => {
+    await show();
+    expect(getSavedLot).toHaveBeenCalledWith({ source: "copart", lot_number: "41633106" }, "token-abc", null);
+    const header = screen.getByRole("banner", { hidden: true });
+    expect(within(header).getByRole("button", { name: "Save" }).getAttribute("aria-pressed")).toBe("false");
+    expect(within(header).getByRole("button", { name: "Remind me" })).toBeTruthy();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+
+  it("shows a saved lot's reminders and change alerts", async () => {
+    getSavedLot.mockResolvedValue({ lot: sampleLot, available: true, saved_at: "2026-10-07T00:00:00Z", change_alerts: true, remind_hour: true, remind_day: false });
+    await show();
+    expect(screen.getByRole("button", { name: "Saved" })).toBeTruthy();
+    expect(screen.getByText(/^Reminders: 1 hour before/)).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: "Email me when the auction date or Buy now price changes" }).getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("still shows the lot when the API cannot say whether it is saved", async () => {
+    getSavedLot.mockRejectedValue(new Error("down"));
+    await show();
+    expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
+  });
 });
 
 describe("lot page", () => {
