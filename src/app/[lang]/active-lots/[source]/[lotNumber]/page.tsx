@@ -139,7 +139,7 @@ export default async function LotPage({ params }: { params: Params }) {
               {lot.sale_at ? <LocalTime value={lot.sale_at} format="sale" /> : lot.sale_date ? saleDate(lot.sale_date, locale) : m.lot.futureSale}
             </p>
             <LotWatch
-              lot={{ source: lot.source, lot_number: lot.lot_number, sale_at: lot.sale_at }}
+              lot={{ source: lot.source, lot_number: lot.lot_number, sale_at: lot.sale_at, buy_it_now_price: lot.buy_it_now_price }}
               initial={saved && { change_alerts: saved.change_alerts, remind_hour: saved.remind_hour, remind_day: saved.remind_day }}
               full
               now={now.getTime()}

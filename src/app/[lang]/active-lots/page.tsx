@@ -148,7 +148,10 @@ function Lots({
               lot={lot}
               i18n={i18n}
               actions={
-                <LotWatch lot={{ source: lot.source, lot_number: lot.lot_number, sale_at: lot.sale_at }} initial={saved.has(keyOf(lot)) ? SAVED : null} />
+                <LotWatch
+                  lot={{ source: lot.source, lot_number: lot.lot_number, sale_at: lot.sale_at, buy_it_now_price: lot.buy_it_now_price }}
+                  initial={saved.has(keyOf(lot)) ? SAVED : null}
+                />
               }
             />
           </li>

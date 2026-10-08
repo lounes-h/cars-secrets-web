@@ -555,6 +555,8 @@ export const en = {
     unavailable: "No longer listed",
     unavailableNote: "The auction no longer lists this lot, which does not mean it sold.",
     changeAlerts: "Email me when the auction date or Buy now price changes",
+    /** The same for a lot without a Buy now price. */
+    changeAlertsDate: "Email me when the auction date changes",
     errors: {
       lots: "An account keeps up to 500 saved lots. Remove one to save another.",
       searches: "An account keeps up to 50 saved searches. Delete one to save another.",

@@ -59,7 +59,7 @@ describe("lot page's Save and Remind me", () => {
     await show();
     expect(screen.getByRole("button", { name: "Saved" })).toBeTruthy();
     expect(screen.getByText(/^Reminders: 1 hour before/)).toBeTruthy();
-    expect(screen.getByRole("checkbox", { name: "Email me when the auction date or Buy now price changes" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("checkbox", { name: "Email me when the auction date changes" }).getAttribute("aria-checked")).toBe("true");
   });
 
   it("still shows the lot when the API cannot say whether it is saved", async () => {

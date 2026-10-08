@@ -15,7 +15,7 @@ const { I18nProvider } = await import("@/components/I18nProvider");
 const { es } = await import("@/messages/es");
 
 const KEY = { source: "copart", lot_number: "41633106" };
-const LOT = { ...KEY, sale_at: "2026-10-09T15:00:00Z" };
+const LOT = { ...KEY, sale_at: "2026-10-09T15:00:00Z", buy_it_now_price: 9500 };
 const OFF = { change_alerts: false, remind_hour: false, remind_day: false };
 const NOW = Date.parse("2026-10-08T12:00:00Z");
 
@@ -101,6 +101,14 @@ describe("Save / Saved", () => {
 });
 
 describe("change alerts", () => {
+  it("are about the auction date alone for a lot without Buy now", () => {
+    for (const buy_it_now_price of [null, 0]) {
+      render(<LotWatch lot={{ ...LOT, buy_it_now_price }} initial={OFF} full now={NOW} />);
+      expect(screen.getByRole("checkbox", { name: "Email me when the auction date changes" })).toBeTruthy();
+      cleanup();
+    }
+  });
+
   it("are offered once the lot is saved, and switched there", async () => {
     saveLotAction.mockResolvedValue(saved({ change_alerts: true }));
     const { rerender } = render(<LotWatch lot={LOT} initial={null} full now={NOW} />);
@@ -153,7 +161,7 @@ describe("Remind me", () => {
 
   it("waits for the auction's time when there is none yet", async () => {
     saveLotAction.mockResolvedValue(saved({ remind_hour: true, remind_day: true }));
-    const lot = { ...KEY, sale_at: null };
+    const lot = { ...LOT, sale_at: null };
     render(<LotWatch lot={lot} initial={null} full now={NOW} />);
 
     const dialog = await remind();
@@ -180,6 +188,28 @@ describe("Remind me", () => {
     expect(saveLotAction).toHaveBeenCalledWith(KEY, { remind_hour: false, remind_day: false }, "UTC");
     expect(screen.queryByText(/^Reminders/)).toBeNull();
     expect(button("Saved")).toBeTruthy();
+  });
+
+  it("keeps Save reminders off while no time is chosen, so the lot is not saved", async () => {
+    render(<LotWatch lot={LOT} initial={null} full now={NOW} />);
+
+    const dialog = await remind();
+    const save = within(dialog).getByRole("button", { name: "Save reminders" });
+    expect(save.hasAttribute("disabled")).toBe(false);
+    await click(within(dialog).getByRole("checkbox", { name: /^1 hour before/ }));
+    expect(save.hasAttribute("disabled")).toBe(true);
+    await click(save);
+
+    expect(saveLotAction).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBe(dialog);
+    // Behind the open dialog, so out of the accessibility tree for now: still not saved.
+    expect(screen.getByRole("button", { name: "Save", hidden: true }).getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("keeps it off when every time has passed", async () => {
+    render(<LotWatch lot={LOT} initial={OFF} full now={NOW} />);
+    const dialog = await remind(Date.parse("2026-10-09T14:30:00Z"));
+    expect(within(dialog).getByRole("button", { name: "Save reminders" }).hasAttribute("disabled")).toBe(true);
   });
 
   it("closes without saving anything", async () => {

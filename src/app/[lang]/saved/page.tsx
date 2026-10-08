@@ -64,7 +64,7 @@ function SavedLots({ lots, now, i18n }: { lots: SavedLot[]; now: number; i18n: I
             unavailable={!available}
             actions={
               <LotWatch
-                lot={{ source: lot.source, lot_number: lot.lot_number, sale_at: lot.sale_at }}
+                lot={{ source: lot.source, lot_number: lot.lot_number, sale_at: lot.sale_at, buy_it_now_price: lot.buy_it_now_price }}
                 initial={{ change_alerts, remind_hour, remind_day }}
                 full={available}
                 refresh

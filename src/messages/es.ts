@@ -536,6 +536,7 @@ export const es: Messages = {
     unavailable: "Ya no está publicado",
     unavailableNote: "La subasta ya no publica este lote, lo que no significa que se haya vendido.",
     changeAlerts: "Envíame un correo cuando cambie la fecha de la subasta o el precio de compra inmediata",
+    changeAlertsDate: "Envíame un correo cuando cambie la fecha de la subasta",
     errors: {
       lots: "Una cuenta guarda hasta 500 lotes. Quita uno para guardar otro.",
       searches: "Una cuenta guarda hasta 50 búsquedas. Borra una para guardar otra.",

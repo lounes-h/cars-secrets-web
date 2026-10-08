@@ -15,7 +15,7 @@ import { fill, LOCALES } from "@/lib/i18n";
 import { browserZone } from "@/lib/lot-filters";
 import type { Switches } from "@/lib/saved";
 
-type WatchedLot = { source: string; lot_number: string; sale_at: string | null };
+type WatchedLot = { source: string; lot_number: string; sale_at: string | null; buy_it_now_price: number | null };
 type Reminder = "hour" | "day";
 
 /** Each reminder, latest first, and how long before the auction's scheduled start it goes out. */
@@ -118,7 +118,7 @@ export function LotWatch({
             onCheckedChange={(on) => save({ change_alerts: on })}
           />
           <FieldLabel htmlFor={`${id}-changes`} className="font-normal">
-            {m.saved.changeAlerts}
+            {lot.buy_it_now_price ? m.saved.changeAlerts : m.saved.changeAlertsDate}
           </FieldLabel>
         </Field>
       )}
@@ -134,7 +134,8 @@ export function LotWatch({
 /**
  * The reminders dialog: 1 hour before the auction's scheduled start (checked for a first choice)
  * and 1 day before, each at its time in the dealer's zone, or "Already passed" and off. Without a
- * start time yet, the reminders wait for one. Saving them saves the lot too.
+ * start time yet, the reminders wait for one. Saving them saves the lot too, so with no time
+ * chosen there is nothing to save, unless it turns off a reminder still to come.
  */
 function RemindMe({
   lot,
@@ -158,14 +159,16 @@ function RemindMe({
   const [now, setNow] = useState(0);
   const [choice, setChoice] = useState({ remind_hour: true, remind_day: false });
 
+  const waiting = (which: Reminder, at: number) => !!state?.[field(which)] && !passed(lot.sale_at, which, at);
+  const nothing = !choice.remind_hour && !choice.remind_day && !REMINDERS.some((which) => waiting(which, now));
+
   function toggle(next: boolean) {
     if (next) {
       const at = Date.now();
-      const waiting = (which: Reminder) => !!state?.[field(which)] && !passed(lot.sale_at, which, at);
       // With no reminder still to come, the choice starts over: 1 hour before, checked.
-      const fresh = !waiting("hour") && !waiting("day");
+      const fresh = !waiting("hour", at) && !waiting("day", at);
       setNow(at);
-      setChoice({ remind_hour: fresh ? !passed(lot.sale_at, "hour", at) : waiting("hour"), remind_day: waiting("day") });
+      setChoice({ remind_hour: fresh ? !passed(lot.sale_at, "hour", at) : waiting("hour", at), remind_day: waiting("day", at) });
     }
     setOpen(next);
   }
@@ -210,7 +213,7 @@ function RemindMe({
             {error}
           </p>
         )}
-        <Button type="button" size="lg" disabled={pending} onClick={() => save(choice, () => setOpen(false))}>
+        <Button type="button" size="lg" disabled={pending || nothing} onClick={() => save(choice, () => setOpen(false))}>
           {words.submit}
         </Button>
       </DialogContent>

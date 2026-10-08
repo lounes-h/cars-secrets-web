@@ -530,8 +530,10 @@ In place for saved lots, searches and alerts, which the API stores, finds and se
   hour before the auction (checked while no reminder is still to come) and 1 day before, each at
   its time in the dealer's zone, "Already passed" and off once its time has come, and a waiting
   state while the auction has no start time. Reminders refer to the auction's scheduled start,
-  not to the lot's turn; saving them saves the lot. Under it, the reminders' status and, once
-  saved, "Email me when the auction date or Buy now price changes" (change alerts).
+  not to the lot's turn; saving them saves the lot, so Save reminders stays off while no time is
+  chosen, unless that turns off a reminder still to come. Under it, the reminders' status and,
+  once saved, "Email me when the auction date or Buy now price changes" (change alerts; "when the
+  auction date changes" for a lot without a Buy now price).
 - **Save search** (`src/components/SavedSearches.tsx`) ends the filter bar: a name drawn from the
   chips (`searchName`) and "Email me new matches", off by default. A search keeps the list's query
   without its order (`searchQuery`). While the filters on screen are a saved search's the button

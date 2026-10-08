@@ -64,7 +64,7 @@ describe("Saved page", () => {
     expect(within(listed).getByRole("link", { name: "2013 ACURA TSX TECH" })).toBeTruthy();
     expect(within(listed).getAllByRole("button").map((button) => button.textContent)).toEqual(["Saved", "Remind me"]);
     expect(listed.textContent).toContain("Reminders: 1 hour before");
-    expect(within(listed).getByRole("checkbox", { name: "Email me when the auction date or Buy now price changes" })).toBeTruthy();
+    expect(within(listed).getByRole("checkbox", { name: "Email me when the auction date changes" })).toBeTruthy();
 
     expect(gone.textContent).toContain("No longer listed");
     expect(within(gone).queryAllByRole("link")).toEqual([]);
