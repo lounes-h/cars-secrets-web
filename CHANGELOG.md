@@ -1,3 +1,15 @@
+## [0.3.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.2.0...v0.3.0) (2026-10-08)
+
+### Features
+
+* save lots and searches, set auction reminders and read alerts ([0dab4fa](https://github.com/lounes-h/cars-secrets-web/commit/0dab4fa0735f18c77e578a642e6ccc3ff124498d))
+
+### Bug fixes
+
+* list saved searches beside Save search, which needs a filter, and leave Save off the cards ([cae194a](https://github.com/lounes-h/cars-secrets-web/commit/cae194ad90e046e090dabb4988316e42101ef027))
+* offer Save search as text beside Clear all ([bbf2588](https://github.com/lounes-h/cars-secrets-web/commit/bbf25883759bae6adcd3e03431de71361f213358))
+* save reminders only once a time is chosen, and leave Buy now out of a lot without one ([1eef34d](https://github.com/lounes-h/cars-secrets-web/commit/1eef34dea71088e4a7aa767ae1a7a7e2c33c687d))
+
 ## [0.2.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.1.0...v0.2.0) (2026-10-07)
 
 ### Features
