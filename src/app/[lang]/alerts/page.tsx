@@ -4,7 +4,7 @@ import { AlertEntry } from "@/components/AlertEntry";
 import { LocalTime } from "@/components/LocalTime";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { type Alert, ALERT_KINDS, type AlertKind, ALERTS_PAGE, getAlerts, isAlertKind, type LotChanges, type LotSummary, type SaleTime } from "@/lib/alerts";
-import { fill, formatCount, type I18n, localePath, plural, pluralForm, rich } from "@/lib/i18n";
+import { fill, formatCount, type I18n, LOCALES, localePath, plural, pluralForm, rich } from "@/lib/i18n";
 import { getI18n } from "@/lib/i18n-server";
 import { listPath, readQuery } from "@/lib/lot-filters";
 import { amount, auctionName, lotPath, pageNumber, place, saleDate } from "@/lib/lots";
@@ -147,7 +147,12 @@ function AlertContent({ alert, i18n }: { alert: Alert; i18n: I18n }) {
     const { lots } = alert.payload;
     return (
       <>
-        <h2 className={HEADING}>{plural(locale, words.changes, lots.length)}</h2>
+        <h2 className={HEADING}>
+          {fill(pluralForm(locale, words.changes, lots.length), {
+            what: changed(lots.map(({ changes }) => changes), i18n),
+            count: formatCount(locale, lots.length),
+          })}
+        </h2>
         {sent}
         <ul className="mt-4 flex flex-col gap-3">
           {lots.map(({ lot, changes }) => (
@@ -198,21 +203,39 @@ function Sale({ time, i18n: { locale, m } }: { time: SaleTime; i18n: I18n }) {
   return time.date ? saleDate(time.date, locale) : m.lot.futureSale;
 }
 
+/**
+ * What changed on these lots, as the email's subject says it: "Auction date set and Buy now price
+ * changed". A future sale given its date reads as set, not as changed.
+ */
+function changed(all: LotChanges[], { locale, m }: I18n) {
+  const sales = all.flatMap(({ sale }) => (sale ? [sale] : []));
+  const words = new Intl.ListFormat(LOCALES[locale].tag).format([
+    ...(sales.length ? [sales.some(({ from }) => from.at || from.date) ? m.alerts.changed.sale : m.alerts.changed.saleSet] : []),
+    ...(all.some(({ buy_now }) => buy_now) ? [m.alerts.changed.buyNow] : []),
+  ]);
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/** What changed on a lot, set apart on a grey ground, each new value in bold. */
 function Changes({ lot, changes, i18n }: { lot: LotSummary; changes: LotChanges | null; i18n: I18n }) {
   const { locale, m } = i18n;
   const offer = (value: number | null) => (value ? amount(value, lot.currency, locale) : m.alerts.notOffered);
   if (!changes) return null;
   return (
-    <ul className="text-sm">
+    <ul className="mt-2 flex w-fit flex-col gap-1 rounded-lg bg-muted px-3 py-2 text-sm">
       {changes.sale && (
         <li>
           {rich(changes.sale.from.at || changes.sale.from.date ? m.alerts.sale : m.alerts.saleSet, {
             from: <Sale time={changes.sale.from} i18n={i18n} />,
-            to: <Sale time={changes.sale.to} i18n={i18n} />,
+            to: (
+              <strong>
+                <Sale time={changes.sale.to} i18n={i18n} />
+              </strong>
+            ),
           })}
         </li>
       )}
-      {changes.buy_now && <li>{fill(m.alerts.buyNow, { from: offer(changes.buy_now.from), to: offer(changes.buy_now.to) })}</li>}
+      {changes.buy_now && <li>{rich(m.alerts.buyNow, { from: offer(changes.buy_now.from), to: <strong>{offer(changes.buy_now.to)}</strong> })}</li>}
     </ul>
   );
 }
