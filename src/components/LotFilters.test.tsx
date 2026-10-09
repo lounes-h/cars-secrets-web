@@ -134,21 +134,21 @@ describe("the bar", () => {
     expect(screen.getByText("145 lots").parentElement!.contains(sort)).toBe(true);
   });
 
-  it("offers Save search as text under the search, reading Edit search for a saved search's filters", () => {
+  it("offers Save search as text right after Clear all, reading Edit search for a saved search's filters", () => {
     show({ make: ["TOYOTA"], sort: ["year"] }, { searches: [CAMRY] });
     const saved = screen.getByRole("button", { name: "Edit search" });
-    expect(screen.getByRole("search").nextElementSibling!.firstElementChild).toBe(saved);
+    expect(screen.getByRole("button", { name: "Clear all" }).nextElementSibling).toBe(saved);
     expect(saved.className).toContain(buttonVariants({ variant: "link", size: "sm" }));
     expect(saved.querySelector("svg")).toBeNull();
-    expect(within(screen.getByText("145 lots").parentElement!).queryByRole("button", { name: /^(Save|Edit) search$/ })).toBeNull();
+    expect(within(screen.getByRole("search").parentElement!).queryByRole("button", { name: /^(Save|Edit) search$/ })).toBeNull();
     cleanup();
     show({ make: ["HONDA"] }, { searches: [CAMRY] });
     expect(screen.getByRole("button", { name: "Save search" })).toBeTruthy();
   });
 
-  it("puts the saved searches in a menu right after Save search", () => {
+  it("puts the saved searches in a menu under the search", () => {
     show({ make: ["HONDA"] }, { searches: [CAMRY] });
-    expect(screen.getByRole("button", { name: "Save search" }).nextElementSibling).toBe(screen.getByRole("button", { name: "Saved searches" }));
+    expect(screen.getByRole("search").nextElementSibling!.firstElementChild).toBe(screen.getByRole("button", { name: "Saved searches" }));
   });
 
   it("offers no Save search without a filter, but still the saved searches", () => {
@@ -157,8 +157,8 @@ describe("the bar", () => {
     expect(screen.getByRole("search").nextElementSibling!.firstElementChild).toBe(screen.getByRole("button", { name: "Saved searches" }));
   });
 
-  it("leaves nothing under the search without a filter or a saved search", () => {
-    show({ sort: ["year"] });
+  it("leaves nothing under the search without a saved search", () => {
+    show({ make: ["HONDA"] });
     expect(screen.getByRole("search").nextElementSibling).toBeNull();
   });
 
