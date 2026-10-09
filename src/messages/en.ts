@@ -632,6 +632,8 @@ export const en = {
     reminder: { hour: "Auction reminder, 1 hour before", day: "Auction reminder, 1 day before" },
     starts: "The auction starts {time}.",
     sale: "Auction: {from} → {to}",
+    /** The same for a future sale given its date. */
+    saleSet: "Auction date set: {to}",
     buyNow: "Buy now: {from} → {to}",
     notOffered: "not offered",
   },

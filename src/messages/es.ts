@@ -607,6 +607,7 @@ export const es: Messages = {
     reminder: { hour: "Recordatorio de subasta, 1 hora antes", day: "Recordatorio de subasta, 1 día antes" },
     starts: "La subasta empieza el {time}.",
     sale: "Subasta: {from} → {to}",
+    saleSet: "Fecha de subasta fijada: {to}",
     buyNow: "Compra inmediata: {from} → {to}",
     notOffered: "no disponible",
   },
