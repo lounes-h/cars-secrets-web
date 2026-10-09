@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { absoluteUrl, resolveSiteUrl, site, siteHost } from "@/lib/site";
+import { absoluteUrl, resolveSiteUrl, site } from "@/lib/site";
 
 describe("resolveSiteUrl", () => {
   it("uses NEXT_PUBLIC_SITE_URL and strips the trailing slash and path", () => {
@@ -18,9 +18,8 @@ describe("resolveSiteUrl", () => {
 });
 
 describe("site", () => {
-  it("carries no brand name, only the address", () => {
+  it("carries the address; the brand name lives in the messages", () => {
     expect(site).toEqual({ url: "https://cars-secrets.test" });
-    expect(siteHost).toBe("cars-secrets.test");
   });
 });
 

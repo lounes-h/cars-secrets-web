@@ -6,8 +6,8 @@ import { es } from "@/messages/es";
 describe("buildMetadata", () => {
   const metadata = buildMetadata({ title: "Features", description: "What it does.", path: "/features", locale: "en" });
 
-  it("stands the title alone and sets an absolute canonical URL", () => {
-    expect(metadata.title).toEqual({ absolute: "Features" });
+  it("brands the title and sets an absolute canonical URL", () => {
+    expect(metadata.title).toEqual({ absolute: "Features | Car Bid Insight" });
     expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/features");
   });
 
@@ -19,22 +19,29 @@ describe("buildMetadata", () => {
     });
   });
 
-  it("fills Open Graph and Twitter with the same title and URL, and no share image or site name", () => {
+  it("brands Open Graph and Twitter consistently, with no share image", () => {
     expect(metadata.openGraph).toMatchObject({
       url: "https://cars-secrets.test/features",
-      title: "Features",
+      title: "Features | Car Bid Insight",
+      siteName: "Car Bid Insight",
       locale: "en_US",
     });
-    expect(metadata.openGraph).not.toHaveProperty("siteName");
     expect(metadata.openGraph).not.toHaveProperty("images");
-    expect(metadata.twitter).toMatchObject({ card: "summary", title: "Features" });
+    expect(metadata.twitter).toMatchObject({ card: "summary", title: "Features | Car Bid Insight" });
     expect(metadata.twitter).not.toHaveProperty("images");
   });
 
   it("puts a Spanish page at its /es URL, in its own Open Graph locale", () => {
     const spanish = buildMetadata({ title: "Funciones", description: "Qué hace.", path: "/features", locale: "es" });
+    expect(spanish.title).toEqual({ absolute: "Funciones | Car Bid Insight" });
     expect(spanish.alternates?.canonical).toBe("https://cars-secrets.test/es/features");
-    expect(spanish.openGraph).toMatchObject({ url: "https://cars-secrets.test/es/features", locale: "es_US" });
+    expect(spanish.openGraph).toMatchObject({
+      url: "https://cars-secrets.test/es/features",
+      locale: "es_US",
+      siteName: "Car Bid Insight",
+      title: "Funciones | Car Bid Insight",
+    });
+    expect(spanish.twitter).toMatchObject({ title: "Funciones | Car Bid Insight" });
   });
 
   it("is indexable by default", () => {
@@ -44,7 +51,7 @@ describe("buildMetadata", () => {
   it("supports noindex", () => {
     const draft = buildMetadata({ title: "Draft", description: "d", path: "/draft", locale: "en", noindex: true });
     expect(draft.robots).toEqual({ index: false, follow: true });
-    expect(draft.title).toEqual({ absolute: "Draft" });
+    expect(draft.title).toEqual({ absolute: "Draft | Car Bid Insight" });
   });
 });
 
@@ -61,12 +68,12 @@ describe("languageAlternates", () => {
 describe("metadataForRoute", () => {
   it("uses the registered page's words in the page's language", async () => {
     const metadata = await metadataForRoute("/active-lots");
-    expect(metadata.title).toEqual({ absolute: "Active lots" });
+    expect(metadata.title).toEqual({ absolute: "Active lots | Car Bid Insight" });
     expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/active-lots");
 
     vi.mocked(lang).mockResolvedValueOnce("es");
     const spanish = await metadataForRoute("/active-lots");
-    expect(spanish.title).toEqual({ absolute: es.pages["/active-lots"].title });
+    expect(spanish.title).toEqual({ absolute: `${es.pages["/active-lots"].title} | Car Bid Insight` });
     expect(spanish.description).toBe(es.pages["/active-lots"].description);
     expect(spanish.alternates?.canonical).toBe("https://cars-secrets.test/es/active-lots");
   });

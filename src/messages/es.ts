@@ -9,6 +9,7 @@ export const es: Messages = {
   notFound: "No se encontró esta página.",
 
   site: {
+    name: "Car Bid Insight",
     description:
       "Las publicaciones activas de Copart, IAA y Manheim en una sola búsqueda, con el valor de reventa estimado, el costo total de adquisición, la ganancia proyectada y una oferta máxima sugerida para cada lote.",
   },

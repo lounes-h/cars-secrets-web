@@ -36,7 +36,7 @@ afterEach(() => {
 
 describe("Saved page", () => {
   it("is titled from its registered words", async () => {
-    expect((await generateMetadata()).title).toEqual({ absolute: "Saved lots and searches" });
+    expect((await generateMetadata()).title).toEqual({ absolute: "Saved lots and searches | Car Bid Insight" });
   });
 
   it("asks a visitor to sign in instead of listing anything", async () => {

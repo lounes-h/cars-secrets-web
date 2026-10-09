@@ -191,13 +191,15 @@ earth button, so the banner is the logo and the language.
 
 ## Colours and assets
 
-The brand, CarBidInsight, appears as the banner's logo (`public/logo.png`,
+The brand, Car Bid Insight, appears as the banner's logo (`public/logo.png`,
 whose navy and green are its own), which links home, and the black-and-green CBi
 favicon (`src/app/favicon.ico`). The favicon contains compressed 16, 32 and 48px
 images on white, cropped and resized from the supplied logo. Next.js automatically
 links it on every page in both languages; the language proxy skips its file URL.
-There is no touch icon, manifest or share image yet, and no structured data. Page titles stand
-alone. The interface is built from shadcn/ui components (`src/components/ui`) and
+There is no touch icon, manifest or share image yet, and no structured data. The name lives in
+each language's `site.name`, used by the logo's alt text, application metadata, Open Graph site
+name and `llms.txt` heading. Page and social titles end with "| Car Bid Insight".
+The interface is built from shadcn/ui components (`src/components/ui`) and
 uses black, grey and white only, through shadcn's neutral theme tokens in
 `src/app/globals.css` (`--background`, `--foreground`, `--primary`, `--muted`,
 `--muted-foreground`, `--border`, …), Work Sans (loaded with `next/font/google` in
@@ -208,8 +210,8 @@ fails on a value off them. The look is flat: borders separate, and only floating
 surfaces (popovers, menus, the sheet, the dialog) have a shadow. There is no
 error colour: `--destructive` is the text colour, so errors read as bold text. The lot page's deal-breaker
 badges and sale countdown are the one exception: green, amber and red
-(`--good`, `--warn`, `--bad`), always with an icon and words as well. Add branding once a name and a
-design are settled.
+(`--good`, `--warn`, `--bad`), always with an icon and words as well. Add further branding once a
+design is settled.
 
 ## Route registry
 
@@ -232,8 +234,7 @@ them `src/lib/seo/fixtures.ts`.
   page's own language), `hreflang` alternates, Open Graph (with its locale),
   Twitter card and robots directives. There is no share image yet,
   so the Twitter card is a plain `summary`.
-- **Structured data.** None: every schema.org type worth emitting here needs a
-  brand name, and there is none yet. The builders come back with the brand.
+- **Structured data.** None yet.
 - **AI crawlers.** `robots.txt` is a single `User-Agent: *` / `Allow: /` rule,
   which admits every crawler, AI search and assistant bots (GPTBot, ClaudeBot,
   PerplexityBot, Google-Extended and others) included. `/llms.txt` summarizes

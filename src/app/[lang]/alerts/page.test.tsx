@@ -86,7 +86,7 @@ const entries = () => within(screen.getByRole("list", { name: "Alerts" })).getAl
 
 describe("Alerts page", () => {
   it("is titled from its registered words", async () => {
-    expect((await generateMetadata()).title).toEqual({ absolute: "Your alerts" });
+    expect((await generateMetadata()).title).toEqual({ absolute: "Your alerts | Car Bid Insight" });
   });
 
   it("asks a visitor to sign in", async () => {

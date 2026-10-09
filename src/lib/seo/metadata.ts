@@ -3,6 +3,7 @@ import { type Locale, LOCALE_LIST, LOCALES, localePath } from "@/lib/i18n";
 import { getI18n } from "@/lib/i18n-server";
 import { getRoute, type RoutePath } from "@/lib/routes";
 import { absoluteUrl } from "@/lib/site";
+import { messagesFor } from "@/messages";
 
 type BuildMetadataInput = {
   title: string;
@@ -34,21 +35,24 @@ export function buildMetadata({
   openGraphType = "website",
 }: BuildMetadataInput): Metadata {
   const url = absoluteUrl(localePath(path, locale));
+  const siteName = messagesFor(locale).site.name;
+  const brandedTitle = `${title} | ${siteName}`;
 
   return {
-    title: { absolute: title },
+    title: { absolute: brandedTitle },
     description,
     alternates: { canonical: url, languages: languageAlternates(path) },
     openGraph: {
       type: openGraphType,
       url,
-      title,
+      title: brandedTitle,
+      siteName,
       description,
       locale: LOCALES[locale].openGraph,
     },
     twitter: {
       card: "summary",
-      title,
+      title: brandedTitle,
       description,
     },
     robots: noindex

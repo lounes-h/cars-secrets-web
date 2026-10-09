@@ -21,9 +21,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const { m } = await getI18n();
   return {
     metadataBase: new URL(site.url),
-    // No brand name yet, so pages carry their own title and the home page's is
-    // the fallback for anything that sets none.
-    title: { default: m.pages["/"].title, template: "%s" },
+    applicationName: m.site.name,
+    title: { default: `${m.pages["/"].title} | ${m.site.name}`, template: `%s | ${m.site.name}` },
     description: m.site.description,
     formatDetection: { telephone: false },
   };
@@ -35,7 +34,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang={LOCALES[i18n.locale].tag} className={workSans.variable}>
       <body className="flex min-h-dvh flex-col antialiased">
         <I18nProvider value={i18n}>
-          <SiteBanner locale={i18n.locale} />
+          <SiteBanner i18n={i18n} />
           {children}
         </I18nProvider>
       </body>
