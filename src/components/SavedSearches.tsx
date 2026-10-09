@@ -17,7 +17,7 @@ import { browserZone, listPath, type Query, readQuery, SEARCH_NAME_MAX, searchNa
 import type { SavedSearch } from "@/lib/saved";
 
 /**
- * Save search, as text like Clear all, right after it above the lots, while a filter is set. While
+ * Save search, as text like Clear all, under the search input while a filter is set. While
  * the filters on screen are a saved search's it reads "Edit search", to rename it or pause its
  * alerts; while the dealer edits one (`editing`, the list's `saved` parameter) and the filters
  * differ, "Save changes", to save them into it or as a new search.
