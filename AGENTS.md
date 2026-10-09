@@ -366,7 +366,9 @@ versioning (see Versioning).
 There is no touch icon, web app manifest, share image or structured data.
 
 In place for accounts: registration (names, email, optional phone with every
-country's flag and calling code, password with show/hide, Turnstile captcha),
+country's flag and calling code, password with show/hide, Turnstile captcha; the page's
+language and the browser's zone go along and become the dealer's settings, so every email the
+API sends them — the code, a reset link, alerts — is in that language until Settings changes it),
 email confirmation by a six-digit emailed code that also signs the dealer in (one numeric
 field that takes pastes and one-time-code autofill, a new code after 60 seconds), sign-in with remember me (captcha after
 repeated failures; the box comes back as the last sign-in left it, through the
@@ -555,14 +557,16 @@ In place for saved lots, searches and alerts, which the API stores, finds and se
   heading; following a link in one marks it read (`AlertEntry`), "Mark all as read" marks them all,
   and reading changes nothing else.
 - **Settings** (`/settings`): email on or off for each kind, the search summary once a day (7 AM)
-  or twice (7 AM and 5 PM), the emails' language and time zone, from the page's language and the
-  browser's zone until chosen. Every alert reaches the inbox whatever is chosen here.
+  or twice (7 AM and 5 PM), the language of every email (account ones included) and the time
+  zone, set at registration from the page's language and the browser's zone (a Google or Apple
+  account's at its first save). Every alert reaches the inbox whatever is chosen here.
 - The server actions (`src/app/[lang]/saved/actions.ts`, `alerts/actions.ts`,
   `settings/actions.ts`) check everything they are given, and send the page's language and the
-  browser's zone along, which the API keeps for the dealer's first alert emails.
+  browser's zone along, which the API keeps for an account that has none yet.
 
 Reminders go out at their time, saved-lot changes within a minute, and search summaries at the
-dealer's 7 AM (and 5 PM), by email in English or Spanish; text messages come later.
+dealer's 7 AM (and 5 PM), by email in English or Spanish, as plain text and HTML (the API
+builds, stores and retries every email); text messages come later.
 
 There is no "who can bid" or distance filter
 (the data has neither buyer eligibility nor the dealer's location). The likely final bid uses

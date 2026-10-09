@@ -8,6 +8,7 @@ import { authSchemas, fieldErrors } from "@/lib/auth-schemas";
 import { composePhone } from "@/lib/countries";
 import { type I18n, localePath, lookup } from "@/lib/i18n";
 import { actionI18n } from "@/lib/i18n-server";
+import { knownZone } from "@/lib/lot-filters";
 import {
   clearSession,
   isSecure,
@@ -16,6 +17,7 @@ import {
   sessionToken,
   setSession,
   visitorIp,
+  visitorZone,
 } from "@/lib/session";
 
 /** What an action tells its form. Only messages, never tokens or user records. */
@@ -49,7 +51,11 @@ function parse<S extends z.ZodType>(schema: S, input: unknown, { m }: I18n): { d
   return { state: { code: "validation", message: m.auth.validation.correctFields, errors: fieldErrors(result.error) } };
 }
 
-export async function registerAction(input: unknown): Promise<FormState> {
+/**
+ * `zone` is the browser's. The API keeps it with the page's language as the dealer's settings:
+ * every email they get is in that language, alert times in that zone, until Settings changes them.
+ */
+export async function registerAction(input: unknown, zone?: unknown): Promise<FormState> {
   const i18n = await actionI18n();
   const parsed = parse(authSchemas(i18n.m.auth).registerSchema, input, i18n);
   if ("state" in parsed) return parsed.state;
@@ -67,6 +73,8 @@ export async function registerAction(input: unknown): Promise<FormState> {
         // The register button says agreeing is what it does, so submitting it is the consent.
         accept_terms: true,
         captcha_token: data.captcha_token || null,
+        locale: i18n.locale,
+        time_zone: knownZone(typeof zone === "string" ? zone : null) ?? (await visitorZone()) ?? "UTC",
       },
       clientIp: await visitorIp(),
     });

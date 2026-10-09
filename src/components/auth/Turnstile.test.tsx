@@ -127,6 +127,8 @@ describe("forms with the captcha", () => {
     type("Password", "long-enough-pw1");
     solve("tok");
     fireEvent.click(screen.getByRole("button", { name: "Agree and register" }));
-    await waitFor(() => expect(actions.registerAction).toHaveBeenCalledWith(expect.objectContaining({ captcha_token: "tok" })));
+    await waitFor(() =>
+      expect(actions.registerAction).toHaveBeenCalledWith(expect.objectContaining({ captcha_token: "tok" }), expect.any(String)),
+    );
   });
 });

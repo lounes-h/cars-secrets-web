@@ -169,8 +169,8 @@ actions, never deciding when an alert goes out.
   after the lot has left the API's database. An entry is unread until the page says otherwise or
   one of its links is followed (`markAlertReadAction`, best effort).
 - Actions send the page's language (`actionI18n`) and the browser's zone (the client passes it,
-  else `cs_tz`, else UTC); the API keeps them for the dealer's first alert emails, until Settings
-  changes them.
+  else `cs_tz`, else UTC); the API keeps them for an account without them (registration sets
+  them, so that is a Google or Apple account), until Settings changes them.
 
 ## Layout
 
@@ -263,7 +263,9 @@ sign in then focuses the password. Entering a confirmation code or signing out f
 
 - **Register**: the form posts names, email, the phone (one control holding the country
   picker and the number, joined into `+<calling code><digits>`; the API normalizes to
-  E.164), password and the Turnstile token. Agreeing to the Terms of Use and Privacy
+  E.164), password and the Turnstile token, with the page's language and the browser's zone
+  (`registerAction(values, browserZone())`, else `cs_tz`, else UTC): the API keeps them as the
+  dealer's settings, so every email is in that language from the code on. Agreeing to the Terms of Use and Privacy
   Policy is what the submit button does ("Agree and register", with a sentence saying so),
   so there is no checkbox to validate and the action sends `accept_terms: true` itself. The country defaults to
   the region of the browser's first language (`countryFromLanguages`), and on mount the
@@ -293,8 +295,9 @@ sign in then focuses the password. Entering a confirmation code or signing out f
   A right password on an unconfirmed address makes the API mail a code, and the form
   turns into the code step, keeping "remember me" for the session it opens.
 - **Forgot / reset**: `/forgot-password` asks for the email; the emailed link opens
-  `/reset-password?token=…`, which sets the new password. The API then signs out every
-  session of that user.
+  `/reset-password?token=…` (under `/es` for a dealer whose emails are in Spanish), which sets
+  the new password. The API then signs out every session of that user and emails a "password
+  changed" notice.
 - **Google / Apple**: the buttons call `socialLoginAction`, which gets the provider URL
   and a `state` from the API, stores the state in the `cs_oauth_state` cookie and
   redirects. The provider returns to `/auth/callback/{provider}`; the route handler
