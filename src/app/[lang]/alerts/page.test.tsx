@@ -123,7 +123,7 @@ describe("Alerts page", () => {
   it("says what changed on a saved lot, and when a reminded auction starts", async () => {
     await show();
     const [, changes, reminder] = entries();
-    expect(changes.textContent).toContain("Auction: Future sale → Fri, Oct 9, 3:00 PM UTC");
+    expect(changes.textContent).toContain("Auction date set: Fri, Oct 9, 3:00 PM UTC");
     expect(changes.textContent).toContain("Buy now: $9,500 → not offered");
     expect(reminder.textContent).toContain("The auction starts Fri, Oct 9, 3:00 PM UTC");
     expect(reminder.textContent).toContain("Auction: Oct 10, 2026 → Fri, Oct 9, 3:00 PM UTC");

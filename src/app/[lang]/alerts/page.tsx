@@ -205,7 +205,12 @@ function Changes({ lot, changes, i18n }: { lot: LotSummary; changes: LotChanges 
   return (
     <ul className="text-sm">
       {changes.sale && (
-        <li>{rich(m.alerts.sale, { from: <Sale time={changes.sale.from} i18n={i18n} />, to: <Sale time={changes.sale.to} i18n={i18n} /> })}</li>
+        <li>
+          {rich(changes.sale.from.at || changes.sale.from.date ? m.alerts.sale : m.alerts.saleSet, {
+            from: <Sale time={changes.sale.from} i18n={i18n} />,
+            to: <Sale time={changes.sale.to} i18n={i18n} />,
+          })}
+        </li>
       )}
       {changes.buy_now && <li>{fill(m.alerts.buyNow, { from: offer(changes.buy_now.from), to: offer(changes.buy_now.to) })}</li>}
     </ul>
