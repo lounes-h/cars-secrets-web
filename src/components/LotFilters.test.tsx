@@ -57,7 +57,7 @@ function show(
 }
 
 /** A filter's button in the bar, on the search's line (the sidebar has buttons of the same names). */
-const trigger = (label: RegExp) => within(screen.getByRole("search").parentElement!).getByRole("button", { name: label });
+const trigger = (label: RegExp) => within(screen.getByRole("search").parentElement!.parentElement!).getByRole("button", { name: label });
 
 /** Opens a filter of the bar, as clicking its button does, and returns its options. */
 async function open(label: RegExp) {
@@ -123,24 +123,24 @@ describe("the bar", () => {
 
   it("puts the search on the filters' line, and the order on the count's", () => {
     show();
-    const line = screen.getByRole("search").parentElement!;
+    const line = screen.getByRole("search").parentElement!.parentElement!;
     // The filters together, after the search, so they can sit at the line's right end.
     const filters = trigger(/^Title/).parentElement!;
     expect(filters.parentElement).toBe(line);
     expect(filters.contains(screen.getByRole("button", { name: /^Filters/ }))).toBe(true);
-    expect(screen.getByRole("search").nextElementSibling).toBe(filters);
+    expect(screen.getByRole("search").parentElement!.nextElementSibling).toBe(filters);
     const sort = screen.getByRole("combobox", { name: "Sort" });
     expect(line.contains(sort)).toBe(false);
     expect(screen.getByText("145 lots").parentElement!.contains(sort)).toBe(true);
   });
 
-  it("offers Save search as text right after Clear all, reading Edit search for a saved search's filters", () => {
+  it("offers Save search as text under the search, reading Edit search for a saved search's filters", () => {
     show({ make: ["TOYOTA"], sort: ["year"] }, { searches: [CAMRY] });
     const saved = screen.getByRole("button", { name: "Edit search" });
-    expect(screen.getByRole("button", { name: "Clear all" }).nextElementSibling).toBe(saved);
+    expect(screen.getByRole("search").nextElementSibling!.firstElementChild).toBe(saved);
     expect(saved.className).toContain(buttonVariants({ variant: "link", size: "sm" }));
     expect(saved.querySelector("svg")).toBeNull();
-    expect(within(screen.getByRole("search").parentElement!).queryByRole("button", { name: /^(Save|Edit) search$/ })).toBeNull();
+    expect(within(screen.getByText("145 lots").parentElement!).queryByRole("button", { name: /^(Save|Edit) search$/ })).toBeNull();
     cleanup();
     show({ make: ["HONDA"] }, { searches: [CAMRY] });
     expect(screen.getByRole("button", { name: "Save search" })).toBeTruthy();
@@ -154,7 +154,12 @@ describe("the bar", () => {
   it("offers no Save search without a filter, but still the saved searches", () => {
     show({ sort: ["year"] }, { searches: [CAMRY] });
     expect(screen.queryByRole("button", { name: "Save search" })).toBeNull();
-    expect(screen.getByText("145 lots").nextElementSibling).toBe(screen.getByRole("button", { name: "Saved searches" }));
+    expect(screen.getByRole("search").nextElementSibling!.firstElementChild).toBe(screen.getByRole("button", { name: "Saved searches" }));
+  });
+
+  it("leaves nothing under the search without a filter or a saved search", () => {
+    show({ sort: ["year"] });
+    expect(screen.getByRole("search").nextElementSibling).toBeNull();
   });
 
   it("keeps editing a saved search while its filters change, until the dealer stops", () => {
@@ -217,7 +222,7 @@ describe("the bar", () => {
   it("moves the dealer's most used filters into the bar, but never a make, which the search takes", () => {
     show({}, { usage: { state: 5, make: 9 } });
     expect(trigger(/^State or province/)).toBeTruthy();
-    expect(within(screen.getByRole("search").parentElement!).queryByRole("button", { name: /^Make/ })).toBeNull();
+    expect(within(screen.getByRole("search").parentElement!.parentElement!).queryByRole("button", { name: /^Make/ })).toBeNull();
   });
 
   it("switches Buy now on and off in one click, with no menu", () => {
