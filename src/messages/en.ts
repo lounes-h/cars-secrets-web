@@ -12,6 +12,7 @@ export const en = {
   notFound: "This page could not be found.",
 
   site: {
+    name: "Car Bid Insight",
     description:
       "Active Copart, IAA and Manheim listings in one search, with the estimated resale value, total acquisition cost, projected profit and a suggested maximum bid for every lot.",
   },

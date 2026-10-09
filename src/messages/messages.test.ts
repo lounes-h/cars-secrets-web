@@ -18,4 +18,8 @@ describe("messages", () => {
   it("have the same keys and the same placeholders in every language", () => {
     expect(shape(es)).toEqual(shape(en));
   });
+
+  it.each(["en", "es"] as const)("keeps the brand name in %s", (locale) => {
+    expect(messagesFor(locale).site.name).toBe("Car Bid Insight");
+  });
 });

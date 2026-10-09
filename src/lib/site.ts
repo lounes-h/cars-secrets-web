@@ -1,8 +1,7 @@
 /**
  * Single source of truth for the site's address. Anything that ends up in
  * metadata, the sitemap or llms.txt reads its URLs from here; the words
- * (description, titles) are in src/messages. The brand name (CarBidInsight)
- * is only in the banner's logo so far, not here.
+ * (brand name, description, titles) are in src/messages.
  */
 
 const LOCAL_URL = "http://localhost:3000";
@@ -20,9 +19,6 @@ export function resolveSiteUrl(value: string | undefined): string {
 export const site = {
   url: resolveSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
 } as const;
-
-/** The site's host, used where a name would otherwise go. */
-export const siteHost = new URL(site.url).host;
 
 /** Joins a site-relative path onto the site origin. */
 export function absoluteUrl(path: string, base: string = site.url): string {

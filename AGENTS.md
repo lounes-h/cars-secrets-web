@@ -88,8 +88,7 @@ See `docs/architecture.md` for details.
   `src/lib/seo/metadata.ts`, in a `generateMetadata` (the words depend on the
   page's language). Never hand-write `title`, canonical, language alternates or
   Open Graph metadata.
-- There is no structured data: schema.org needs a brand name, and there is
-  none yet. Add the builders back with the brand.
+- There is no structured data yet.
 - Each page has one `h1`. Its lede answers the page's question directly, so
   search engines and AI assistants can quote it. The auth pages are the
   exception: heading and form only, no lede — their registered description
@@ -144,7 +143,7 @@ See `docs/architecture.md` for details.
 - There is no share image yet, and no dark mode (`globals.css` keeps
   the `dark` variant on a `.dark` class nothing sets, so the components' `dark:`
   styles never apply).
-  The CarBidInsight wordmark is in the banner (`public/logo.png`,
+  The Car Bid Insight wordmark is in the banner (`public/logo.png`,
   384×64, shown at 192×32 and served as is, unoptimized); its navy and green
   are the logo's own, not tokens. The CBi favicon (`src/app/favicon.ico`) contains
   optimized 16, 32 and 48px versions on white; Next.js links it on every page.
@@ -350,11 +349,11 @@ brand design exists. `/` is the home page: the
 centred title "Everything You Need to Know Before Buying a Car at Auction" and
 nothing else yet. Add no other pages until the user asks.
 
-**The brand is CarBidInsight, carried by the banner's logo and the CBi favicon.**
+**The brand is Car Bid Insight, carried by the banner's logo and the CBi favicon.**
 The logo links home, its alt text the name. `src/lib/site.ts` holds only the
-URL, and the site's description is the messages' `site.description`; page titles stand alone (no
-"| Name" suffix) and `llms.txt` is headed by the site host (`siteHost`), until
-the user asks for the name there. The repository and the API keep their
+URL; the name and description are the messages' `site.name` and `site.description`.
+Page and social titles end with "| Car Bid Insight", the application and Open Graph
+site names use the brand, and `llms.txt` is headed by it. The repository and the API keep their
 `cars-secrets-*` names, and so does the `cars-secrets.test` origin the tests
 run against. Invent no slogan.
 

@@ -32,7 +32,7 @@ const checked = (name: string) => screen.getByRole("radio", { name }).getAttribu
 
 describe("Settings page", () => {
   it("is titled from its registered words", async () => {
-    expect((await generateMetadata()).title).toEqual({ absolute: "Settings" });
+    expect((await generateMetadata()).title).toEqual({ absolute: "Settings | Car Bid Insight" });
   });
 
   it("asks a visitor to sign in", async () => {

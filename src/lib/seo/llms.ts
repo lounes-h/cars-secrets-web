@@ -1,5 +1,5 @@
 import { routes as registry, type SiteRoute } from "@/lib/routes";
-import { absoluteUrl, siteHost } from "@/lib/site";
+import { absoluteUrl } from "@/lib/site";
 import { en } from "@/messages/en";
 
 type Pages = Record<string, { title: string; description: string }>;
@@ -15,7 +15,7 @@ export function buildLlmsTxt(routes: readonly SiteRoute<string>[] = registry, pa
     .map((route) => `- [${pages[route.path].title}](${absoluteUrl(route.path)}): ${pages[route.path].description}`);
 
   return [
-    `# ${siteHost}`,
+    `# ${en.site.name}`,
     "",
     `> ${en.site.description}`,
     "",

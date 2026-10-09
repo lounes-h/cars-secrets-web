@@ -304,7 +304,7 @@ describe("lot page", () => {
 
   it("keeps the lot out of search indexes", async () => {
     const metadata = await generateMetadata({ params });
-    expect(metadata.title).toEqual({ absolute: "Lot 41633106" });
+    expect(metadata.title).toEqual({ absolute: "Lot 41633106 | Car Bid Insight" });
     expect(metadata.robots).toEqual({ index: false, follow: true });
     expect(metadata.alternates?.canonical).toBe("https://cars-secrets.test/active-lots/copart/41633106");
   });

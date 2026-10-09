@@ -56,7 +56,11 @@ describe("root layout", () => {
     const provider = html.props.children.props.children;
     expect(provider.props.value).toEqual({ locale: "en", m: en });
     expect(provider.props.children).toHaveLength(2);
-    expect((await generateMetadata()).description).toBe(en.site.description);
+    expect(await generateMetadata()).toMatchObject({
+      applicationName: "Car Bid Insight",
+      description: en.site.description,
+      title: { default: `${en.pages["/"].title} | Car Bid Insight`, template: "%s | Car Bid Insight" },
+    });
   });
 
   it("speaks Spanish under /es", async () => {
@@ -65,7 +69,11 @@ describe("root layout", () => {
     const html = (await RootLayout({ children: <p>page</p> })) as Html;
     expect(html.props.lang).toBe("es-US");
     expect(html.props.children.props.children.props.value).toEqual({ locale: "es", m: es });
-    expect(await generateMetadata()).toMatchObject({ description: es.site.description, title: { default: es.pages["/"].title } });
+    expect(await generateMetadata()).toMatchObject({
+      applicationName: "Car Bid Insight",
+      description: es.site.description,
+      title: { default: `${es.pages["/"].title} | Car Bid Insight`, template: "%s | Car Bid Insight" },
+    });
     vi.mocked(lang).mockResolvedValue("en");
   });
 
@@ -100,9 +108,9 @@ describe("page metadata", () => {
   it.each(Object.entries(PAGES))("%s is titled from its registered words, in the page's language", async (path, file) => {
     const page = await import(`@/app/[lang]/${file}.tsx`);
     const key = path as keyof typeof PAGES;
-    expect((await page.generateMetadata()).title).toEqual({ absolute: en.pages[key].title });
+    expect((await page.generateMetadata()).title).toEqual({ absolute: `${en.pages[key].title} | Car Bid Insight` });
     vi.mocked(lang).mockResolvedValueOnce("es");
-    expect((await page.generateMetadata()).title).toEqual({ absolute: es.pages[key].title });
+    expect((await page.generateMetadata()).title).toEqual({ absolute: `${es.pages[key].title} | Car Bid Insight` });
   });
 });
 
@@ -130,7 +138,7 @@ describe("placeholder pages", () => {
       const page = await import(`@/app/[lang]/${path}/page.tsx`);
       const { container } = render(page.default());
       expect(container.querySelector("main")?.childElementCount).toBe(0);
-      expect((await page.generateMetadata()).title).toEqual({ absolute: en.pages[`/${path}` as keyof typeof en.pages].title });
+      expect((await page.generateMetadata()).title).toEqual({ absolute: `${en.pages[`/${path}` as keyof typeof en.pages].title} | Car Bid Insight` });
     },
   );
 });
