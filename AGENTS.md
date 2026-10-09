@@ -1,6 +1,32 @@
 # Web app (cars-secrets-web)
 A dealer-focused vehicle auction intelligence platform that aggregates active listings from Copart, IAA, Manheim, and other auction sources into one searchable interface. The platform helps dealers identify the best vehicles to buy by showing current auction data, estimated resale value, total acquisition cost, repair/transport estimates, projected profit, profit margin, and a suggested maximum bid. Users can search and filter inventory, view detailed vehicle analysis, save vehicles and searches, and receive alerts. Bidding is not handled by the platform; users are redirected to the original auction site to place bids.
 
+## Core product principle (apply to every task)
+
+Car Bid Insight's ultimate goal is to reduce the time and mental effort dealers
+spend evaluating auction lots. Do the research, analysis and synthesis for them:
+surface the information that matters and turn it into a clear buying summary.
+Help them answer: **Is this lot worth buying, what are the risks, and how much
+should I pay?**
+
+Use this principle when planning, implementing and reviewing every change:
+
+- Lead with the conclusion, the key reasons and the risks; keep supporting
+  details available for dealers who want to investigate further.
+- Make damage easy to understand through an interactive vehicle image and a
+  plain-language list of visibly damaged parts and suspected hidden damage.
+- Bring the financial picture together: predicted final auction price,
+  estimated resale value, repair and acquisition costs, potential profit and
+  a suggested maximum bid.
+- Clearly distinguish confirmed facts, inferred damage and estimates. Explain
+  uncertainty and missing information; never present suspected hidden damage
+  as confirmed or invent figures to fill gaps.
+- Judge each change by whether it helps a dealer reach an informed buying
+  decision with less effort.
+
+These examples guide product direction within the requested scope; they do not
+mean every capability already exists or should be built in every task.
+
 ## Project specification
 read `docs/project-specification.md`
 
