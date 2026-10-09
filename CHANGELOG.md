@@ -1,3 +1,13 @@
+## [0.5.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.4.0...v0.5.0) (2026-10-09)
+
+### Features
+
+* move Save search and Saved searches under the search input ([7ad9fa9](https://github.com/lounes-h/cars-secrets-web/commit/7ad9fa92bda7422b95158a7724fd0dc2f856e9a9))
+
+### Bug fixes
+
+* use Car Bid Insight throughout website branding ([fa87610](https://github.com/lounes-h/cars-secrets-web/commit/fa8761052820c9ff207146008c862985db09638a))
+
 ## [0.4.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.3.0...v0.4.0) (2026-10-09)
 
 ### Features
