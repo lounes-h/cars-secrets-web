@@ -1,3 +1,9 @@
+## [0.5.1](https://github.com/lounes-h/cars-secrets-web/compare/v0.5.0...v0.5.1) (2026-10-09)
+
+### Bug fixes
+
+* put Save search back beside Clear all, keeping only Saved searches under the search ([3000c37](https://github.com/lounes-h/cars-secrets-web/commit/3000c370d9cfa29eddd259ceeb91bad81c6cccf0))
+
 ## [0.5.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.4.0...v0.5.0) (2026-10-09)
 
 ### Features
