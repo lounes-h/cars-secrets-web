@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from "@testing-library/react";
+import { lang } from "next/root-params";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Alert, LotSummary } from "@/lib/alerts";
 
@@ -101,7 +102,7 @@ describe("Alerts page", () => {
     expect(getAlerts).toHaveBeenCalledWith(null, 1, "token-abc", "9.9.9.9");
     expect(entries().map((entry) => [entry.querySelector("h2")!.textContent, entry.hasAttribute("data-unread")])).toEqual([
       ["2 new lots match your saved searches", true],
-      ["A saved lot changed", false],
+      ["Auction date set and Buy now price changed", false],
       ["Auction reminder, 1 hour before", false],
     ]);
     expect(screen.getByRole("button", { name: "Mark all as read" })).toBeTruthy();
@@ -120,13 +121,31 @@ describe("Alerts page", () => {
     expect(within(cheap).getByRole("link", { name: "See all 14" }).getAttribute("href")).toBe("/active-lots?bid_max=10000");
   });
 
-  it("says what changed on a saved lot, and when a reminded auction starts", async () => {
+  it("says what changed on a saved lot, each new value in bold, and when a reminded auction starts", async () => {
     await show();
     const [, changes, reminder] = entries();
     expect(changes.textContent).toContain("Auction date set: Fri, Oct 9, 3:00 PM UTC");
     expect(changes.textContent).toContain("Buy now: $9,500 → not offered");
+    const [date, price] = changes.querySelectorAll("strong");
+    expect(date.textContent).toMatch(/^Fri, Oct 9, 3:00 PM UTC/);
+    expect(price.textContent).toBe("not offered");
     expect(reminder.textContent).toContain("The auction starts Fri, Oct 9, 3:00 PM UTC");
     expect(reminder.textContent).toContain("Auction: Oct 10, 2026 → Fri, Oct 9, 3:00 PM UTC");
+    expect(reminder.querySelector("strong")!.textContent).toMatch(/^Fri, Oct 9, 3:00 PM UTC/);
+  });
+
+  it("heads changes to several lots with what changed on them, a moved date over a date set", async () => {
+    const moved = { sale: { from: { at: "2026-10-09T15:00:00Z", date: null }, to: { at: null, date: null } } };
+    const set = { sale: { from: { at: null, date: null }, to: { at: null, date: "2026-10-12" } } };
+    const several = (lots: Alert & { kind: "changes" }) => ({ items: [lots], total: 1, unread: 0 });
+    getAlerts.mockResolvedValue(several({ ...CHANGES, kind: "changes", payload: { lots: [{ lot: LOT, changes: set }, { lot: HONDA, changes: moved }] } }));
+    await show();
+    expect(entries()[0].querySelector("h2")!.textContent).toBe("Auction date changed on 2 saved lots");
+    cleanup();
+    vi.mocked(lang).mockResolvedValueOnce("es");
+    getAlerts.mockResolvedValue(several({ ...CHANGES, kind: "changes", payload: { lots: [{ lot: LOT, changes: set }, { lot: HONDA, changes: { buy_now: { from: null, to: 4000 } } }] } }));
+    await show();
+    expect(screen.getByRole("article").querySelector("h2")!.textContent).toBe("Fecha de subasta fijada y cambió el precio de compra inmediata en 2 lotes guardados");
   });
 
   it("heads a day's reminder as one, and names a lot without a name by its number", async () => {

@@ -578,9 +578,11 @@ In place for saved lots, searches and alerts, which the API stores, finds and se
   after a confirmation, which leaves saved lots alone.
 - **Alerts** (`/alerts`): the inbox, newest first, 20 to a page, by kind (`?kind=`): new matches,
   grouped by search with each lot once, naming its other searches, and "See all N"; saved-lot
-  changes ("Auction: … → …", "Buy now: … → …", and "Auction date set: …" for a future sale given
-  its date, which a dealer with reminders on the lot gets even without change alerts); and
-  reminders. Unread ones carry a dot and a bold heading; following a link in one marks it read
+  changes, headed by what changed as their email's subject is ("Buy now price changed", "Auction
+  date set and Buy now price changed on 2 saved lots"), each lot's changes on a grey ground with
+  the new value in bold ("Auction: … → …", "Buy now: … → …", and "Auction date set: …" for a future
+  sale given its date, which a dealer with reminders on the lot gets even without change alerts);
+  and reminders, whose changes are set apart the same way. Unread ones carry a dot and a bold heading; following a link in one marks it read
   (`AlertEntry`), "Mark all as read" marks them all, and reading changes nothing else.
 - **Settings** (`/settings`): email on or off for each kind, the search summary once a day (7 AM)
   or twice (7 AM and 5 PM), the language of every email (account ones included) and the time

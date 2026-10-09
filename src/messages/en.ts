@@ -628,7 +628,10 @@ export const en = {
     search: { one: "{name}: 1 new lot", other: "{name}: {count} new lots" },
     alsoMatches: "Also matches: {names}",
     seeAll: "See all {count}",
-    changes: { one: "A saved lot changed", other: "{count} saved lots changed" },
+    /** A lot changes alert's heading, as its email's subject: what changed, on one lot or on several. */
+    changes: { one: "{what}", other: "{what} on {count} saved lots" },
+    /** What changed, joined as the language lists them, the first letter then capitalised. */
+    changed: { sale: "auction date changed", saleSet: "auction date set", buyNow: "Buy now price changed" },
     reminder: { hour: "Auction reminder, 1 hour before", day: "Auction reminder, 1 day before" },
     starts: "The auction starts {time}.",
     sale: "Auction: {from} → {to}",
