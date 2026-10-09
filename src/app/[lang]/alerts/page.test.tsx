@@ -102,7 +102,7 @@ describe("Alerts page", () => {
     expect(getAlerts).toHaveBeenCalledWith(null, 1, "token-abc", "9.9.9.9");
     expect(entries().map((entry) => [entry.querySelector("h2")!.textContent, entry.hasAttribute("data-unread")])).toEqual([
       ["2 new lots match your saved searches", true],
-      ["Auction date set and Buy now price changed", false],
+      ["A saved lot changed · Auction date set and Buy now price changed", false],
       ["Auction reminder, 1 hour before", false],
     ]);
     expect(screen.getByRole("button", { name: "Mark all as read" })).toBeTruthy();
@@ -140,12 +140,12 @@ describe("Alerts page", () => {
     const several = (lots: Alert & { kind: "changes" }) => ({ items: [lots], total: 1, unread: 0 });
     getAlerts.mockResolvedValue(several({ ...CHANGES, kind: "changes", payload: { lots: [{ lot: LOT, changes: set }, { lot: HONDA, changes: moved }] } }));
     await show();
-    expect(entries()[0].querySelector("h2")!.textContent).toBe("Auction date changed on 2 saved lots");
+    expect(entries()[0].querySelector("h2")!.textContent).toBe("2 saved lots changed · Auction date changed");
     cleanup();
     vi.mocked(lang).mockResolvedValueOnce("es");
     getAlerts.mockResolvedValue(several({ ...CHANGES, kind: "changes", payload: { lots: [{ lot: LOT, changes: set }, { lot: HONDA, changes: { buy_now: { from: null, to: 4000 } } }] } }));
     await show();
-    expect(screen.getByRole("article").querySelector("h2")!.textContent).toBe("Fecha de subasta fijada y cambió el precio de compra inmediata en 2 lotes guardados");
+    expect(screen.getByRole("article").querySelector("h2")!.textContent).toBe("2 lotes guardados cambiaron · Fecha de subasta fijada y cambió el precio de compra inmediata");
   });
 
   it("heads a day's reminder as one, and names a lot without a name by its number", async () => {

@@ -603,7 +603,7 @@ export const es: Messages = {
     search: { one: "{name}: 1 lote nuevo", other: "{name}: {count} lotes nuevos" },
     alsoMatches: "También coincide con: {names}",
     seeAll: "Ver los {count}",
-    changes: { one: "{what}", other: "{what} en {count} lotes guardados" },
+    changes: { one: "Un lote guardado cambió · {what}", other: "{count} lotes guardados cambiaron · {what}" },
     changed: { sale: "cambió la fecha de la subasta", saleSet: "fecha de subasta fijada", buyNow: "cambió el precio de compra inmediata" },
     reminder: { hour: "Recordatorio de subasta, 1 hora antes", day: "Recordatorio de subasta, 1 día antes" },
     starts: "La subasta empieza el {time}.",
