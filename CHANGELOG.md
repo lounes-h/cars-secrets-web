@@ -1,3 +1,10 @@
+## [0.4.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.3.0...v0.4.0) (2026-10-09)
+
+### Features
+
+* add optimized CBi favicon ([979026c](https://github.com/lounes-h/cars-secrets-web/commit/979026cc9b6d9a7786f65ac9c7402e7ce4872bbc))
+* send the page's language and the browser's zone at registration, for the dealer's emails ([5f6546e](https://github.com/lounes-h/cars-secrets-web/commit/5f6546ea50089badc3d23f0ac2cb8ff25e0ceba1))
+
 ## [0.3.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.2.0...v0.3.0) (2026-10-08)
 
 ### Features
