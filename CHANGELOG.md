@@ -1,3 +1,9 @@
+## [0.8.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.7.0...v0.8.0) (2026-10-09)
+
+### Features
+
+* keep "A saved lot changed" in the inbox's change heading, before what changed ([07ebdbc](https://github.com/lounes-h/cars-secrets-web/commit/07ebdbc0de462b72a2d5fb873ed7a12272c37bfb))
+
 ## [0.7.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.6.0...v0.7.0) (2026-10-09)
 
 ### Features
