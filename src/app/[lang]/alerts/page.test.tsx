@@ -84,6 +84,8 @@ afterEach(() => {
 });
 
 const entries = () => within(screen.getByRole("list", { name: "Alerts" })).getAllByRole("article");
+/** How often an entry shows the lot's auction time. */
+const times = (entry: HTMLElement) => entry.textContent!.split("Fri, Oct 9, 3:00 PM UTC").length - 1;
 
 describe("Alerts page", () => {
   it("is titled from its registered words", async () => {
@@ -121,16 +123,19 @@ describe("Alerts page", () => {
     expect(within(cheap).getByRole("link", { name: "See all 14" }).getAttribute("href")).toBe("/active-lots?bid_max=10000");
   });
 
-  it("says what changed on a saved lot, each new value in bold, and when a reminded auction starts", async () => {
+  it("says what changed on a saved lot, each new value in bold and each time once", async () => {
     await show();
     const [, changes, reminder] = entries();
+    expect(within(changes).getByText("Lot 41633106 · Copart · VALLEJO, CA")).toBeTruthy();
     expect(changes.textContent).toContain("Auction date set: Fri, Oct 9, 3:00 PM UTC");
+    expect(times(changes)).toBe(1);
     expect(changes.textContent).toContain("Buy now: $9,500 → not offered");
     const [date, price] = changes.querySelectorAll("strong");
     expect(date.textContent).toMatch(/^Fri, Oct 9, 3:00 PM UTC/);
     expect(price.textContent).toBe("not offered");
-    expect(reminder.textContent).toContain("The auction starts Fri, Oct 9, 3:00 PM UTC");
+    expect(reminder.textContent).not.toContain("The auction starts");
     expect(reminder.textContent).toContain("Auction: Oct 10, 2026 → Fri, Oct 9, 3:00 PM UTC");
+    expect(times(reminder)).toBe(1);
     expect(reminder.querySelector("strong")!.textContent).toMatch(/^Fri, Oct 9, 3:00 PM UTC/);
   });
 
@@ -159,6 +164,8 @@ describe("Alerts page", () => {
     const [reminder] = entries();
     expect(reminder.querySelector("h2")!.textContent).toBe("Auction reminder, 1 day before");
     expect(within(reminder).getByRole("link", { name: "Lot 41633106" })).toBeTruthy();
+    expect(reminder.textContent).toContain("The auction starts Fri, Oct 9, 3:00 PM UTC");
+    expect(times(reminder)).toBe(1);
     expect(reminder.querySelector("ul")).toBeNull();
   });
 
