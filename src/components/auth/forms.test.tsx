@@ -154,6 +154,11 @@ describe("RegisterForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Agree and register" }));
     expect(await screen.findByLabelText("Confirmation code")).toBeTruthy();
     expect(screen.getByText("dana@example.com")).toBeTruthy();
+    // The browser's zone goes along, for the dealer's emails.
+    expect(actions.registerAction).toHaveBeenCalledWith(
+      expect.objectContaining({ email: "dana@example.com" }),
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+    );
     // /verify-email still needs it until the code is entered.
     expect(window.sessionStorage.getItem("cs_email")).toBe("dana@example.com");
     // Nothing is left to register with: the account exists.

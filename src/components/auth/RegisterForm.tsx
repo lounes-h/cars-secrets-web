@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { countryFromBrowser, type Country } from "@/lib/countries";
+import { browserZone } from "@/lib/lot-filters";
 import { localePath, rich } from "@/lib/i18n";
 
 type Props = { countries: Country[]; defaultCountry: string };
@@ -48,14 +49,13 @@ export function RegisterForm({ countries, defaultCountry }: Props) {
 
   // The server guesses the country from Accept-Language; the browser knows better.
   useEffect(() => {
-    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const detected = countryFromBrowser(zone, navigator.languages);
+    const detected = countryFromBrowser(browserZone(), navigator.languages);
     if (detected) setValue("phone_country", detected);
   }, [setValue]);
   useRememberedEmail(form, "first_name");
 
   const onSubmit = handleSubmit(async (values) => {
-    const state = await registerAction(values);
+    const state = await registerAction(values, browserZone());
     if (state?.ok) {
       // The address stays remembered: /verify-email needs it until the code is entered.
       setSentTo(values.email);

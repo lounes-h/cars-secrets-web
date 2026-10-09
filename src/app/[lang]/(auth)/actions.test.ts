@@ -59,7 +59,7 @@ beforeEach(() => {
 describe("registerAction", () => {
   it("composes the phone number and posts the form", async () => {
     apiMock.mockResolvedValue({ ok: true });
-    expect(await registerAction(registration)).toEqual({ ok: true });
+    expect(await registerAction(registration, "America/Chicago")).toEqual({ ok: true });
     expect(apiMock).toHaveBeenCalledWith("/api/auth/register", {
       body: {
         first_name: "Dana",
@@ -70,9 +70,22 @@ describe("registerAction", () => {
         // Submitting the form is the agreement, so the API is always told the terms are accepted.
         accept_terms: true,
         captcha_token: "cap",
+        locale: "en",
+        time_zone: "America/Chicago",
       },
       clientIp: "9.9.9.9",
     });
+  });
+
+  it("gives the API the page's language, and the zone the list kept when the browser's is unknown", async () => {
+    apiMock.mockResolvedValue({ ok: true });
+    cookieGet.mockImplementation((name) => ({ cs_locale: { value: "es" }, cs_tz: { value: "America/Bogota" } })[name]);
+    await registerAction(registration, "Mars/Olympus");
+    expect(apiMock.mock.calls[0][1].body).toMatchObject({ locale: "es", time_zone: "America/Bogota" });
+
+    cookieGet.mockImplementation(() => undefined);
+    await registerAction(registration);
+    expect(apiMock.mock.calls[1][1].body).toMatchObject({ locale: "en", time_zone: "UTC" });
   });
 
   it("re-validates on the server and never calls the API with bad input", async () => {
