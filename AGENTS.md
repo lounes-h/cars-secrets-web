@@ -141,12 +141,14 @@ See `docs/architecture.md` for details.
   5:1 on white and on `--muted`). `src/components/ui/design-system.test.ts` fails on
   an arbitrary font size, radius or control height, a weight outside 400–700, a
   faded focus ring or the old 40px gutter.
-- There is no favicon or share image yet, and no dark mode (`globals.css` keeps
+- There is no share image yet, and no dark mode (`globals.css` keeps
   the `dark` variant on a `.dark` class nothing sets, so the components' `dark:`
   styles never apply).
-  The one logo is the CarBidInsight wordmark in the banner (`public/logo.png`,
+  The CarBidInsight wordmark is in the banner (`public/logo.png`,
   384×64, shown at 192×32 and served as is, unoptimized); its navy and green
-  are the logo's own, not tokens. The interface uses black, grey and white
+  are the logo's own, not tokens. The CBi favicon (`src/app/favicon.ico`) contains
+  optimized 16, 32 and 48px versions on white; Next.js links it on every page.
+  Its black and green are also the supplied logo's own. The interface uses black, grey and white
   only, through shadcn's tokens (`--background`, `--foreground`, `--primary`,
   `--muted`, `--muted-foreground`, `--border`, …) in `src/app/globals.css`.
   There is no error colour: `--destructive` is the text colour, so errors
@@ -348,7 +350,7 @@ brand design exists. `/` is the home page: the
 centred title "Everything You Need to Know Before Buying a Car at Auction" and
 nothing else yet. Add no other pages until the user asks.
 
-**The brand is CarBidInsight, and so far only the banner's logo carries it.**
+**The brand is CarBidInsight, carried by the banner's logo and the CBi favicon.**
 The logo links home, its alt text the name. `src/lib/site.ts` holds only the
 URL, and the site's description is the messages' `site.description`; page titles stand alone (no
 "| Name" suffix) and `llms.txt` is headed by the site host (`siteHost`), until
@@ -359,9 +361,9 @@ run against. Invent no slogan.
 In place: the Next.js, Yarn 4, Tailwind, shadcn/ui and Vitest setup; the root layout
 (grayscale tokens and the full-width top banner); the SEO builders (metadata,
 sitemap, robots, llms.txt); `robots.txt` with AI crawlers allowed; security
-headers; the deal calculation in `src/lib/deal.ts`; the banner's logo; and automatic
+headers; the deal calculation in `src/lib/deal.ts`; the banner's logo and favicon; and automatic
 versioning (see Versioning).
-There is no favicon, touch icon, web app manifest, share image or structured data.
+There is no touch icon, web app manifest, share image or structured data.
 
 In place for accounts: registration (names, email, optional phone with every
 country's flag and calling code, password with show/hide, Turnstile captcha),

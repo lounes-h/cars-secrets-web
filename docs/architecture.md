@@ -191,9 +191,12 @@ earth button, so the banner is the logo and the language.
 
 ## Colours and assets
 
-The brand, CarBidInsight, appears only as the banner's logo (`public/logo.png`,
-whose navy and green are its own), which links home. There is no favicon,
-manifest or share image yet, and no structured data. Page titles stand
+The brand, CarBidInsight, appears as the banner's logo (`public/logo.png`,
+whose navy and green are its own), which links home, and the black-and-green CBi
+favicon (`src/app/favicon.ico`). The favicon contains compressed 16, 32 and 48px
+images on white, cropped and resized from the supplied logo. Next.js automatically
+links it on every page in both languages; the language proxy skips its file URL.
+There is no touch icon, manifest or share image yet, and no structured data. Page titles stand
 alone. The interface is built from shadcn/ui components (`src/components/ui`) and
 uses black, grey and white only, through shadcn's neutral theme tokens in
 `src/app/globals.css` (`--background`, `--foreground`, `--primary`, `--muted`,
