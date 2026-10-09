@@ -1,3 +1,9 @@
+## [0.6.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.5.1...v0.6.0) (2026-10-09)
+
+### Features
+
+* read a future sale given its date as "Auction date set" in the inbox ([0580d93](https://github.com/lounes-h/cars-secrets-web/commit/0580d93b905d299abe5cd4976116a84f402cada8)), closes [cars-secrets-api#25](https://github.com/lounes-h/cars-secrets-api/issues/25)
+
 ## [0.5.1](https://github.com/lounes-h/cars-secrets-web/compare/v0.5.0...v0.5.1) (2026-10-09)
 
 ### Bug fixes
