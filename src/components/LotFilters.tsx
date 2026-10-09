@@ -50,9 +50,9 @@ type Apply = (next: Query) => void;
  * change is a new URL, so the server lists the lots and a list can be shared. The search runs
  * along the top; below it, the filters sit in a sidebar on the left, always there on a wide
  * screen and behind "Filters" on a narrow one, each folding away. Option counts come after the
- * list, since counting is the slow part. Under the search, Save search while a filter is set, then
- * the menu of saved searches; while the dealer edits a saved search (`editing`), every new URL
- * carries it.
+ * list, since counting is the slow part. Save search follows the chips and Clear all while a filter
+ * is set, and the menu of saved searches sits under the search; while the dealer edits a saved
+ * search (`editing`), every new URL carries it.
  */
 export function LotFilters({
   query,
@@ -152,8 +152,8 @@ export function LotFilters({
 
   return (
     <div>
-      {/* Along the top: the search at the far left, up to 28rem, with Save search and the saved
-          searches under it, and the bar on the right; below lg the search takes a line of its own.
+      {/* Along the top: the search at the far left, up to 28rem, with the saved searches under it,
+          and the bar on the right; below lg the search takes a line of its own.
           The order sits above the lots, with the count and the chips. */}
       <div className="flex flex-wrap items-start gap-2">
         <div className="flex w-full flex-col gap-2 lg:w-auto lg:max-w-md lg:min-w-60 lg:flex-1">
@@ -183,9 +183,8 @@ export function LotFilters({
               {words.search}
             </Button>
           </form>
-          {(found.length > 0 || searches.length > 0) && (
-            <div className="flex flex-wrap items-center gap-2">
-              {found.length > 0 && <SaveSearch query={query} searches={searches} editing={editing} />}
+          {searches.length > 0 && (
+            <div>
               <SearchesMenu query={query} searches={searches} />
             </div>
           )}
@@ -282,9 +281,12 @@ export function LotFilters({
               </Button>
             ))}
             {found.length > 0 && (
-              <Button type="button" variant="link" size="sm" onClick={() => apply(edit({}, { sort: query.sort ?? null }))}>
-                {words.clearAll}
-              </Button>
+              <>
+                <Button type="button" variant="link" size="sm" onClick={() => apply(edit({}, { sort: query.sort ?? null }))}>
+                  {words.clearAll}
+                </Button>
+                <SaveSearch query={query} searches={searches} editing={editing} />
+              </>
             )}
             <Label className="ml-auto font-normal">
               {words.sort}

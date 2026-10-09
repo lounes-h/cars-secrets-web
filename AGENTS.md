@@ -538,13 +538,13 @@ In place for saved lots, searches and alerts, which the API stores, finds and se
   chosen, unless that turns off a reminder still to come. Under it, the reminders' status and,
   once saved, "Email me when the auction date or Buy now price changes" (change alerts; "when the
   auction date changes" for a lot without a Buy now price).
-- **Save search** (`src/components/SavedSearches.tsx`), text like Clear all, under the search
-  input, there only while a filter is set, opens a dialog: a name drawn from the chips (`searchName`)
+- **Save search** (`src/components/SavedSearches.tsx`), text like Clear all and right after it,
+  there only while a filter is set, opens a dialog: a name drawn from the chips (`searchName`)
   and "Email me new matches", off by default. A search keeps the list's query without its order
   (`searchQuery`). While the filters on screen are a saved search's the text reads "Edit search",
-  to rename it or pause its alerts. Beside it (alone under the search without a filter), **Saved
-  searches** is a dropdown of the dealer's saved searches, each opening its lots, the one on
-  screen checked; it is not there without any. The Saved page's "Edit filters" opens the
+  to rename it or pause its alerts. Under the search input, **Saved searches** is a dropdown of
+  the dealer's saved searches, each opening its lots, the one on screen checked; it is not there
+  without any. The Saved page's "Edit filters" opens the
   list with `saved=<id>`, which every URL the list makes keeps (`listPath(query, page, saved)`); the
   button then offers "Save changes" or "Save as a new search", and "Stop editing" leaves it.
 - **Saved** (`/saved`): Lots and Searches tabs. Lots are lot cards with `LotWatch`; one the auction
