@@ -172,7 +172,7 @@ See `docs/architecture.md` for details.
   The Car Bid Insight wordmark is in the banner (`public/logo.png`,
   384×64, shown at 192×32 and served as is, unoptimized); its navy and green
   are the logo's own, not tokens. The CBi favicon (`src/app/favicon.ico`) contains
-  optimized 16, 32 and 48px versions on white; Next.js links it on every page.
+  optimized 16, 32 and 48px versions with transparent backgrounds; Next.js links it on every page.
   Its black and green are also the supplied logo's own. The interface uses black, grey and white
   only, through shadcn's tokens (`--background`, `--foreground`, `--primary`,
   `--muted`, `--muted-foreground`, `--border`, …) in `src/app/globals.css`.
