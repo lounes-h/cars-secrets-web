@@ -32,8 +32,12 @@ export type LotSummary = Pick<
 /** When an auction is: a moment, a day without a time, or neither (a future sale). */
 export type SaleTime = { at: string | null; date: string | null };
 
-/** What changed on a saved lot since the dealer was last told. */
-export type LotChanges = { sale?: { from: SaleTime; to: SaleTime }; buy_now?: { from: number | null; to: number | null } };
+/** What changed on a saved lot since the dealer was last told; `relisted` is a lot whose auction ended, listed again for this one. */
+export type LotChanges = {
+  relisted?: SaleTime;
+  sale?: { from: SaleTime; to: SaleTime };
+  buy_now?: { from: number | null; to: number | null };
+};
 
 export type SearchMatches = { id: string; name: string; query: string; total: number; lots: (LotSummary & { searches: string[] })[] };
 

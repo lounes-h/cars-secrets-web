@@ -113,13 +113,42 @@ describe("lot card controls and availability", () => {
     expect(save.compareDocumentPosition(screen.getByText("View details")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("says a lot the auction no longer lists is gone, and offers no way into it", () => {
+  it("says a lot whose auction ended has most likely sold in a pure sale, and links only to the auction", () => {
     const card = render(<LotCard lot={sampleLot} i18n={{ locale: "en", m: en }} unavailable />).container;
-    expect(card.querySelectorAll("a")).toHaveLength(0);
+    const [auction] = card.querySelectorAll("a");
+    expect(card.querySelectorAll("a")).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "View on Copart" })).toBe(auction);
+    expect([auction.getAttribute("href"), auction.getAttribute("target")]).toEqual(["https://www.copart.com/lot/41633106", "_blank"]);
+    expect(auction.getAttribute("rel")).toBe("noopener noreferrer nofollow");
     expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("2013 ACURA TSX TECH");
-    expect(card.textContent).toContain("No longer listed");
-    expect(card.textContent).toContain("The auction no longer lists this lot, which does not mean it sold.");
+    expect(card.textContent).toContain("Auction ended");
+    expect(card.textContent).toContain("In a pure sale the highest bid wins, so this lot has most likely sold.");
+    expect(card.textContent).not.toContain("View details");
     expect(card.querySelector("img")).toBeTruthy();
+  });
+
+  it("says a lot that may not have sold may be listed again, which the dealer will hear about", () => {
+    const ended = (sale_status: string | null, locale: "en" | "es" = "en") =>
+      render(<LotCard lot={{ ...sampleLot, sale_status }} i18n={{ locale, m: locale === "es" ? es : en }} unavailable />).container.textContent;
+    expect(ended("On Minimum Bid")).toContain(
+      "It sold only if bidding reached the seller's minimum. If not, Copart may list it again, and we'll alert you when it does.",
+    );
+    cleanup();
+    expect(ended(" on approval ")).toContain(
+      "It sold only if the seller accepted the highest bid. If not, Copart may list it again, and we'll alert you when it does.",
+    );
+    cleanup();
+    expect(ended("On Approval", "es")).toContain("Solo se vendió si el vendedor aceptó la oferta más alta. Si no, Copart puede volver a publicarlo");
+    cleanup();
+    for (const status of [null, "", "NEW CODE"]) {
+      expect(ended(status)).toContain("Its sale status is not stated, so whether it sold is unknown.");
+      cleanup();
+    }
+  });
+
+  it("leaves out the way to the auction when the lot has none", () => {
+    const card = render(<LotCard lot={{ ...sampleLot, listing_url: null }} i18n={{ locale: "en", m: en }} unavailable />).container;
+    expect(card.querySelectorAll("a")).toHaveLength(0);
   });
 });
 

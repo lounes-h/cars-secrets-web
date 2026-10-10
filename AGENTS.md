@@ -555,7 +555,7 @@ In place for saved lots, searches and alerts, which the API stores, finds and se
 
 - **Save / Saved** (`src/components/LotWatch.tsx`), on the lot page and the Saved page (the lot
   list's cards have none), bookmarks the auction's listing in the dealer's account and switches
-  nothing on. The same component offers **Remind me**: a dialog with 1
+  nothing on; the one alert it brings on its own is "Relisted" (see Saved). The same component offers **Remind me**: a dialog with 1
   hour before the auction (checked while no reminder is still to come) and 1 day before, each at
   its time in the dealer's zone, "Already passed" and off once its time has come, and a waiting
   state while the auction has no start time. Reminders refer to the auction's scheduled start,
@@ -572,18 +572,27 @@ In place for saved lots, searches and alerts, which the API stores, finds and se
   without any. The Saved page's "Edit filters" opens the
   list with `saved=<id>`, which every URL the list makes keeps (`listPath(query, page, saved)`); the
   button then offers "Save changes" or "Save as a new search", and "Stop editing" leaves it.
-- **Saved** (`/saved`): Lots and Searches tabs. Lots are lot cards with `LotWatch`; one the auction
-  no longer lists reads "No longer listed" (which does not mean sold), has no links and can only be
-  removed. Searches open their results, switch their alerts, edit their filters, rename, and delete
+- **Saved** (`/saved`): Lots and Searches tabs. Lots are lot cards with `LotWatch`. One the auction
+  no longer lists has had its auction (the API copies each saved lot as last seen, so its sale
+  time and status outlive it): it reads "Auction ended" and what that means by its sale status —
+  a pure sale has most likely sold; a minimum bid or the seller's approval sold only if bidding
+  reached the minimum or the seller accepted, and otherwise Copart may list it again, which the
+  API alerts the dealer to ("Relisted"); a status not stated, or one the table does not know,
+  leaves whether it sold unknown. It never links to its page here, only to the auction's ("View on
+  Copart", in View details' place, from `listing_url`), and can only be removed; once relisted it
+  is an ordinary card again. Searches open their results, switch their alerts, edit their filters, rename, and delete
   after a confirmation, which leaves saved lots alone.
 - **Alerts** (`/alerts`): the inbox, newest first, 20 to a page, by kind (`?kind=`): new matches,
   grouped by search with each lot once, naming its other searches, and "See all N"; saved-lot
   changes, headed as their email's subject is by how many lots changed and what changed ("A saved
   lot changed · Buy now price changed", "2 saved lots changed · Auction date set and Buy now price
   changed"), each lot's changes on a grey ground with the new value in bold ("Auction: … → …", "Buy
-  now: … → …", and "Auction date set: …" for a future sale given its date, which a dealer with
-  reminders on the lot gets even without change alerts); and reminders, whose changes are set apart
-  the same way. Each time shows once: a lot's line leaves out its sale when a change gives it, and a
+  now: … → …", "Auction date set: …" for a future sale given its date, which a dealer with
+  reminders on the lot gets even without change alerts, and "Relisted · Auction: …" for a lot whose
+  auction ended on a minimum bid or the seller's approval, listed again, which every dealer who
+  saved it gets, headed "Relisted"); and reminders, whose changes are set apart
+  the same way. Each time shows once: a lot's line leaves out its sale when a change (a move or a
+  relist) gives it, and a
   reminder's moved auction reads only as its change, not also as "The auction starts …". Unread ones
   carry a dot and a bold heading; following a link in one marks it read (`AlertEntry`), "Mark all as
   read" marks them all, and reading changes nothing else.

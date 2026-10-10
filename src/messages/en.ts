@@ -553,8 +553,14 @@ export const en = {
     noSearches: "No saved searches yet. Set the filters on Active lots, then use Save search.",
     save: "Save",
     saved: "Saved",
-    unavailable: "No longer listed",
-    unavailableNote: "The auction no longer lists this lot, which does not mean it sold.",
+    /** A saved lot whose auction is over, so the auction no longer lists it; whether it sold depends on its sale status. */
+    ended: "Auction ended",
+    endedNote: {
+      pureSale: "In a pure sale the highest bid wins, so this lot has most likely sold.",
+      minimumBid: "It sold only if bidding reached the seller's minimum. If not, {auction} may list it again, and we'll alert you when it does.",
+      sellerApproval: "It sold only if the seller accepted the highest bid. If not, {auction} may list it again, and we'll alert you when it does.",
+      saleNotStated: "Its sale status is not stated, so whether it sold is unknown.",
+    },
     changeAlerts: "Email me when the auction date or Buy now price changes",
     /** The same for a lot without a Buy now price. */
     changeAlertsDate: "Email me when the auction date changes",
@@ -631,12 +637,14 @@ export const en = {
     /** A lot changes alert's heading, as its email's subject: how many lots changed, then what changed. */
     changes: { one: "A saved lot changed · {what}", other: "{count} saved lots changed · {what}" },
     /** What changed, joined as the language lists them, the first letter then capitalised. */
-    changed: { sale: "auction date changed", saleSet: "auction date set", buyNow: "Buy now price changed" },
+    changed: { relisted: "relisted", sale: "auction date changed", saleSet: "auction date set", buyNow: "Buy now price changed" },
     reminder: { hour: "Auction reminder, 1 hour before", day: "Auction reminder, 1 day before" },
     starts: "The auction starts {time}.",
     sale: "Auction: {from} → {to}",
     /** The same for a future sale given its date. */
     saleSet: "Auction date set: {to}",
+    /** A saved lot whose auction ended, listed again: its new auction. */
+    relisted: "Relisted · Auction: {to}",
     buyNow: "Buy now: {from} → {to}",
     notOffered: "not offered",
   },

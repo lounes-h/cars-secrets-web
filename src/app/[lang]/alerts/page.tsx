@@ -157,7 +157,7 @@ function AlertContent({ alert, i18n }: { alert: Alert; i18n: I18n }) {
         <ul className="mt-4 flex flex-col gap-3">
           {lots.map(({ lot, changes }) => (
             <li key={keyOf(lot)}>
-              <LotLine lot={lot} i18n={i18n} sale={!changes.sale} />
+              <LotLine lot={lot} i18n={i18n} sale={!changes.sale && !changes.relisted} />
               <Changes lot={lot} changes={changes} i18n={i18n} />
             </li>
           ))}
@@ -213,11 +213,12 @@ function Sale({ time, i18n: { locale, m } }: { time: SaleTime; i18n: I18n }) {
 
 /**
  * What changed on these lots, as the email's subject says it: "Auction date set and Buy now price
- * changed". A future sale given its date reads as set, not as changed.
+ * changed". A future sale given its date reads as set, not as changed; a lot listed again, as relisted.
  */
 function changed(all: LotChanges[], { locale, m }: I18n) {
   const sales = all.flatMap(({ sale }) => (sale ? [sale] : []));
   const words = new Intl.ListFormat(LOCALES[locale].tag).format([
+    ...(all.some(({ relisted }) => relisted) ? [m.alerts.changed.relisted] : []),
     ...(sales.length ? [sales.some(({ from }) => from.at || from.date) ? m.alerts.changed.sale : m.alerts.changed.saleSet] : []),
     ...(all.some(({ buy_now }) => buy_now) ? [m.alerts.changed.buyNow] : []),
   ]);
@@ -231,6 +232,17 @@ function Changes({ lot, changes, i18n }: { lot: LotSummary; changes: LotChanges 
   if (!changes) return null;
   return (
     <ul className="mt-2 flex w-fit flex-col gap-1 rounded-lg bg-muted px-3 py-2 text-sm">
+      {changes.relisted && (
+        <li>
+          {rich(m.alerts.relisted, {
+            to: (
+              <strong>
+                <Sale time={changes.relisted} i18n={i18n} />
+              </strong>
+            ),
+          })}
+        </li>
+      )}
       {changes.sale && (
         <li>
           {rich(changes.sale.from.at || changes.sale.from.date ? m.alerts.sale : m.alerts.saleSet, {
