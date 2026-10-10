@@ -153,6 +153,27 @@ describe("Alerts page", () => {
     expect(screen.getByRole("article").querySelector("h2")!.textContent).toBe("2 lotes guardados cambiaron · Fecha de subasta fijada y cambió el precio de compra inmediata");
   });
 
+  it("says a lot whose auction ended is relisted, with its new auction once", async () => {
+    const relisted = { relisted: { at: "2026-10-09T15:00:00Z", date: null } };
+    const several = (lots: Alert & { kind: "changes" }) => ({ items: [lots], total: 1, unread: 0 });
+    getAlerts.mockResolvedValue(several({ ...CHANGES, kind: "changes", payload: { lots: [{ lot: LOT, changes: relisted }] } }));
+    await show();
+    const [entry] = entries();
+    expect(entry.querySelector("h2")!.textContent).toBe("A saved lot changed · Relisted");
+    expect(entry.textContent).toContain("Relisted · Auction: Fri, Oct 9, 3:00 PM UTC");
+    expect(times(entry)).toBe(1);
+    expect(entry.querySelector("strong")!.textContent).toMatch(/^Fri, Oct 9, 3:00 PM UTC/);
+    cleanup();
+    vi.mocked(lang).mockResolvedValueOnce("es");
+    getAlerts.mockResolvedValue(
+      several({ ...CHANGES, kind: "changes", payload: { lots: [{ lot: LOT, changes: relisted }, { lot: HONDA, changes: { buy_now: { from: null, to: 4000 } } }] } }),
+    );
+    await show();
+    expect(screen.getByRole("article").querySelector("h2")!.textContent).toBe(
+      "2 lotes guardados cambiaron · Publicado de nuevo y cambió el precio de compra inmediata",
+    );
+  });
+
   it("heads a day's reminder as one, and names a lot without a name by its number", async () => {
     const nameless = { ...LOT, year: null, make: null, model: null, trim: null };
     getAlerts.mockResolvedValue({

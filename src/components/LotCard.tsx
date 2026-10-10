@@ -6,8 +6,10 @@ import { LotBadges } from "@/components/LotBadges";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { fill, type I18n, localePath } from "@/lib/i18n";
+import { fill, type I18n, localePath, lookup } from "@/lib/i18n";
+import { SIGNALS } from "@/lib/lot-words";
 import { amount, auctionName, type Lot, lotPath, odometer, place, saleDate } from "@/lib/lots";
+import type { Messages } from "@/messages/en";
 
 /**
  * The export's thumbnail is 144px wide, too small for a card, so the card shows its full-size
@@ -21,11 +23,22 @@ export function cardPhoto(lot: Lot): string | null {
 const PHOTO_BOX = "relative flex-none bg-muted no-underline sm:min-h-48 sm:w-64";
 
 /**
+ * What an ended auction means, by its sale status: a pure sale has most likely sold; a minimum bid
+ * or the seller's approval may not have, and the lot may be listed again, which the API alerts the
+ * dealer to. Any other status says nothing either way.
+ */
+function endedNote(lot: Lot, m: Messages) {
+  const word = lookup(SIGNALS.sale, (lot.sale_status ?? "").trim().toUpperCase())?.word;
+  const note = (word && lookup(m.saved.endedNote, word)) || m.saved.endedNote.saleNotStated;
+  return fill(note, { auction: auctionName(lot.source) });
+}
+
+/**
  * One lot in the list, answering "is this lot worth opening?": the photo, what it is and where,
  * the deal breakers, when it sells and the real money figures. The photo, the title and View
  * details open the lot; the rest of the card is text to read and select. `actions` are the
- * dealer's controls (Save); a lot the auction no longer lists (`unavailable`, on the Saved page)
- * says so and has no page to open.
+ * dealer's controls (Save). A lot the auction no longer lists (`unavailable`, on the Saved page)
+ * has had its auction: it says what that means and has no page here to open, only the auction's.
  */
 export function LotCard({ lot, i18n, actions, unavailable = false }: { lot: Lot; i18n: I18n; actions?: ReactNode; unavailable?: boolean }) {
   const { locale, m } = i18n;
@@ -33,7 +46,8 @@ export function LotCard({ lot, i18n, actions, unavailable = false }: { lot: Lot;
   const photo = cardPhoto(lot);
   const number = fill(m.lot.number, { number: lot.lot_number });
   const title = [lot.year, lot.make, lot.model, lot.trim].filter(Boolean).join(" ") || number;
-  const where = [number, auctionName(lot.source), place(lot) !== "—" && place(lot)].filter(Boolean);
+  const auction = auctionName(lot.source);
+  const where = [number, auction, place(lot) !== "—" && place(lot)].filter(Boolean);
   const facts = [
     lot.odometer != null && odometer(lot.odometer, i18n),
     lot.damage_primary && fill(m.lot.primaryDamage, { damage: lot.damage_primary }),
@@ -77,8 +91,8 @@ export function LotCard({ lot, i18n, actions, unavailable = false }: { lot: Lot;
           </h2>
           {unavailable && (
             <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="outline">{m.saved.unavailable}</Badge>
-              {m.saved.unavailableNote}
+              <Badge variant="outline">{m.saved.ended}</Badge>
+              {endedNote(lot, m)}
             </p>
           )}
           <p className="text-muted-foreground">{where.join(" · ")}</p>
@@ -100,8 +114,20 @@ export function LotCard({ lot, i18n, actions, unavailable = false }: { lot: Lot;
             ))}
           </dl>
           {actions}
-          {/* Left out of the tab order and of what a screen reader reads, like the photo. */}
-          {!unavailable && (
+          {unavailable ? (
+            // The way left to the lot, so a real link: the title is no longer one.
+            lot.listing_url && (
+              <a
+                href={lot.listing_url}
+                rel="noopener noreferrer nofollow"
+                target="_blank"
+                className={buttonVariants({ variant: "outline", className: "mt-auto" })}
+              >
+                {fill(m.lotPage.viewOn, { auction })}
+              </a>
+            )
+          ) : (
+            // Left out of the tab order and of what a screen reader reads, like the photo.
             <Link href={href} tabIndex={-1} aria-hidden="true" className={buttonVariants({ variant: "outline", className: "mt-auto" })}>
               {m.lot.viewDetails}
               <ChevronRightIcon aria-hidden="true" />

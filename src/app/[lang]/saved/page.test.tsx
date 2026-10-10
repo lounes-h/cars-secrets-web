@@ -17,7 +17,12 @@ const { default: SavedPage, generateMetadata } = await import("@/app/[lang]/save
 
 const OFF = { change_alerts: false, remind_hour: false, remind_day: false };
 const LISTED = { ...OFF, lot: sampleLot, available: true, saved_at: "2026-10-07T00:00:00Z", remind_hour: true };
-const GONE = { ...OFF, lot: { ...sampleLot, lot_number: "7", year: 2019, make: "HONDA", model: "CIVIC", trim: null }, available: false, saved_at: "2026-10-01T00:00:00Z" };
+const GONE = {
+  ...OFF,
+  lot: { ...sampleLot, lot_number: "7", year: 2019, make: "HONDA", model: "CIVIC", trim: null, sale_status: "On Minimum Bid", listing_url: "https://www.copart.com/lot/7" },
+  available: false,
+  saved_at: "2026-10-01T00:00:00Z",
+};
 /** A tab's rows: its list's own items, not the lists inside them (a card's badges). */
 const rows = (panel: HTMLElement) => [...panel.querySelectorAll<HTMLElement>(":scope > ul > li")];
 
@@ -57,7 +62,7 @@ describe("Saved page", () => {
     ]);
   });
 
-  it("gives a listed lot its reminders and change alerts, and a lot the auction dropped only a way out", async () => {
+  it("gives a listed lot its reminders and change alerts, and a lot whose auction ended only the auction's page", async () => {
     render(await SavedPage());
     const [listed, gone] = rows(screen.getAllByRole("tabpanel", { hidden: true })[0]);
 
@@ -66,8 +71,11 @@ describe("Saved page", () => {
     expect(listed.textContent).toContain("Reminders: 1 hour before");
     expect(within(listed).getByRole("checkbox", { name: "Email me when the auction date changes" })).toBeTruthy();
 
-    expect(gone.textContent).toContain("No longer listed");
-    expect(within(gone).queryAllByRole("link")).toEqual([]);
+    expect(gone.textContent).toContain("Auction ended");
+    expect(gone.textContent).toContain("If not, Copart may list it again, and we'll alert you when it does.");
+    expect(within(gone).getAllByRole("link").map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
+      ["View on Copart", "https://www.copart.com/lot/7"],
+    ]);
     expect(within(gone).getAllByRole("button").map((button) => button.textContent)).toEqual(["Saved"]);
   });
 

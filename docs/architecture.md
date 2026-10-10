@@ -36,7 +36,8 @@ src/
     LocalTime.tsx      A time in the reader's own time zone: server text, rewritten before paint
     LotFilters.tsx     The lot list's search box, filter bar, All filters sidebar, chips and order
     LotCard.tsx        One lot in the list: photo, title, real figures, badges, sale time; the
-                       dealer's controls; "No longer listed" for a saved lot the auction dropped
+                       dealer's controls; "Auction ended", what it means by sale status and the
+                       way to the auction for a saved lot the auction dropped
     LotWatch.tsx       Save / Saved, Remind me (the reminder dialog), the reminders' status, change alerts
     SavedSearches.tsx  Save search beside Clear all, the Saved searches menu under the search, and
                        a saved search's controls on the Saved page
