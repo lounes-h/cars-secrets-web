@@ -195,7 +195,7 @@ earth button, so the banner is the logo and the language.
 The brand, Car Bid Insight, appears as the banner's logo (`public/logo.png`,
 whose navy and green are its own), which links home, and the black-and-green CBi
 favicon (`src/app/favicon.ico`). The favicon contains compressed 16, 32 and 48px
-images on white, cropped and resized from the supplied logo. Next.js automatically
+images with transparent backgrounds, sized from the supplied logo. Next.js automatically
 links it on every page in both languages; the language proxy skips its file URL.
 There is no touch icon, manifest or share image yet, and no structured data. The name lives in
 each language's `site.name`, used by the logo's alt text, application metadata, Open Graph site
