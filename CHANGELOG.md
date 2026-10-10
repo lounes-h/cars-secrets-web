@@ -1,3 +1,9 @@
+## [0.8.1](https://github.com/lounes-h/cars-secrets-web/compare/v0.8.0...v0.8.1) (2026-10-10)
+
+### Bug fixes
+
+* show each auction time once in an alert ([14f7e8a](https://github.com/lounes-h/cars-secrets-web/commit/14f7e8a25990b3ecf4ba027460853bfd1d52ced3))
+
 ## [0.8.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.7.0...v0.8.0) (2026-10-09)
 
 ### Features
