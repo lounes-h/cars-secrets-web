@@ -1,3 +1,9 @@
+## [0.9.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.8.1...v0.9.0) (2026-10-10)
+
+### Features
+
+* say what an ended auction means for a saved lot, and show relisted lots in the inbox ([2d0f1b7](https://github.com/lounes-h/cars-secrets-web/commit/2d0f1b727f588e094eed0f4c9d57377203aa36a6))
+
 ## [0.8.1](https://github.com/lounes-h/cars-secrets-web/compare/v0.8.0...v0.8.1) (2026-10-10)
 
 ### Bug fixes
