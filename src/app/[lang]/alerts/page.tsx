@@ -157,7 +157,7 @@ function AlertContent({ alert, i18n }: { alert: Alert; i18n: I18n }) {
         <ul className="mt-4 flex flex-col gap-3">
           {lots.map(({ lot, changes }) => (
             <li key={keyOf(lot)}>
-              <LotLine lot={lot} i18n={i18n} />
+              <LotLine lot={lot} i18n={i18n} sale={!changes.sale} />
               <Changes lot={lot} changes={changes} i18n={i18n} />
             </li>
           ))}
@@ -166,21 +166,23 @@ function AlertContent({ alert, i18n }: { alert: Alert; i18n: I18n }) {
     );
   }
   const { lot, reminders, changes } = alert.payload;
+  // A moved auction's change line gives its new start, in place of "The auction starts …".
+  const starts = lot.sale_at && !changes?.sale;
   return (
     <>
       <h2 className={HEADING}>{words.reminder[reminders.includes("hour") ? "hour" : "day"]}</h2>
       {sent}
       <div className="mt-4">
-        <LotLine lot={lot} i18n={i18n} />
-        {lot.sale_at && <p className="text-sm">{rich(words.starts, { time: <LocalTime value={lot.sale_at} format="sale" /> })}</p>}
+        <LotLine lot={lot} i18n={i18n} sale={!lot.sale_at && !changes?.sale} />
+        {starts && <p className="text-sm">{rich(words.starts, { time: <LocalTime value={lot.sale_at} format="sale" /> })}</p>}
         <Changes lot={lot} changes={changes} i18n={i18n} />
       </div>
     </>
   );
 }
 
-/** A lot's name, linking to its page, then its number, auction, place and sale. */
-function LotLine({ lot, i18n }: { lot: LotSummary; i18n: I18n }) {
+/** A lot's name, linking to its page, then its number, auction, place and sale, unless a line under it gives the sale. */
+function LotLine({ lot, i18n, sale = true }: { lot: LotSummary; i18n: I18n; sale?: boolean }) {
   const { locale, m } = i18n;
   const number = fill(m.lot.number, { number: lot.lot_number });
   const title = [lot.year, lot.make, lot.model, lot.trim].filter(Boolean).join(" ") || number;
@@ -191,7 +193,13 @@ function LotLine({ lot, i18n }: { lot: LotSummary; i18n: I18n }) {
         {title}
       </Link>
       <p className="text-sm text-muted-foreground">
-        {where} · <Sale time={{ at: lot.sale_at, date: lot.sale_date }} i18n={i18n} />
+        {where}
+        {sale && (
+          <>
+            {" · "}
+            <Sale time={{ at: lot.sale_at, date: lot.sale_date }} i18n={i18n} />
+          </>
+        )}
       </p>
     </>
   );
