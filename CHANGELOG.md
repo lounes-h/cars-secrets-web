@@ -1,3 +1,9 @@
+## [0.9.1](https://github.com/lounes-h/cars-secrets-web/compare/v0.9.0...v0.9.1) (2026-10-10)
+
+### Bug fixes
+
+* make favicon background transparent ([4e6cad7](https://github.com/lounes-h/cars-secrets-web/commit/4e6cad7cf1064e4a64c0ce807d6f8756181b80ed))
+
 ## [0.9.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.8.1...v0.9.0) (2026-10-10)
 
 ### Features
