@@ -313,7 +313,7 @@ describe("All filters", () => {
     // What the lot is, its shape, its price, its sale, where it is. Sale date, title, runs and
     // drives, damage and Buy now are the bar's, beside the sidebar.
     expect(sections(panel())).toEqual([
-      ["Vehicle", ["Vehicle type", "Make", "Year", "Mileage", "Engine"]],
+      ["Vehicle", ["Vehicle type", "Make", "Year", "Mileage", "Engine size", "Cylinders", "Transmission", "Drive train"]],
       ["Condition", ["Secondary damage", "Keys"]],
       ["Price", ["Current bid", "Buy now price", "Retail value"]],
       ["Sale", ["Sale type"]],
@@ -412,7 +412,7 @@ describe("All filters", () => {
     const opened = await sheet();
     // Every filter, the bar's too, since the bar shows only "Filters" on a narrow screen, each in its group.
     expect(sections(opened)).toEqual([
-      ["Vehicle", ["Vehicle type", "Make", "Year", "Mileage", "Engine"]],
+      ["Vehicle", ["Vehicle type", "Make", "Year", "Mileage", "Engine size", "Cylinders", "Transmission", "Drive train"]],
       ["Condition", ["Runs and drives", "Damage", "Secondary damage", "Keys"]],
       ["Price", ["Current bid", "Buy now price", "Retail value"]],
       ["Sale", ["Sale date", "Title", "Sale type"]],

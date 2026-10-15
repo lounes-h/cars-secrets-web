@@ -31,17 +31,23 @@ export type Filter = {
   hideWhenSingle?: boolean;
 };
 
-/** An engine as the lot page words it: "2.0L 4" is "2.0L 4-cyl", and "4", the cylinders alone, "4-cyl". */
-export const engineName = (value: string, m: Messages) =>
-  value.replace(/(^|\s)(\d+)$/, (_, space: string, cylinders: string) => space + fill(m.lot.cylinders, { cylinders }));
-
 export const FILTERS: Filter[] = [
   { id: "vehicle_type", group: "vehicle", kind: "options", name: vehicleTypeName },
   { id: "make", group: "vehicle", kind: "select" },
   { id: "model", group: "vehicle", kind: "select" },
   { id: "year", group: "vehicle", kind: "range", range: { min: "year_min", max: "year_max", unit: "year" } },
   { id: "mileage", group: "vehicle", kind: "range", range: { max: "odometer_max", unit: "mi" } },
-  { id: "engine", group: "vehicle", kind: "select", name: engineName },
+  // The engine's size ("2.0L"), as the API reads it from Copart's "2.0L 4".
+  { id: "engine", group: "vehicle", kind: "select" },
+  { id: "cylinders", group: "vehicle", kind: "options" },
+  { id: "transmission", group: "vehicle", kind: "options", options: [{ value: "automatic" }, { value: "manual" }] },
+  // Copart's wordings ("4X4 W/REAR WHEEL DRV") grouped as a dealer says them, as the lot page does.
+  {
+    id: "drive",
+    group: "vehicle",
+    kind: "options",
+    options: [{ value: "fwd" }, { value: "rwd" }, { value: "awd" }, { value: "4wd" }],
+  },
   {
     id: "run",
     group: "condition",
@@ -269,7 +275,7 @@ export function chips(query: Query, i18n: I18n): Chip[] {
       const label =
         filter.kind === "toggle" ? name
         : own ? (own.chip ?? own.label)
-        : filter.kind === "select" ? valueLabel(m, filter, value)
+        : filter.kind === "select" ? value
         : fill(words.chipValue, { label: name, value: valueLabel(m, filter, value) });
       const rest = query[filter.id].filter((one) => one !== value);
       // A model belongs to its make, so it goes with it.

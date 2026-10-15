@@ -196,10 +196,7 @@ describe("the filters", () => {
     expect(valueLabel(en, filterById("vehicle_type"), "Q")).toBe("Q");
     expect(valueLabel(en, filterById("source"), "copart")).toBe("Copart");
     expect(valueLabel(en, filterById("damage"), "FRONT END")).toBe("FRONT END");
-    expect(valueLabel(en, filterById("engine"), "2.0L 4")).toBe("2.0L 4-cyl");
-    expect(valueLabel(en, filterById("engine"), "4")).toBe("4-cyl"); // the cylinders alone
-    expect(valueLabel(en, filterById("engine"), "1.3L R")).toBe("1.3L R");
-    expect(valueLabel(es, filterById("engine"), "2.0L 4")).toBe("2.0L 4 cil.");
+    expect(valueLabel(en, filterById("drive"), "4wd")).toBe("Four-wheel drive (4WD)");
   });
 
   it("show amounts in their unit", () => {
@@ -212,7 +209,7 @@ describe("the filters", () => {
 describe("chips", () => {
   it("make one removable chip per chosen value, and one per range", () => {
     const query = read(
-      "q=hybrid&sale=today&title=salvage&run=starts&damage=SIDE&vehicle_type=V&buy_now=1&make=TOYOTA&model=RAV4&year_min=2018&year_max=2021&odometer_max=100000&engine=2.0L 4&retail_min=5000&bid_max=900&sort=sale",
+      "q=hybrid&sale=today&title=salvage&run=starts&damage=SIDE&vehicle_type=V&buy_now=1&make=TOYOTA&model=RAV4&year_min=2018&year_max=2021&odometer_max=100000&engine=2.0L&cylinders=4&transmission=manual&drive=awd&retail_min=5000&bid_max=900&sort=sale",
     );
     expect(chips(query, EN).map((chip) => chip.label)).toEqual([
       "“hybrid”",
@@ -221,7 +218,10 @@ describe("chips", () => {
       "RAV4",
       "Year 2018–2021",
       "Mileage up to 100,000 mi",
-      "2.0L 4-cyl",
+      "2.0L",
+      "Cylinders: 4",
+      "Manual transmission",
+      "AWD",
       "Engine starts only",
       "Damage: SIDE",
       "Current bid up to $900",
