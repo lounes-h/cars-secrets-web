@@ -525,7 +525,7 @@ the server-rendered cards) work like this:
   take the whole width; "Show filters · n", before the count, brings it back (both one
   `Collapsible`; open on every visit). Its groups follow how a dealer narrows a search, in
   `FILTERS`' order: **Vehicle** (vehicle type, make, model, year — From and To selects, next
-  year, since model years run a year ahead, down to 1900 — mileage), **Condition** (runs and
+  year, since model years run a year ahead, down to 1900 — mileage, engine — one of a list, as the lot page words it: "2.0L 4-cyl"), **Condition** (runs and
   drives, damage, secondary damage, keys), **Price** (current bid, Buy now price, retail value), **Sale** (sale date, title — the
   document the sale hands over — sale type, Buy now available, auction, hidden while every lot
   has the same one) and **Location** (state or province, yard or offsite). The sidebar leaves

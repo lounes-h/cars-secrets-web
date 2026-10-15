@@ -31,12 +31,17 @@ export type Filter = {
   hideWhenSingle?: boolean;
 };
 
+/** An engine as the lot page words it: "2.0L 4" is "2.0L 4-cyl", and "4", the cylinders alone, "4-cyl". */
+export const engineName = (value: string, m: Messages) =>
+  value.replace(/(^|\s)(\d+)$/, (_, space: string, cylinders: string) => space + fill(m.lot.cylinders, { cylinders }));
+
 export const FILTERS: Filter[] = [
   { id: "vehicle_type", group: "vehicle", kind: "options", name: vehicleTypeName },
   { id: "make", group: "vehicle", kind: "select" },
   { id: "model", group: "vehicle", kind: "select" },
   { id: "year", group: "vehicle", kind: "range", range: { min: "year_min", max: "year_max", unit: "year" } },
   { id: "mileage", group: "vehicle", kind: "range", range: { max: "odometer_max", unit: "mi" } },
+  { id: "engine", group: "vehicle", kind: "select", name: engineName },
   {
     id: "run",
     group: "condition",
@@ -264,7 +269,7 @@ export function chips(query: Query, i18n: I18n): Chip[] {
       const label =
         filter.kind === "toggle" ? name
         : own ? (own.chip ?? own.label)
-        : filter.kind === "select" ? value
+        : filter.kind === "select" ? valueLabel(m, filter, value)
         : fill(words.chipValue, { label: name, value: valueLabel(m, filter, value) });
       const rest = query[filter.id].filter((one) => one !== value);
       // A model belongs to its make, so it goes with it.
