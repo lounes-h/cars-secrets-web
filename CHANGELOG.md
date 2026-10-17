@@ -1,3 +1,10 @@
+## [0.10.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.9.1...v0.10.0) (2026-10-17)
+
+### Features
+
+* add engine size, cylinders, transmission and drive train filters ([88f1f6d](https://github.com/lounes-h/cars-secrets-web/commit/88f1f6dd50b4e68afccd79ad0360d399487a7b87))
+* add engine to All filters ([aa32ee8](https://github.com/lounes-h/cars-secrets-web/commit/aa32ee80dfb1e1c31726924aa647212dbb418d91))
+
 ## [0.9.1](https://github.com/lounes-h/cars-secrets-web/compare/v0.9.0...v0.9.1) (2026-10-10)
 
 ### Bug fixes
