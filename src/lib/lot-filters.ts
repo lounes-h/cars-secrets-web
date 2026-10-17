@@ -37,6 +37,17 @@ export const FILTERS: Filter[] = [
   { id: "model", group: "vehicle", kind: "select" },
   { id: "year", group: "vehicle", kind: "range", range: { min: "year_min", max: "year_max", unit: "year" } },
   { id: "mileage", group: "vehicle", kind: "range", range: { max: "odometer_max", unit: "mi" } },
+  // The engine's size ("2.0L"), as the API reads it from Copart's "2.0L 4".
+  { id: "engine", group: "vehicle", kind: "select" },
+  { id: "cylinders", group: "vehicle", kind: "options" },
+  { id: "transmission", group: "vehicle", kind: "options", options: [{ value: "automatic" }, { value: "manual" }] },
+  // Copart's wordings ("4X4 W/REAR WHEEL DRV") grouped as a dealer says them, as the lot page does.
+  {
+    id: "drive",
+    group: "vehicle",
+    kind: "options",
+    options: [{ value: "fwd" }, { value: "rwd" }, { value: "awd" }, { value: "4wd" }],
+  },
   {
     id: "run",
     group: "condition",
