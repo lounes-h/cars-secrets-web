@@ -34,6 +34,7 @@ import {
   promoted,
   type Query,
   queryString,
+  REGIONS,
   rememberable,
   SORTS,
   valueLabel,
@@ -457,7 +458,7 @@ function Control({
     );
   }
 
-  return (
+  const list = (
     <div className="flex flex-col gap-2">
       {options.map((option) => {
         const checked = chosen.includes(option.value);
@@ -475,6 +476,46 @@ function Control({
         );
       })}
       {loading}
+    </div>
+  );
+  if (filter.id !== "state") return list;
+
+  // Its regions first, each ticking all of its states at once, then the states one by one.
+  const heading = "text-sm font-medium text-muted-foreground";
+  return (
+    <div className="flex flex-col gap-4">
+      <div role="group" aria-labelledby={`${id}-regions`} className="flex flex-col gap-2">
+        <p id={`${id}-regions`} className={heading}>
+          {words.regionsHeading}
+        </p>
+        {(Object.entries(REGIONS) as [keyof typeof REGIONS, string[]][]).map(([region, states]) => {
+          const some = states.filter((state) => chosen.includes(state)).length;
+          const all = some === states.length;
+          const count = counts ? states.reduce((sum, state) => sum + (counts.find((one) => one.value === state)?.count ?? 0), 0) : undefined;
+          const boxId = `${id}-region-${region}`;
+          const disabled = count === 0 && !some;
+          return (
+            <Choice key={region} id={boxId} label={words.regions[region]} count={count} disabled={disabled}>
+              <Checkbox
+                id={boxId}
+                checked={all}
+                indeterminate={some > 0 && !all}
+                disabled={disabled}
+                // A region partly ticked is ticked whole.
+                onCheckedChange={() =>
+                  apply(edit(query, { state: all ? chosen.filter((state) => !states.includes(state)) : [...chosen, ...states] }))
+                }
+              />
+            </Choice>
+          );
+        })}
+      </div>
+      <div role="group" aria-labelledby={`${id}-states`} className="flex flex-col gap-2">
+        <p id={`${id}-states`} className={heading}>
+          {words.statesHeading}
+        </p>
+        {list}
+      </div>
     </div>
   );
 }

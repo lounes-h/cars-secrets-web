@@ -97,6 +97,21 @@ export const FILTERS: Filter[] = [
   { id: "location", group: "location", kind: "options", options: [{ value: "yard" }, { value: "offsite" }] },
 ];
 
+/** The state filter's regions, the US Census Bureau's nine divisions, each worded in
+    `filters.regions`. The URL holds only their states. DC is left out: no lot is there, and
+    without it all nine fit MAX_VALUES, 50 states. Canada's provinces belong to none. */
+export const REGIONS: Record<keyof Messages["filters"]["regions"], string[]> = {
+  new_england: ["CT", "MA", "ME", "NH", "RI", "VT"],
+  mid_atlantic: ["NJ", "NY", "PA"],
+  east_north_central: ["IL", "IN", "MI", "OH", "WI"],
+  west_north_central: ["IA", "KS", "MN", "MO", "ND", "NE", "SD"],
+  south_atlantic: ["DE", "FL", "GA", "MD", "NC", "SC", "VA", "WV"],
+  east_south_central: ["AL", "KY", "MS", "TN"],
+  west_south_central: ["AR", "LA", "OK", "TX"],
+  mountain: ["AZ", "CO", "ID", "MT", "NM", "NV", "UT", "WY"],
+  pacific: ["AK", "CA", "HI", "OR", "WA"],
+};
+
 /** "All filters", in the order a dealer narrows a search: what the lot is, its shape, its price, its sale, where it is. */
 export const GROUPS = ["vehicle", "condition", "price", "sale", "location"] as const;
 
@@ -269,7 +284,17 @@ export function chips(query: Query, i18n: I18n): Chip[] {
       found.push({ key: filter.id, label: fill(words.chipRange, { label: name, span }), without });
       continue;
     }
-    for (const value of query[filter.id] ?? []) {
+    let values = query[filter.id] ?? [];
+    // A region with every state chosen is one chip, which takes them all away.
+    if (filter.id === "state") {
+      for (const [region, states] of Object.entries(REGIONS) as [keyof typeof REGIONS, string[]][]) {
+        if (!states.every((state) => values.includes(state))) continue;
+        values = values.filter((value) => !states.includes(value));
+        const without = edit(query, { state: query.state.filter((value) => !states.includes(value)) });
+        found.push({ key: `region:${region}`, label: fill(words.chipValue, { label: name, value: words.regions[region] }), without });
+      }
+    }
+    for (const value of values) {
       const option = filter.options?.find((one) => one.value === value);
       const own = option && optionWords(m, filter, option);
       const label =

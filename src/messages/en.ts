@@ -457,6 +457,20 @@ export const en = {
         offsite: { label: "Offsite" },
       },
     },
+    /** The state filter's regions, the US Census Bureau's divisions (REGIONS in src/lib/lot-filters.ts). */
+    regions: {
+      new_england: "New England",
+      mid_atlantic: "Mid-Atlantic",
+      east_north_central: "East North Central",
+      west_north_central: "West North Central",
+      south_atlantic: "South Atlantic",
+      east_south_central: "East South Central",
+      west_south_central: "West South Central",
+      mountain: "Mountain",
+      pacific: "Pacific",
+    },
+    regionsHeading: "Regions",
+    statesHeading: "States and provinces",
     groups: {
       vehicle: "Vehicle",
       condition: "Condition",
