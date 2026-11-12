@@ -35,6 +35,12 @@ const COUNTS = {
   buy_now: [{ value: "yes", count: 19 }],
   keys: [{ value: "no", count: 12 }],
   sale: [{ value: "next_week", count: 40 }],
+  state: [
+    { value: "TX", count: 30 },
+    { value: "OK", count: 5 },
+    { value: "CA", count: 9 },
+    { value: "ON", count: 2 },
+  ],
 };
 
 const CAMRY = { id: "s1", name: "Camry", query: "make=TOYOTA", alerts: true, created_at: "2026-10-07T00:00:00Z" };
@@ -286,6 +292,12 @@ describe("the chips", () => {
     expect(push).toHaveBeenLastCalledWith("/active-lots?sort=year", { scroll: false });
   });
 
+  it("make one chip of a whole region", () => {
+    show({ state: ["CT", "MA", "ME", "NH", "RI", "VT", "TX"] });
+    fireEvent.click(screen.getByRole("button", { name: "Remove State or province: New England" }));
+    expect(push).toHaveBeenLastCalledWith("/active-lots?state=TX&sort=newest", { scroll: false });
+  });
+
   it("are none, and nothing to clear, without filters", () => {
     show({ sort: ["year"] });
     expect(screen.queryByRole("button", { name: "Clear all" })).toBeNull();
@@ -368,6 +380,32 @@ describe("All filters", () => {
     expect(push).toHaveBeenLastCalledWith("/active-lots?keys=no&sort=newest", { scroll: false });
     await unfold(/^Keys/);
     expect(within(panel()).queryByRole("checkbox", { name: /No keys/ })).toBeNull();
+  });
+
+  it("lists the regions above the states, each counted as its states together, partly ticked or off", async () => {
+    show({ state: ["CA", "TX"] });
+    const regions = within(panel()).getByRole("group", { name: "Regions" });
+    // Fixed, so listed before the counts arrive.
+    expect(within(regions).getAllByRole("checkbox")).toHaveLength(9);
+    await counted();
+    // Texas and Oklahoma.
+    const southCentral = within(regions).getByRole("checkbox", { name: /West South Central\s*35/ });
+    expect(southCentral.getAttribute("aria-checked")).toBe("mixed");
+    expect(southCentral.hasAttribute("data-indeterminate")).toBe(true);
+    // No New England lot with the other filters, and none of its states chosen.
+    expect(within(regions).getByRole("checkbox", { name: /New England\s*0/ }).getAttribute("aria-disabled")).toBe("true");
+    // A province belongs to no region.
+    expect(within(panel()).getByRole("group", { name: "States and provinces" }).textContent).toContain("ON");
+    fireEvent.click(southCentral);
+    expect(push).toHaveBeenLastCalledWith("/active-lots?state=CA&state=TX&state=AR&state=LA&state=OK&sort=newest", { scroll: false });
+  });
+
+  it("takes a whole region back, keeping the other states", async () => {
+    show({ state: ["AK", "CA", "HI", "OR", "WA", "TX"] });
+    const pacific = within(await counted()).getByRole("checkbox", { name: /Pacific\s*9/ });
+    expect(checked(pacific)).toBe(true);
+    fireEvent.click(pacific);
+    expect(push).toHaveBeenLastCalledWith("/active-lots?state=TX&sort=newest", { scroll: false });
   });
 
   it("chooses a make, which drops a model of another, and then a model", async () => {

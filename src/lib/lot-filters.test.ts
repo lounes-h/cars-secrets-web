@@ -16,6 +16,7 @@ import {
   promoted,
   queryString,
   readQuery,
+  REGIONS,
   rememberable,
   searched,
   searchName,
@@ -247,6 +248,38 @@ describe("chips", () => {
 
   it("say Future sale as Copart does", () => {
     expect(chips(read("sale=future"), EN)[0].label).toBe("Future sale");
+  });
+});
+
+describe("regions", () => {
+  const STATES =
+    "AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT VA VT WA WI WV WY".split(" ");
+
+  it("are the census divisions, holding every state once, and all of them fit in one filter", () => {
+    const all = Object.values(REGIONS).flat();
+    expect(all.toSorted()).toEqual(STATES);
+    expect(read(all.map((state) => `state=${state}`).join("&")).state).toEqual(all);
+    expect(Object.keys(REGIONS)).toEqual(Object.keys(en.filters.regions));
+  });
+
+  it("make one chip of a region with every state chosen, which takes them all away", () => {
+    const query = read("state=TX&state=CT&state=MA&state=ME&state=NH&state=RI&state=VT&state=NJ&state=NY&sort=sale");
+    const found = chips(query, EN);
+    // New Jersey and New York without Pennsylvania are not the Mid-Atlantic.
+    expect(found.map((chip) => chip.label)).toEqual([
+      "State or province: New England",
+      "State or province: TX",
+      "State or province: NJ",
+      "State or province: NY",
+    ]);
+    expect(queryString(found[0].without)).toBe("state=TX&state=NJ&state=NY&sort=sale");
+    expect(queryString(found[1].without)).toBe("state=CT&state=MA&state=ME&state=NH&state=RI&state=VT&state=NJ&state=NY&sort=sale");
+    expect(searchName(found[2].without, EN)).toBe("State or province: New England, State or province: TX, State or province: NY");
+  });
+
+  it("are named in Spanish", () => {
+    const query = read("state=AK&state=CA&state=HI&state=OR&state=WA");
+    expect(chips(query, { locale: "es", m: es }).map((chip) => chip.label)).toEqual([`${es.filters.labels.state}: Pacífico`]);
   });
 });
 

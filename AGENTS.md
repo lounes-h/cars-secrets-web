@@ -528,7 +528,10 @@ the server-rendered cards) work like this:
   year, since model years run a year ahead, down to 1900 — mileage, engine size — "2.0L", read off Copart's "2.0L 4" — cylinders, transmission, drive train — FWD, RWD, AWD, 4WD, grouped as the lot page's `driveType` does), **Condition** (runs and
   drives, damage, secondary damage, keys), **Price** (current bid, Buy now price, retail value), **Sale** (sale date, title — the
   document the sale hands over — sale type, Buy now available, auction, hidden while every lot
-  has the same one) and **Location** (state or province, yard or offsite). The sidebar leaves
+  has the same one) and **Location** (state or province — the nine US census divisions first,
+  `REGIONS`, each ticking all its states, counted as their sum, partly ticked while only some
+  are, and one chip once all are; the URL keeps only states, and Canada's provinces belong to
+  no region — yard or offsite). The sidebar leaves
   out the bar's own filters (`PRIMARY`: sale date, title, runs and drives, damage, Buy now
   available). Each filter
   folds away (`Collapsible`): folded at first, unfolded from the start while it holds a
