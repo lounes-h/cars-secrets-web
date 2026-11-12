@@ -1,3 +1,9 @@
+## [0.11.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.10.0...v0.11.0) (2026-11-12)
+
+### Features
+
+* add US regions to the state filter ([578adfa](https://github.com/lounes-h/cars-secrets-web/commit/578adfa057922598d8b6eca87be89e77dcd52489))
+
 ## [0.10.0](https://github.com/lounes-h/cars-secrets-web/compare/v0.9.1...v0.10.0) (2026-10-17)
 
 ### Features
